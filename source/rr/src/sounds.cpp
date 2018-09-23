@@ -175,17 +175,13 @@ void S_RestartMusic(void)
 
 void S_MenuSound(void)
 {
-#ifndef EDUKE32_STANDALONE
     static int32_t SoundNum;
     int32_t const menusnds[] = {
         LASERTRIP_EXPLODE, DUKE_GRUNT,       DUKE_LAND_HURT,   CHAINGUN_FIRE, SQUISHED,      KICK_HIT,
         PISTOL_RICOCHET,   PISTOL_BODYHIT,   PISTOL_FIRE,      SHOTGUN_FIRE,  BOS1_WALK,     RPG_EXPLODE,
         PIPEBOMB_BOUNCE,   PIPEBOMB_EXPLODE, NITEVISION_ONOFF, RPG_SHOOT,     SELECT_WEAPON,
     };
-    int32_t s = VM_OnEventWithReturn(EVENT_OPENMENUSOUND, g_player[screenpeek].ps->i, screenpeek, menusnds[SoundNum++ % ARRAY_SIZE(menusnds)]);
-#else
-    int32_t s = VM_OnEventWithReturn(EVENT_OPENMENUSOUND, g_player[screenpeek].ps->i, screenpeek, -1);
-#endif
+    int32_t s = menusnds[SoundNum++ % ARRAY_SIZE(menusnds)];
     if (s != -1)
         S_PlaySound(s);
 }
@@ -286,13 +282,6 @@ static void S_SetMusicIndex(unsigned int m)
 
 int S_TryPlayLevelMusic(unsigned int m)
 {
-    ud.returnvar[0] = m / MAXLEVELS;
-    ud.returnvar[1] = m % MAXLEVELS;
-    int retval = VM_OnEvent(EVENT_PLAYLEVELMUSICSLOT, g_player[myconnectindex].ps->i, myconnectindex);
-
-    if (retval < 0)
-        return 0;
-
     char const * musicfn = g_mapInfo[m].musicfn;
     if (musicfn != NULL)
     {
@@ -337,11 +326,6 @@ void S_PlaySpecialMusicOrNothing(unsigned int m)
         S_StopMusic();
         S_SetMusicIndex(m);
     }
-}
-
-void S_ContinueLevelMusic(void)
-{
-    VM_OnEvent(EVENT_CONTINUELEVELMUSICSLOT, g_player[myconnectindex].ps->i, myconnectindex);
 }
 
 int32_t S_GetMusicPosition(void)
@@ -575,7 +559,6 @@ sound_further_processing:
             !cansee(cam->x,cam->y,cam->z-(24<<8),camsect, SX(i),SY(i),SZ(i)-(24<<8),SECT(i)))
         sndist += sndist>>5;
 
-#ifndef EDUKE32_STANDALONE
     switch (DYNAMICSOUNDMAP(num))
     {
     case PIPEBOMB_EXPLODE__STATIC:
@@ -586,7 +569,6 @@ sound_further_processing:
             sndist = 6144;
         break;
     }
-#endif
 
     if ((g_sounds[num].m & SF_GLOBAL) || sndist < ((255-LOUDESTVOLUME)<<6))
         sndist = ((255-LOUDESTVOLUME)<<6);
@@ -599,7 +581,7 @@ sound_further_processing:
 
 int32_t S_PlaySound3D(int32_t num, int32_t i, const vec3_t *pos)
 {
-    int32_t j = VM_OnEventWithReturn(EVENT_SOUND, i, screenpeek, num);
+    int32_t j = num;
 
     if ((j == -1 && num != -1) || !ud.config.SoundToggle) // check that the user returned -1, but only if -1 wasn't playing already (in which case, warn)
         return -1;
@@ -747,7 +729,7 @@ int32_t S_PlaySound3D(int32_t num, int32_t i, const vec3_t *pos)
 
 int32_t S_PlaySound(int32_t num)
 {
-    int32_t sndnum = VM_OnEventWithReturn(EVENT_SOUND, g_player[screenpeek].ps->i, screenpeek, num);
+    int32_t sndnum = num;
 
     if ((sndnum == -1 && num != -1) || !ud.config.SoundToggle) // check that the user returned -1, but only if -1 wasn't playing already (in which case, warn)
         return -1;

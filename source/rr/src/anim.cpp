@@ -73,12 +73,10 @@ dukeanim_t * Anim_Create(char const * fn)
     return anim;
 }
 
-#ifndef EDUKE32_STANDALONE
 #ifdef DYNSOUNDREMAP_ENABLE
 static int32_t const StopAllSounds = -1;
 #else
 # define StopAllSounds -1
-#endif
 #endif
 
 void Anim_Init(void)
@@ -101,7 +99,6 @@ void Anim_Init(void)
         { PIPEBOMB_EXPLODE, 19 },
     };
 
-#ifndef EDUKE32_STANDALONE
     static defaultanmsound const cineov2[] =
     {
         { WIND_AMBIENCE, 1 },
@@ -168,7 +165,6 @@ void Anim_Init(void)
         { DUKE_UNDERWATER, 40 },
         { BIGBANG, 50 },
     };
-#endif
 
     struct defaultanm {
         char const *fn;
@@ -182,7 +178,6 @@ void Anim_Init(void)
     {
         { "logo.anm", anmsnd(logo), 9 },
         { "3dr.anm", NULL, 0, 10 },
-#ifndef EDUKE32_STANDALONE
         { "vol4e1.anm", anmsnd(vol4e1), 10 },
         { "vol4e2.anm", anmsnd(vol4e2), 14 },
         { "vol4e3.anm", anmsnd(vol4e3), 10 },
@@ -193,7 +188,6 @@ void Anim_Init(void)
         { "radlogo.anm", NULL, 0, 10 },
         { "cineov2.anm", anmsnd(cineov2), 18 },
         { "cineov3.anm", anmsnd(cineov3), 10 },
-#endif
     };
 #undef anmsnd
 
@@ -329,8 +323,6 @@ int32_t Anim_Play(const char *fn)
             if (!pic)
                 break;  // no more pics!
 
-            VM_OnEventWithReturn(EVENT_PRECUTSCENE, g_player[screenpeek].ps->i, screenpeek, framenum);
-
             videoClearScreen(0);
 
             ototalclock = totalclock + 1; // pause game like ANMs
@@ -349,8 +341,6 @@ int32_t Anim_Play(const char *fn)
                 else
                     animvpx_render_frame(&codec, origanim->frameaspect1 / origanim->frameaspect2);
             }
-
-            VM_OnEventWithReturn(EVENT_CUTSCENE, g_player[screenpeek].ps->i, screenpeek, framenum);
 
             // after rendering the frame but before displaying: maybe play sound...
             framenum++;
@@ -393,7 +383,7 @@ int32_t Anim_Play(const char *fn)
             {
                 G_HandleAsync();
 
-                if (VM_OnEventWithReturn(EVENT_SKIPCUTSCENE, g_player[screenpeek].ps->i, screenpeek, I_CheckAllInput()))
+                if (I_CheckAllInput())
                 {
                     running = 0;
                     break;
@@ -495,12 +485,10 @@ int32_t Anim_Play(const char *fn)
         if (totalclock < ototalclock - 1)
             continue;
 
-        i = VM_OnEventWithReturn(EVENT_PRECUTSCENE, g_player[screenpeek].ps->i, screenpeek, i);
-
         waloff[TILE_ANIM] = (intptr_t)ANIM_DrawFrame(i);
         tileInvalidate(TILE_ANIM, 0, 1 << 4);  // JBF 20031228
 
-        if (VM_OnEventWithReturn(EVENT_SKIPCUTSCENE, g_player[screenpeek].ps->i, screenpeek, I_CheckAllInput()))
+        if (I_CheckAllInput())
         {
             running = 0;
             goto end_anim_restore_gl;
@@ -538,8 +526,6 @@ int32_t Anim_Play(const char *fn)
             rotatesprite_fs(160<<16, 100<<16, z, 512, TILE_ANIM, 0, 0, 2|4|8|64);
         }
 
-        g_animPtr = anim;
-        i = VM_OnEventWithReturn(EVENT_CUTSCENE, g_player[screenpeek].ps->i, screenpeek, i);
         g_animPtr = NULL;
 
         videoNextPage();

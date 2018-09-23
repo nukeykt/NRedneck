@@ -24,11 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "premap.h"
 #include "prlights.h"
 #include "savegame.h"
-#ifdef LUNATIC
-# include "lunatic_game.h"
-static int32_t g_savedOK;
-const char *g_failedVarname;
-#endif
 
 static OutputFileCounter savecounter;
 
@@ -354,8 +349,6 @@ int32_t G_LoadPlayer(savebrief_t & sv)
         return 1;
     }
 
-    VM_OnEvent(EVENT_PRELOADGAME, g_player[screenpeek].ps->i, screenpeek);
-
     // some setup first
     ud.multimode = h.numplayers;
 
@@ -417,8 +410,6 @@ int32_t G_LoadPlayer(savebrief_t & sv)
         }
     }
     sv_postudload();  // ud.m_XXX = ud.XXX
-
-    VM_OnEvent(EVENT_LOADGAME, g_player[screenpeek].ps->i, screenpeek);
 
     kclose(fil);
 
@@ -580,8 +571,6 @@ int32_t G_SavePlayer(savebrief_t & sv, bool isAutoSave)
         polymer_resetlights();
 #endif
 
-    VM_OnEvent(EVENT_SAVEGAME, g_player[screenpeek].ps->i, screenpeek);
-
     // SAVE!
     sv_saveandmakesnapshot(fil, sv.name, 0, 0, 0, 0, isAutoSave);
 
@@ -589,11 +578,6 @@ int32_t G_SavePlayer(savebrief_t & sv, bool isAutoSave)
 
     if (!g_netServer && ud.multimode < 2)
     {
-#ifdef LUNATIC
-        if (!g_savedOK)
-            Bstrcpy(apStrings[QUOTE_RESERVED4], "^10Failed Saving Game");
-        else
-#endif
             Bstrcpy(apStrings[QUOTE_RESERVED4], "Game Saved");
         P_DoQuote(QUOTE_RESERVED4, g_player[myconnectindex].ps);
     }
@@ -603,8 +587,6 @@ int32_t G_SavePlayer(savebrief_t & sv, bool isAutoSave)
 
     G_RestoreTimers();
     ototalclock = totalclock;
-
-    VM_OnEvent(EVENT_POSTSAVEGAME, g_player[screenpeek].ps->i, screenpeek);
 
     return 0;
 
@@ -1097,19 +1079,8 @@ static uint32_t calcsz(const dataspec_t *spec)
 static void sv_prespriteextsave();
 static void sv_postspriteext();
 #endif
-#if !defined LUNATIC
 static void sv_prescriptsave_once();
 static void sv_postscript_once();
-#else
-// Recreate Lua state.
-// XXX: It may matter a great deal when this is run from if the Lua code refers
-// to C-side data at file scope. Such usage is strongly discouraged though.
-static void sv_create_lua_state(void)
-{
-    El_CreateGameState();
-    G_PostCreateGameState();
-}
-#endif
 static void sv_postactordata();
 static void sv_preanimateptrsave();
 static void sv_postanimateptr();
@@ -1122,12 +1093,6 @@ static void sv_quoteredefload();
 static void sv_postquoteredef();
 static void sv_restsave();
 static void sv_restload();
-static void sv_preprojectilesave();
-static void sv_postprojectilesave();
-static void sv_preprojectileload();
-static void sv_postprojectileload();
-
-static projectile_t *ProjectileData;
 
 #define SVARDATALEN \
     ((sizeof(g_player[0].user_name)+sizeof(g_player[0].pcolor)+sizeof(g_player[0].pteam) \
@@ -1175,11 +1140,6 @@ static const dataspec_t svgm_udnetw[] =
     { 0, connectpoint2, sizeof(connectpoint2), 1 },
     { 0, &randomseed, sizeof(randomseed), 1 },
     { 0, &g_globalRandom, sizeof(g_globalRandom), 1 },
-#ifdef LUNATIC
-    // Save game tic count for Lunatic because it is exposed to userland. See
-    // test/helixspawner.lua for an example.
-    { 0, &g_moveThingsCount, sizeof(g_moveThingsCount), 1 },
-#endif
 //    { 0, &lockclock_dummy, sizeof(lockclock), 1 },
     { DS_END, 0, 0, 0 }
 };
@@ -1232,8 +1192,7 @@ static const dataspec_t svgm_secwsp[] =
     { DS_NOCHK, &g_mirrorCount, sizeof(g_mirrorCount), 1 },
     { DS_NOCHK, &g_mirrorWall[0], sizeof(g_mirrorWall[0]), ARRAY_SIZE(g_mirrorWall) },
     { DS_NOCHK, &g_mirrorSector[0], sizeof(g_mirrorSector[0]), ARRAY_SIZE(g_mirrorSector) },
-// projectiles
-    { 0, &SpriteProjectile[0], sizeof(projectile_t), MAXSPRITES },
+
     { 0, &everyothertime, sizeof(everyothertime), 1 },
     { DS_END, 0, 0, 0 }
 };
@@ -1242,23 +1201,11 @@ static char svgm_script_string [] = "blK:scri";
 static const dataspec_t svgm_script[] =
 {
     { DS_STRING, (void *)svgm_script_string, 0, 1 },
-#if !defined LUNATIC
     { DS_SAVEFN|DS_NOCHK, (void *)&sv_prescriptsave_once, 0, 1 },
-#endif
-    { DS_SAVEFN, (void *) &sv_preprojectilesave, 0, 1 },
-    { DS_LOADFN, (void *) &sv_preprojectileload, 0, 1 },
     { DS_NOCHK, &g_tile[0], sizeof(tiledata_t), MAXTILES },
-    { DS_DYNAMIC|DS_CNT(g_numProjectiles), &ProjectileData, sizeof(projectile_t), (intptr_t)&g_numProjectiles },
-    { DS_SAVEFN, (void *) &sv_postprojectilesave, 0, 1 },
-    { DS_LOADFN, (void *) &sv_postprojectileload, 0, 1 },
-#if !defined LUNATIC
     { DS_SAVEFN|DS_LOADFN|DS_NOCHK, (void *)&sv_postscript_once, 0, 1 },
-#endif
     { 0, &actor[0], sizeof(actor_t), MAXSPRITES },
     { DS_SAVEFN|DS_LOADFN, (void *)&sv_postactordata, 0, 1 },
-#if defined LUNATIC
-    { DS_LOADFN|DS_NOCHK, (void *)&sv_create_lua_state, 0, 1 },
-#endif
     { DS_END, 0, 0, 0 }
 };
 
@@ -1299,9 +1246,6 @@ static const dataspec_t svgm_anmisc[] =
     { DS_NOCHK|DS_DYNAMIC|DS_CNT(g_numXStrings), &savegame_quoteredefs, MAXQUOTELEN, (intptr_t)&g_numXStrings },
     { DS_NOCHK|DS_LOADFN, (void *)&sv_quoteredefload, 0, 1 },
     { DS_NOCHK|DS_SAVEFN|DS_LOADFN, (void *)&sv_postquoteredef, 0, 1 },
-#ifdef LUNATIC
-    { 0, g_playerWeapon, sizeof(weapondata_t), MAXPLAYERS*MAX_WEAPONS },
-#endif
     { DS_SAVEFN, (void *)&sv_restsave, 0, 1 },
     { 0, savegame_restdata, 1, sizeof(savegame_restdata) },  // sz/cnt swapped for kdfread
     { DS_LOADFN, (void *)&sv_restload, 0, 1 },
@@ -1310,9 +1254,6 @@ static const dataspec_t svgm_anmisc[] =
     { DS_END, 0, 0, 0 }
 };
 
-#if !defined LUNATIC
-static dataspec_gv_t *svgm_vars=NULL;
-#endif
 static uint8_t *dosaveplayer2(FILE *fil, uint8_t *mem);
 static int32_t doloadplayer2(int32_t fil, uint8_t **memptr);
 static void postloadplayer(int32_t savegamep);
@@ -1325,74 +1266,7 @@ static uint8_t *svdiff;
 
 #include "gamedef.h"
 
-#if !defined LUNATIC
 #define SV_SKIPMASK (/*GAMEVAR_SYSTEM|*/ GAMEVAR_READONLY | GAMEVAR_PTR_MASK | /*GAMEVAR_NORESET |*/ GAMEVAR_SPECIAL)
-
-static char svgm_vars_string [] = "blK:vars";
-// setup gamevar data spec for snapshotting and diffing... gamevars must be loaded when called
-static void sv_makevarspec()
-{
-    static char *magic = svgm_vars_string;
-    int32_t i, j, numsavedvars=0, numsavedarrays=0, per;
-
-    for (i=0; i<g_gameVarCount; i++)
-        numsavedvars += (aGameVars[i].flags&SV_SKIPMASK) ? 0 : 1;
-
-    for (i=0; i<g_gameArrayCount; i++)
-        numsavedarrays += !(aGameArrays[i].flags & (GAMEARRAY_SYSTEM|GAMEARRAY_READONLY));  // SYSTEM_GAMEARRAY
-
-    Bfree(svgm_vars);
-    svgm_vars = (dataspec_gv_t *)Xmalloc((numsavedvars+numsavedarrays+2)*sizeof(dataspec_gv_t));
-
-    svgm_vars[0].flags = DS_STRING;
-    svgm_vars[0].ptr = magic;
-    svgm_vars[0].cnt = 1;
-
-    j=1;
-    for (i=0; i<g_gameVarCount; i++)
-    {
-        if (aGameVars[i].flags&SV_SKIPMASK)
-            continue;
-
-        per = aGameVars[i].flags&GAMEVAR_USER_MASK;
-
-        svgm_vars[j].flags = 0;
-        svgm_vars[j].ptr = (per==0) ? &aGameVars[i].global : aGameVars[i].pValues;
-        svgm_vars[j].size = sizeof(intptr_t);
-        svgm_vars[j].cnt = (per==0) ? 1 : (per==GAMEVAR_PERPLAYER ? MAXPLAYERS : MAXSPRITES);
-        j++;
-    }
-
-    for (i=0; i<g_gameArrayCount; i++)
-    {
-        // We must not update read-only SYSTEM_GAMEARRAY gamearrays: besides
-        // being questionable by itself, sizeof(...) may be e.g. 4 whereas the
-        // actual element type is int16_t (such as tilesizx[]/tilesizy[]).
-        if (aGameArrays[i].flags & (GAMEARRAY_SYSTEM|GAMEARRAY_READONLY))
-            continue;
-
-        intptr_t * const plValues = aGameArrays[i].pValues;
-        svgm_vars[j].flags = 0;
-        svgm_vars[j].ptr = plValues;
-
-        if (aGameArrays[i].flags & GAMEARRAY_BITMAP)
-        {
-            svgm_vars[j].size = (aGameArrays[i].size + 7) >> 3;
-            svgm_vars[j].cnt = 1;  // assumed constant throughout demo, i.e. no RESIZEARRAY
-        }
-        else
-        {
-            svgm_vars[j].size = plValues == NULL ? 0 : sizeof(aGameArrays[0].pValues[0]);
-            svgm_vars[j].cnt = aGameArrays[i].size;  // assumed constant throughout demo, i.e. no RESIZEARRAY
-        }
-        j++;
-    }
-
-    svgm_vars[j].flags = DS_END;
-    svgm_vars[j].ptr = NULL;
-    svgm_vars[j].size = svgm_vars[j].cnt = 0;
-}
-#endif
 
 void sv_freemem()
 {
@@ -1422,13 +1296,7 @@ int32_t sv_saveandmakesnapshot(FILE *fil, char const *name, int8_t spot, int8_t 
     savegame_diffcompress = diffcompress;
 
     // calculate total snapshot size
-#if !defined LUNATIC
-    sv_makevarspec();
-    svsnapsiz = calcsz((const dataspec_t *)svgm_vars);
-#else
-    svsnapsiz = 0;
-#endif
-    svsnapsiz += calcsz(svgm_udnetw) + calcsz(svgm_secwsp) + calcsz(svgm_script) + calcsz(svgm_anmisc);
+    svsnapsiz = calcsz(svgm_udnetw) + calcsz(svgm_secwsp) + calcsz(svgm_script) + calcsz(svgm_anmisc);
 
 
     // create header
@@ -1511,15 +1379,6 @@ int32_t sv_saveandmakesnapshot(FILE *fil, char const *name, int8_t spot, int8_t 
     {
         // savegame
         dosaveplayer2(fil, NULL);
-#ifdef LUNATIC
-        if (!g_savedOK)
-        {
-            OSD_Printf("sv_saveandmakesnapshot: failed serializing Lunatic gamevar \"%s\".\n",
-                       g_failedVarname);
-            g_failedVarname = NULL;
-            return 1;
-        }
-#endif
     }
     else
     {
@@ -1693,9 +1552,6 @@ uint32_t sv_writediff(FILE *fil)
     cmpspecdata(svgm_secwsp, &p, &d);
     cmpspecdata(svgm_script, &p, &d);
     cmpspecdata(svgm_anmisc, &p, &d);
-#if !defined LUNATIC
-    cmpspecdata((const dataspec_t *)svgm_vars, &p, &d);
-#endif
 
     if (p != svsnapshot+svsnapsiz)
         OSD_Printf("sv_writediff: dump+siz=%p, p=%p!\n", svsnapshot+svsnapsiz, p);
@@ -1740,9 +1596,6 @@ int32_t sv_readdiff(int32_t fil)
     if (applydiff(svgm_secwsp, &p, &d)) return -4;
     if (applydiff(svgm_script, &p, &d)) return -5;
     if (applydiff(svgm_anmisc, &p, &d)) return -6;
-#if !defined LUNATIC
-    if (applydiff((const dataspec_t *)svgm_vars, &p, &d)) return -7;
-#endif
 
     if (p!=svsnapshot+svsnapsiz)
         i|=1;
@@ -1802,7 +1655,6 @@ void sv_postyaxload(void)
 }
 #endif
 
-#if !defined LUNATIC
 static void sv_prescriptsave_once()
 {
    G_Util_PtrToIdx2(&g_tile[0].execPtr, MAXTILES, sizeof(tiledata_t), apScript, P2I_FWD_NON0);
@@ -1814,7 +1666,6 @@ static void sv_postscript_once()
    G_Util_PtrToIdx2(&g_tile[0].execPtr, MAXTILES, sizeof(tiledata_t), apScript, P2I_BACK_NON0);
    G_Util_PtrToIdx2(&g_tile[0].loadPtr, MAXTILES, sizeof(tiledata_t), apScript, P2I_BACK_NON0);
 }
-#endif
 
 static void sv_postactordata()
 {
@@ -1865,69 +1716,6 @@ static void sv_quoteload()
             Bmemcpy(apStrings[i], savegame_quotes[i], MAXQUOTELEN);
         }
     }
-}
-
-static void sv_preprojectilesave()
-{
-    if (ProjectileData != NULL || g_numProjectiles > 0)
-        ProjectileData = (projectile_t *) Xrealloc(ProjectileData, sizeof(projectile_t) * g_numProjectiles);
-#ifdef DEBUGGINGAIDS
-    int onumprojectiles = g_numProjectiles;
-#endif
-    g_numProjectiles = 0;
-
-    for (bssize_t i=0; i<MAXTILES; i++)
-    {
-        if (g_tile[i].proj)
-        {
-            Bmemcpy(&ProjectileData[g_numProjectiles], g_tile[i].proj, sizeof(projectile_t));
-            Bmemcpy(&ProjectileData[g_numProjectiles+1], g_tile[i].defproj, sizeof(projectile_t));
-            g_numProjectiles += 2;
-        }
-    }
-
-#ifdef DEBUGGINGAIDS
-    Bassert(g_numProjectiles == onumprojectiles);
-#endif
-}
-
-static void sv_postprojectilesave()
-{
-//    DO_FREE_AND_NULL(ProjectileData);
-}
-
-static void sv_preprojectileload()
-{
-    if (ProjectileData != NULL || g_numProjectiles > 0)
-        ProjectileData = (projectile_t *) Xrealloc(ProjectileData, sizeof(projectile_t) * g_numProjectiles);
-
-    for (bssize_t i=0; i<MAXTILES; i++)
-        C_FreeProjectile(i);
-}
-
-static void sv_postprojectileload()
-{
-#ifdef DEBUGGINGAIDS
-    int onumprojectiles = g_numProjectiles;
-#endif
-    g_numProjectiles = 0;
-
-    for (bssize_t i=0; i<MAXTILES; i++)
-    {
-        if (g_tile[i].proj)
-        {
-            C_AllocProjectile(i);
-            Bmemcpy(g_tile[i].proj, &ProjectileData[g_numProjectiles], sizeof(projectile_t));
-            Bmemcpy(g_tile[i].defproj, &ProjectileData[g_numProjectiles+1], sizeof(projectile_t));
-            g_numProjectiles += 2;
-        }
-    }
-
-#ifdef DEBUGGINGAIDS
-    Bassert(g_numProjectiles == onumprojectiles);
-#endif
-
-//    DO_FREE_AND_NULL(ProjectileData);
 }
 
 static void sv_prequoteredef()
@@ -2011,12 +1799,6 @@ static void sv_restload()
 # define PRINTSIZE(name) do { } while (0)
 #endif
 
-#ifdef LUNATIC
-// <levelnum>: if we're not serializing for a mapstate, -1
-//  otherwise, the linearized level number
-LUNATIC_CB const char *(*El_SerializeGamevars)(int32_t *slenptr, int32_t levelnum);
-#endif
-
 static uint8_t *dosaveplayer2(FILE *fil, uint8_t *mem)
 {
 #ifdef DEBUGGINGAIDS
@@ -2027,105 +1809,13 @@ static uint8_t *dosaveplayer2(FILE *fil, uint8_t *mem)
     PRINTSIZE("ud");
     mem=writespecdata(svgm_secwsp, fil, mem);  // sector, wall, sprite
     PRINTSIZE("sws");
-#ifdef LUNATIC
-    {
-        // Serialize Lunatic gamevars. When loading, the restoration code must
-        // be present before Lua state creation in svgm_script, so save it
-        // right before, too.
-        int32_t slen, slen_ext;
-        const char *svcode = El_SerializeGamevars(&slen, -1);
-
-        if (slen < 0)
-        {
-            // Serialization failed.
-            g_savedOK = 0;
-            g_failedVarname = svcode;
-            return mem;
-        }
-
-        fwrite("\0\1LunaGVAR\3\4", 12, 1, fil);
-        slen_ext = B_LITTLE32(slen);
-        fwrite(&slen_ext, sizeof(slen_ext), 1, fil);
-        dfwrite_LZ4(svcode, 1, slen, fil);  // cnt and sz swapped
-
-        g_savedOK = 1;
-    }
-#endif
     mem=writespecdata(svgm_script, fil, mem);  // script
     PRINTSIZE("script");
     mem=writespecdata(svgm_anmisc, fil, mem);  // animates, quotes & misc.
     PRINTSIZE("animisc");
 
-#if !defined LUNATIC
-    Gv_WriteSave(fil);  // gamevars
-    mem=writespecdata((const dataspec_t *)svgm_vars, 0, mem);
-    PRINTSIZE("vars");
-#endif
-
     return mem;
 }
-
-#ifdef LUNATIC
-char *g_elSavecode = NULL;
-
-static int32_t El_ReadSaveCode(int32_t fil)
-{
-    // Read Lua code to restore gamevar values from the savegame.
-    // It will be run from Lua with its state creation later on.
-
-    char header[12];
-    int32_t slen;
-
-    if (kread(fil, header, 12) != 12)
-    {
-        OSD_Printf("doloadplayer2: failed reading Lunatic gamevar header.\n");
-        return -100;
-    }
-
-    if (Bmemcmp(header, "\0\1LunaGVAR\3\4", 12))
-    {
-        OSD_Printf("doloadplayer2: Lunatic gamevar header doesn't match.\n");
-        return -101;
-    }
-
-    if (kread(fil, &slen, sizeof(slen)) != sizeof(slen))
-    {
-        OSD_Printf("doloadplayer2: failed reading Lunatic gamevar string size.\n");
-        return -102;
-    }
-
-    slen = B_LITTLE32(slen);
-    if (slen < 0)
-    {
-        OSD_Printf("doloadplayer2: invalid Lunatic gamevar string size %d.\n", slen);
-        return -103;
-    }
-
-    if (slen > 0)
-    {
-        char *svcode = (char *)Xmalloc(slen+1);
-
-        if (kdfread_LZ4(svcode, 1, slen, fil) != slen)  // cnt and sz swapped
-        {
-            OSD_Printf("doloadplayer2: failed reading Lunatic gamevar restoration code.\n");
-            Bfree(svcode);
-            return -104;
-        }
-
-        svcode[slen] = 0;
-        g_elSavecode = svcode;
-    }
-
-    return 0;
-}
-
-void El_FreeSaveCode(void)
-{
-    // Free Lunatic gamevar savegame restoration Lua code.
-    Bfree(g_elSavecode);
-    g_elSavecode = NULL;
-}
-#endif
 
 static int32_t doloadplayer2(int32_t fil, uint8_t **memptr)
 {
@@ -2138,36 +1828,10 @@ static int32_t doloadplayer2(int32_t fil, uint8_t **memptr)
     PRINTSIZE("ud");
     if (readspecdata(svgm_secwsp, fil, &mem)) return -4;
     PRINTSIZE("sws");
-#ifdef LUNATIC
-    {
-        int32_t ret = El_ReadSaveCode(fil);
-        if (ret < 0)
-            return ret;
-    }
-#endif
     if (readspecdata(svgm_script, fil, &mem)) return -5;
     PRINTSIZE("script");
     if (readspecdata(svgm_anmisc, fil, &mem)) return -6;
     PRINTSIZE("animisc");
-
-#if !defined LUNATIC
-    int i;
-
-    if ((i = Gv_ReadSave(fil))) return i;
-
-    if (mem)
-    {
-        int32_t i;
-
-        sv_makevarspec();
-        for (i=1; svgm_vars[i].flags!=DS_END; i++)
-        {
-            Bmemcpy(mem, svgm_vars[i].ptr, svgm_vars[i].size*svgm_vars[i].cnt);  // careful! works because there are no DS_DYNAMIC's!
-            mem += svgm_vars[i].size*svgm_vars[i].cnt;
-        }
-    }
-    PRINTSIZE("vars");
-#endif
 
     if (memptr)
         *memptr = mem;
@@ -2185,10 +1849,6 @@ int32_t sv_updatestate(int32_t frominit)
     if (readspecdata(svgm_secwsp, -1, &p)) return -4;
     if (readspecdata(svgm_script, -1, &p)) return -5;
     if (readspecdata(svgm_anmisc, -1, &p)) return -6;
-
-#if !defined LUNATIC
-    if (readspecdata((const dataspec_t *)svgm_vars, -1, &p)) return -8;
-#endif
 
     if (p != pbeg+svsnapsiz)
     {
@@ -2242,8 +1902,6 @@ static void postloadplayer(int32_t savegamep)
             ud.music_level   = g_musicIndex % MAXLEVELS;
             S_PlayLevelMusicOrNothing(musicIdx);
         }
-        else
-            S_ContinueLevelMusic();
 
         if (ud.config.MusicToggle)
             S_PauseMusic(0);
@@ -2324,11 +1982,7 @@ static void postloadplayer(int32_t savegamep)
 
     //8
     // if (savegamep)  ?
-#ifdef LUNATIC
-    G_ResetTimers(1);
-#else
     G_ResetTimers(0);
-#endif
 
 #ifdef POLYMER
     //9

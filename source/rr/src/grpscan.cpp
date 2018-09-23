@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "common_game.h"
 #include "grpscan.h"
 
-#ifndef EDUKE32_STANDALONE
 static void process_vaca13(int32_t crcval);
 static void process_vacapp15(int32_t crcval);
 
@@ -70,7 +69,6 @@ static internalgrpinfo_t const internalgrpfiles[] =
     { "WWII GI",                               WW2GI_CRC,   77939508, GAMEFLAG_WW2GI,                        0, NULL, NULL},
     { "Platoon Leader",                        PLATOONL_CRC, 37852572, GAMEFLAG_WW2GI|GAMEFLAG_ADDON,        WW2GI_CRC, "PLATOONL.DEF", NULL},
 };
-#endif
 
 struct grpfile_t *foundgrps = NULL;
 struct grpinfo_t *listgrps = NULL;
@@ -82,7 +80,6 @@ static void LoadList(const char * filename)
     if (!script)
         return;
 
-#ifndef EDUKE32_STANDALONE
     scriptfile_addsymbolvalue("GAMEFLAG_DUKE", GAMEFLAG_DUKE);
     scriptfile_addsymbolvalue("GAMEFLAG_ADDON", GAMEFLAG_DUKE|GAMEFLAG_ADDON);
     scriptfile_addsymbolvalue("GAMEFLAG_NAM", GAMEFLAG_NAM);
@@ -104,7 +101,6 @@ static void LoadList(const char * filename)
     scriptfile_addsymbolvalue("NAM_CRC", NAM_CRC);
     scriptfile_addsymbolvalue("NAPALM_CRC", NAPALM_CRC);
     scriptfile_addsymbolvalue("WW2GI_CRC", WW2GI_CRC);
-#endif
 
     while (!scriptfile_eof(script))
     {
@@ -213,7 +209,6 @@ static void LoadList(const char * filename)
 
 static void LoadGameList(void)
 {
-#ifndef EDUKE32_STANDALONE
     for (size_t i = 0; i < ARRAY_SIZE(internalgrpfiles); i++)
     {
         grpinfo_t * const fg = (grpinfo_t *)Xcalloc(1, sizeof(grpinfo_t));
@@ -232,7 +227,6 @@ static void LoadGameList(void)
         fg->next = listgrps;
         listgrps = fg;
     }
-#endif
 
     CACHE1D_FIND_REC * const srch = klistpath("/", "*.grpinfo", CACHE1D_FIND_FILE);
 
@@ -529,7 +523,6 @@ void FreeGroups(void)
     FreeGameList();
 }
 
-#ifndef EDUKE32_STANDALONE
 static void process_vaca13(int32_t crcval)
 {
     krename(crcval, 0, "ADDREE.VOC");
@@ -671,4 +664,3 @@ static void process_vacapp15(int32_t crcval)
 
     initgroupfile("VACATION.PRG");
 }
-#endif

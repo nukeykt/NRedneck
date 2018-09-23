@@ -38,11 +38,9 @@ const char *g_gameNamePtr = NULL;
 // grp/con handling
 
 static const char *defaultconfilename                = "GAME.CON";
-#ifndef EDUKE32_STANDALONE
 static const char *defaultgamegrp[GAMECOUNT]         = { "DUKE3D.GRP", "NAM.GRP", "NAPALM.GRP", "WW2GI.GRP" };
 static const char *defaultdeffilename[GAMECOUNT]     = { "duke3d.def", "nam.def", "napalm.def", "ww2gi.def" };
 static const char *defaultgameconfilename[GAMECOUNT] = { "EDUKE.CON", "NAM.CON", "NAPALM.CON", "WW2GI.CON" };
-#endif
 
 // g_grpNamePtr can ONLY point to a malloc'd block (length BMAX_PATH)
 char *g_grpNamePtr = NULL;
@@ -65,7 +63,6 @@ void clearScriptNamePtr(void)
 
 const char *G_DefaultGrpFile(void)
 {
-#ifndef EDUKE32_STANDALONE
     if (DUKE)
         return defaultgamegrp[GAME_DUKE];
     else if (NAPALM)
@@ -76,13 +73,9 @@ const char *G_DefaultGrpFile(void)
         return defaultgamegrp[GAME_NAM];
 
     return defaultgamegrp[0];
-#else
-    return "(none)";
-#endif
 }
 const char *G_DefaultDefFile(void)
 {
-#ifndef EDUKE32_STANDALONE
     if (DUKE)
         return defaultdeffilename[GAME_DUKE];
     else if (WW2GI)
@@ -103,13 +96,9 @@ const char *G_DefaultDefFile(void)
     }
 
     return defaultdeffilename[0];
-#else
-    return "(none)";
-#endif
 }
 const char *G_DefaultConFile(void)
 {
-#ifndef EDUKE32_STANDALONE
     if (DUKE && testkopen(defaultgameconfilename[GAME_DUKE],0))
         return defaultgameconfilename[GAME_DUKE];
     else if (WW2GI && testkopen(defaultgameconfilename[GAME_WW2GI],0))
@@ -134,7 +123,6 @@ const char *G_DefaultConFile(void)
         else
             return defaultgameconfilename[GAME_NAM];
     }
-#endif
     return defaultconfilename;
 }
 
@@ -304,7 +292,7 @@ void G_ExtInit(void)
         }
     }
 
-#if defined(_WIN32) && !defined(EDUKE32_STANDALONE)
+#if defined(_WIN32)
     if (!access("user_profiles_enabled", F_OK))
 #else
     if (g_useCwd == 0 && access("user_profiles_disabled", F_OK))
@@ -337,7 +325,6 @@ void G_ExtInit(void)
     }
 
     // JBF 20031220: Because it's annoying renaming GRP files whenever I want to test different game data
-#ifndef EDUKE32_STANDALONE
     if (g_grpNamePtr == NULL)
     {
         const char *cp = getenv("DUKE3DGRP");
@@ -348,7 +335,6 @@ void G_ExtInit(void)
             initprintf("Using \"%s\" as main GRP file\n", g_grpNamePtr);
         }
     }
-#endif
 }
 
 void G_ScanGroups(void)
@@ -476,7 +462,6 @@ void G_LoadGroups(int32_t autoload)
     if (g_modDir[0] != '/')
         G_LoadGroupsInDir(g_modDir);
 
-#ifndef EDUKE32_STANDALONE
     if (g_defNamePtr == NULL)
     {
         const char *tmpptr = getenv("DUKE3DDEF");
@@ -487,7 +472,6 @@ void G_LoadGroups(int32_t autoload)
             initprintf("Using \"%s\" as definitions file\n", g_defNamePtr);
         }
     }
-#endif
 
     loaddefinitions_game(G_DefFile(), TRUE);
 
@@ -519,7 +503,7 @@ void G_LoadGroups(int32_t autoload)
     pathsearchmode = bakpathsearchmode;
 }
 
-#if defined _WIN32 && !defined EDUKE32_STANDALONE
+#if defined _WIN32
 static int G_ReadRegistryValue(char const * const SubKey, char const * const Value, char * const Output, DWORD * OutputSize)
 {
     // KEY_WOW64_32KEY gets us around Wow6432Node on 64-bit builds
@@ -547,7 +531,6 @@ static int G_ReadRegistryValue(char const * const SubKey, char const * const Val
 
 static void G_LoadAddon(void)
 {
-#ifndef EDUKE32_STANDALONE
     int32_t crc = 0;  // compiler-happy
 
     switch (g_addonNum)
@@ -569,10 +552,8 @@ static void G_LoadAddon(void)
 
     if (grp)
         g_selectedGrp = grp;
-#endif
 }
 
-#ifndef EDUKE32_STANDALONE
 #ifndef EDUKE32_TOUCH_DEVICES
 #if defined EDUKE32_OSX || defined __linux__ || defined EDUKE32_BSD
 static void G_AddSteamPaths(const char *basepath)
@@ -776,11 +757,9 @@ static void G_ParseSteamKeyValuesForPaths(const char *vdf)
 }
 #endif
 #endif
-#endif
 
 void G_AddSearchPaths(void)
 {
-#ifndef EDUKE32_STANDALONE
 #ifndef EDUKE32_TOUCH_DEVICES
 #if defined __linux__ || defined EDUKE32_BSD
     char buf[BMAX_PATH];
@@ -919,7 +898,6 @@ void G_AddSearchPaths(void)
         Bstrncpy(suffix, "/WW2GI", remaining);
         addsearchpath_user(buf, SEARCHPATH_WW2GI);
     }
-#endif
 #endif
 #endif
 }

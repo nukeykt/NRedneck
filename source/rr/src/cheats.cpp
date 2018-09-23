@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // KEEPINSYNC game.h: enum cheatindex_t
 char CheatStrings [NUMCHEATS][MAXCHEATLEN] =
 {
-#ifndef EDUKE32_STANDALONE
     "cornholio",    // 0
     "stuff",        // 1
     "scotty###",    // 2
@@ -55,7 +54,6 @@ char CheatStrings [NUMCHEATS][MAXCHEATLEN] =
     "debug",        // 24
     "<RESERVED>",   // 25
     "cgs",          // 26
-#endif
 };
 
 const uint32_t CheatFunctionFlags [NUMCHEATS] =
@@ -118,7 +116,6 @@ const uint8_t CheatFunctionIDs[NUMCHEATS] =
 
 char const * const g_NAMMattCheatQuote = "Matt Saettler.  matts@saettler.com";
 
-#ifndef EDUKE32_STANDALONE
 void G_SetupCheats(void)
 {
     // KEEPINSYNC: NAM_WW2GI_CHEATS
@@ -192,25 +189,23 @@ void G_SetupCheats(void)
         Bstrcpy(g_gametypeNames[2], "GruntMatch (No Spawn)");
     }
 }
-#endif
 
-static void doinvcheat(DukePlayer_t * const pPlayer, int32_t invidx, int32_t defaultnum, int32_t event)
+static void doinvcheat(DukePlayer_t * const pPlayer, int32_t invidx, int32_t defaultnum)
 {
-    defaultnum = VM_OnEventWithReturn(event, pPlayer->i, myconnectindex, defaultnum);
     if (defaultnum >= 0)
         pPlayer->inv_amount[invidx] = defaultnum;
 }
 
 static void G_CheatGetInv(DukePlayer_t *pPlayer)
 {
-    doinvcheat(pPlayer, GET_STEROIDS, 400, EVENT_CHEATGETSTEROIDS);
-    doinvcheat(pPlayer, GET_HEATS, 1200, EVENT_CHEATGETHEAT);
-    doinvcheat(pPlayer, GET_BOOTS, 200, EVENT_CHEATGETBOOT);
-    doinvcheat(pPlayer, GET_SHIELD, 100, EVENT_CHEATGETSHIELD);
-    doinvcheat(pPlayer, GET_SCUBA, 6400, EVENT_CHEATGETSCUBA);
-    doinvcheat(pPlayer, GET_HOLODUKE, 2400, EVENT_CHEATGETHOLODUKE);
-    doinvcheat(pPlayer, GET_JETPACK, 1600, EVENT_CHEATGETJETPACK);
-    doinvcheat(pPlayer, GET_FIRSTAID, pPlayer->max_player_health, EVENT_CHEATGETFIRSTAID);
+    doinvcheat(pPlayer, GET_STEROIDS, 400);
+    doinvcheat(pPlayer, GET_HEATS, 1200);
+    doinvcheat(pPlayer, GET_BOOTS, 200);
+    doinvcheat(pPlayer, GET_SHIELD, 100);
+    doinvcheat(pPlayer, GET_SCUBA, 6400);
+    doinvcheat(pPlayer, GET_HOLODUKE, 2400);
+    doinvcheat(pPlayer, GET_JETPACK, 1600);
+    doinvcheat(pPlayer, GET_FIRSTAID, pPlayer->max_player_health);
 }
 
 static void end_cheat(DukePlayer_t * const pPlayer)
@@ -355,23 +350,6 @@ void G_DoCheats(void)
                 else
                 {
                     ud.m_player_skill = osdcmd_cheatsinfo_stat.volume;
-                }
-            }
-
-            int const originalCheatNum = cheatNum;
-            cheatNum = VM_OnEventWithReturn(EVENT_ACTIVATECHEAT, pPlayer->i, myconnectindex, cheatNum);
-
-            // potential cleanup
-            if (originalCheatNum != cheatNum)
-            {
-                if (originalCheatNum == CHEAT_SCOTTY)
-                {
-                    ud.m_volume_number = ud.volume_number;
-                    ud.m_level_number = ud.level_number;
-                }
-                else if (originalCheatNum == CHEAT_SKILL)
-                {
-                    ud.m_player_skill = ud.player_skill;
                 }
             }
 

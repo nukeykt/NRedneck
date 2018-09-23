@@ -67,16 +67,11 @@ enum
         g_warningCnt++;                                                                                                                    \
     } while (0)
 
-#if !defined LUNATIC
 extern intptr_t const * insptr;
 extern void VM_ScriptInfo(intptr_t const *ptr, int range);
-#endif
 
 extern hashtable_t h_gamefuncs;
 
-#if !defined LUNATIC
-extern hashtable_t h_gamevars;
-extern hashtable_t h_arrays;
 extern hashtable_t h_labels;
 
 extern int32_t g_aimAngleVarID;   // var ID of "AUTOAIMANGLE"
@@ -111,10 +106,6 @@ enum QuickStructureAccess_t
 
 extern int32_t g_structVarIDs;
 
-#include "events_defs.h"
-extern intptr_t apScriptEvents[MAXEVENTS];
-#endif
-
 extern char CheatStrings[][MAXCHEATLEN];
 extern char g_scriptFileName[BMAX_PATH];
 
@@ -132,7 +123,6 @@ extern int32_t otherp;
 
 extern const char *EventNames[];  // MAXEVENTS
 
-#if !defined LUNATIC
 extern intptr_t *g_scriptPtr;
 
 typedef struct
@@ -151,16 +141,12 @@ extern const memberlabel_t TileDataLabels[];
 extern const memberlabel_t TsprLabels[];
 extern const memberlabel_t UserdefsLabels[];
 extern const memberlabel_t WallLabels[];
-#endif
 
 typedef projectile_t defaultprojectile_t;
 
 extern defaultprojectile_t DefaultProjectile;
 int32_t C_AllocQuote(int32_t qnum);
-void C_AllocProjectile(int32_t j);
-void C_FreeProjectile(int32_t j);
 void C_InitQuotes(void);
-void C_InitProjectiles(void);
 
 extern int32_t g_numProjectiles;
 
@@ -189,20 +175,6 @@ void C_DefineVolumeFlags(int32_t vol, int32_t flags);
 void C_UndefineVolume(int32_t vol);
 void C_UndefineSkill(int32_t skill);
 void C_UndefineLevel(int32_t vol, int32_t lev);
-#if defined LUNATIC
-void C_DefineSound(int32_t sndidx, const char *fn, int32_t args[5]);
-void C_DefineQuote(int32_t qnum, const char *qstr);
-void C_DefineVolumeName(int32_t vol, const char *name);
-void C_DefineSkillName(int32_t skill, const char *name);
-void C_DefineLevelName(int32_t vol, int32_t lev, const char *fn,
-                       int32_t partime, int32_t designertime,
-                       const char *levelname);
-void C_DefineGameFuncName(int32_t idx, const char *name);
-void C_DefineGameType(int32_t idx, int32_t flags, const char *name);
-int32_t C_SetDefName(const char *name);
-void C_DefineProjectile(int32_t j, int32_t what, int32_t val);
-void C_SetCfgName(const char *cfgname);
-#else
 void C_ReportError(int32_t iError);
 void C_Compile(const char *filenam);
 
@@ -213,8 +185,6 @@ typedef struct {
     const char* token;
     int32_t val;
 } tokenmap_t;
-
-extern const tokenmap_t iter_tokens[];
 
 extern char const * VM_GetKeywordForID(int32_t id);
 
@@ -740,82 +710,6 @@ enum InputLabel_t
     INPUT_END
 };
 
-enum TileDataLabel_t
-{
-    TILEDATA_XSIZE,
-    TILEDATA_YSIZE,
-    TILEDATA_ANIMFRAMES,
-    TILEDATA_XOFFSET,
-    TILEDATA_YOFFSET,
-    TILEDATA_ANIMSPEED,
-    TILEDATA_ANIMTYPE,
-    TILEDATA_GAMEFLAGS,
-    TILEDATA_END
-};
-
-enum PalDataLabel_t
-{
-    PALDATA_NOFLOORPAL,
-    PALDATA_DUMMY, // so the hash table is size 1. remove when another member is added.
-    PALDATA_END
-};
-
-#endif
-// KEEPINSYNC lunatic/con_lang.lua
-enum ProjectileLabel_t
-{
-    PROJ_WORKSLIKE,  // 0
-    PROJ_SPAWNS,
-    PROJ_SXREPEAT,
-    PROJ_SYREPEAT,
-    PROJ_SOUND,
-    PROJ_ISOUND,  // 5
-    PROJ_VEL,
-    PROJ_EXTRA,
-    PROJ_DECAL,
-    PROJ_TRAIL,
-    PROJ_TXREPEAT,  // 10
-    PROJ_TYREPEAT,
-    PROJ_TOFFSET,
-    PROJ_TNUM,
-    PROJ_DROP,
-    PROJ_CSTAT,  // 15
-    PROJ_CLIPDIST,
-    PROJ_SHADE,
-    PROJ_XREPEAT,
-    PROJ_YREPEAT,
-    PROJ_PAL,  // 20
-    PROJ_EXTRA_RAND,
-    PROJ_HITRADIUS,
-    PROJ_MOVECNT,
-    PROJ_OFFSET,
-    PROJ_BOUNCES,  // 25
-    PROJ_BSOUND,
-    PROJ_RANGE,
-    PROJ_FLASH_COLOR,
-    PROJ_USERDATA,
-    PROJ_END
-};
-#if !defined LUNATIC
-
-enum IterationTypes_t
-{
-    ITER_ALLSPRITES,
-    ITER_ALLSECTORS,
-    ITER_ALLWALLS,
-    ITER_ACTIVELIGHTS,
-    ITER_DRAWNSPRITES,
-    // ---
-    ITER_SPRITESOFSECTOR,
-    ITER_SPRITESOFSTATUS,
-    ITER_WALLSOFSECTOR,
-    ITER_LOOPOFWALL,
-    ITER_RANGE,
-    ITER_ALLSPRITESBYSTAT,
-    ITER_ALLSPRITESBYSECT,
-    ITER_END
-};
-
 enum ScriptKeywords_t
 {
     CON_ELSE,               // 0
@@ -838,7 +732,7 @@ enum ScriptKeywords_t
     CON_STATE,              // 17
     CON_ENDS,               // 18
     CON_DEFINE,             // 19
-    CON_RETURN,             // 20
+    CON_COMMENT,            // 20 deprecated
     CON_IFAI,               // 21
     CON_KILLIT,             // 22
     CON_ADDWEAPON,          // 23
@@ -930,334 +824,9 @@ enum ScriptKeywords_t
     CON_IFNOSOUNDS,         // 109
     CON_CLIPDIST,           // 110
     CON_IFANGDIFFL,         // 111
-    CON_GAMEVAR,            // 112
-    CON_IFVARL,             // 113
-    CON_IFVARG,             // 114
-    CON_SETVARVAR,          // 115
-    CON_SETVAR,             // 116
-    CON_ADDVARVAR,          // 117
-    CON_ADDVAR,             // 118
-    CON_IFVARVARL,          // 119
-    CON_IFVARVARG,          // 120
-    CON_ADDLOGVAR,          // 121
-    CON_ADDLOG,             // 122
-    CON_ONEVENT,            // 123
-    CON_ENDEVENT,           // 124
-    CON_IFVARE,             // 125
-    CON_IFVARVARE,          // 126
-    CON_SPGETLOTAG,         // 127
-    CON_SPGETHITAG,         // 128
-    CON_SECTGETLOTAG,       // 129
-    CON_SECTGETHITAG,       // 130
-    CON_IFSOUND,            // 131
-    CON_GETTEXTUREFLOOR,    // 132
-    CON_GETTEXTURECEILING,  // 133
-    CON_INITTIMER,          // 134
-    CON_STARTTRACK,         // 135
-    CON_RANDVAR,            // 136
-    CON_ENHANCED,           // 137
-    CON_GETANGLETOTARGET,   // 138
-    CON_GETACTORANGLE,      // 139
-    CON_SETACTORANGLE,      // 140
-    CON_MULVAR,             // 141
-    CON_MULVARVAR,          // 142
-    CON_DIVVAR,             // 143
-    CON_DIVVARVAR,          // 144
-    CON_MODVAR,             // 145
-    CON_MODVARVAR,          // 146
-    CON_ANDVAR,             // 147
-    CON_ANDVARVAR,          // 148
-    CON_ORVAR,              // 149
-    CON_ORVARVAR,           // 150
-    CON_GETPLAYERANGLE,     // 151
-    CON_SETPLAYERANGLE,     // 152
-    CON_LOCKPLAYER,         // 153
-    CON_SETSECTOR,          // 154
-    CON_GETSECTOR,          // 155
-    CON_SETACTOR,           // 156
-    CON_GETACTOR,           // 157
-    CON_SETWALL,            // 158
-    CON_GETWALL,            // 159
-    CON_FINDNEARACTOR,      // 160
-    CON_FINDNEARACTORVAR,   // 161
-    CON_SETACTORVAR,        // 162
-    CON_GETACTORVAR,        // 163
-    CON_ESPAWN,             // 164
-    CON_GETPLAYER,          // 165
-    CON_SETPLAYER,          // 166
-    CON_SQRT,               // 167
-    CON_EVENTLOADACTOR,     // 168
-    CON_ESPAWNVAR,          // 169
-    CON_GETUSERDEF,         // 170
-    CON_SETUSERDEF,         // 171
-    CON_SUBVARVAR,          // 172
-    CON_SUBVAR,             // 173
-    CON_IFVARN,             // 174
-    CON_IFVARVARN,          // 175
-    CON_IFVARAND,           // 176
-    CON_IFVARVARAND,        // 177
-    CON_MYOS,               // 178
-    CON_MYOSPAL,            // 179
-    CON_DISPLAYRAND,        // 180
-    CON_SIN,                // 181
-    CON_XORVARVAR,          // 182
-    CON_XORVAR,             // 183
-    CON_RANDVARVAR,         // 184
-    CON_MYOSX,              // 185
-    CON_MYOSPALX,           // 186
-    CON_GMAXAMMO,           // 187
-    CON_SMAXAMMO,           // 188
-    CON_STARTLEVEL,         // 189
-    CON_ESHOOT,             // 190
-    CON_QSPAWN,             // 191
-    CON_ROTATESPRITE,       // 192
-    CON_DEFINEPROJECTILE,   // 193
-    CON_SPRITESHADOW,       // 194
-    CON_COS,                // 195
-    CON_ESHOOTVAR,          // 196
-    CON_FINDNEARACTOR3D,    // 197
-    CON_FINDNEARACTOR3DVAR, // 198
-    CON_FLASH,              // 199
-    CON_QSPAWNVAR,          // 200
-    CON_EQSPAWN,            // 201
-    CON_EQSPAWNVAR,         // 202
-    CON_MINITEXT,           // 203
-    CON_GAMETEXT,           // 204
-    CON_DIGITALNUMBER,      // 205
-    CON_ADDWEAPONVAR,       // 206
-    CON_SETPROJECTILE,      // 207
-    CON_ANGOFF,             // 208
-    CON_UPDATESECTOR,       // 209
-    CON_INSERTSPRITEQ,      // 210
-    CON_ANGOFFVAR,          // 211
-    CON_WHILEVARN,          // 212
-    CON_SWITCH,             // 213
-    CON_CASE,               // 214
-    CON_DEFAULT,            // 215
-    CON_ENDSWITCH,          // 216
-    CON_SHOOTVAR,           // 217
-    CON_SOUNDVAR,           // 218
-    CON_FINDPLAYER,         // 219
-    CON_FINDOTHERPLAYER,    // 220
-    CON_ACTIVATEBYSECTOR,   // 221
-    CON_OPERATESECTORS,     // 222
-    CON_OPERATERESPAWNS,    // 223
-    CON_OPERATEACTIVATORS,  // 224
-    CON_OPERATEMASTERSWITCHES,  // 225
-    CON_CHECKACTIVATORMOTION,   // 226
-    CON_ZSHOOT,             // 227
-    CON_DIST,               // 228
-    CON_LDIST,              // 229
-    CON_SHIFTVARL,          // 230
-    CON_SHIFTVARR,          // 231
-    CON_SPRITENVG,          // 232
-    CON_GETANGLE,           // 233
-    CON_WHILEVARVARN,       // 234
-    CON_HITSCAN,            // 235
-    CON_TIME,               // 236
-    CON_GETPLAYERVAR,       // 237
-    CON_SETPLAYERVAR,       // 238
-    CON_MULSCALE,           // 239
-    CON_SETASPECT,          // 240
-    CON_EZSHOOT,            // 241
-    CON_SPRITENOSHADE,      // 242
-    CON_MOVESPRITE,         // 243
-    CON_CHECKAVAILWEAPON,   // 244
-    CON_SOUNDONCEVAR,       // 245
-    CON_UPDATESECTORZ,      // 246
-    CON_STOPALLSOUNDS,      // 247
-    CON_SSP,                // 248
-    CON_STOPSOUNDVAR,       // 249
-    CON_DISPLAYRANDVAR,     // 250
-    CON_DISPLAYRANDVARVAR,  // 251
-    CON_CHECKAVAILINVEN,    // 252
-    CON_GLOBALSOUNDVAR,     // 253
-    CON_GUNIQHUDID,         // 254
-    CON_GETPROJECTILE,      // 255
-    CON_GETTHISPROJECTILE,  // 256
-    CON_SETTHISPROJECTILE,  // 257
-    CON_DEFINECHEAT,        // 258
-    CON_CHEATKEYS,          // 259
-    CON_USERQUOTE,          // 260
-    CON_PRECACHE,           // 261
-    CON_DEFINEGAMEFUNCNAME, // 262
-    CON_REDEFINEQUOTE,      // 263
-    CON_QSPRINTF,           // 264
-    CON_GETPNAME,           // 265
-    CON_QSTRCAT,            // 266
-    CON_QSTRCPY,            // 267
-    CON_SETSPRITE,          // 268
-    CON_ROTATEPOINT,        // 269
-    CON_DRAGPOINT,          // 270
-    CON_GETZRANGE,          // 271
-    CON_CHANGESPRITESTAT,   // 272
-    CON_GETCEILZOFSLOPE,    // 273
-    CON_GETFLORZOFSLOPE,    // 274
-    CON_NEARTAG,            // 275
-    CON_DEFINEGAMETYPE,     // 276
-    CON_CHANGESPRITESECT,   // 277
-    CON_SPRITEFLAGS,        // 278
-    CON_SAVEGAMEVAR,        // 279
-    CON_READGAMEVAR,        // 280
-    CON_FINDNEARSPRITE,     // 281
-    CON_FINDNEARSPRITEVAR,  // 282
-    CON_FINDNEARSPRITE3D,   // 283
-    CON_FINDNEARSPRITE3DVAR,// 284
-    CON_DYNAMICREMAP,       // 285
-    CON_SETINPUT,           // 286
-    CON_GETINPUT,           // 287
-    CON_SAVE,               // 288
-    CON_CANSEE,             // 289
-    CON_CANSEESPR,          // 290
-    CON_FINDNEARACTORZ,     // 291
-    CON_FINDNEARACTORZVAR,  // 292
-    CON_FINDNEARSPRITEZ,    // 293
-    CON_FINDNEARSPRITEZVAR, // 294
-    CON_ZSHOOTVAR,          // 295
-    CON_EZSHOOTVAR,         // 296
-    CON_GETCURRADDRESS,     // 297
-    CON_JUMP,               // 298
-    CON_QSTRLEN,            // 299
-    CON_GETINCANGLE,        // 300
-    CON_QUAKE,              // 301
-    CON_SHOWVIEW,           // 302
-    CON_HEADSPRITESTAT,     // 303
-    CON_PREVSPRITESTAT,     // 304
-    CON_NEXTSPRITESTAT,     // 305
-    CON_HEADSPRITESECT,     // 306
-    CON_PREVSPRITESECT,     // 307
-    CON_NEXTSPRITESECT,     // 308
-    CON_GETKEYNAME,         // 309
-    CON_QSUBSTR,            // 310
-    CON_GAMETEXTZ,          // 311
-    CON_DIGITALNUMBERZ,     // 312
-    CON_SPRITENOPAL,        // 313
-    CON_HITRADIUSVAR,       // 314
-    CON_ROTATESPRITE16,     // 315
-    CON_GAMEARRAY,          // 316
-    CON_SETARRAY,           // 317
-    CON_RESIZEARRAY,        // 318
-    CON_WRITEARRAYTOFILE,   // 319
-    CON_READARRAYFROMFILE,  // 320
-    CON_STARTTRACKVAR,      // 321
-    CON_QGETSYSSTR,         // 322
-    CON_GETTICKS,           // 323
-    CON_GETTSPR,            // 324
-    CON_SETTSPR,            // 325
-    CON_SAVEMAPSTATE,       // 326
-    CON_LOADMAPSTATE,       // 327
-    CON_CLEARMAPSTATE,      // 328
-    CON_SCRIPTSIZE,         // 329
-    CON_SETGAMENAME,        // 330
-    CON_CMENU,              // 331
-    CON_GETTIMEDATE,        // 332
-    CON_ACTIVATECHEAT,      // 333
-    CON_SETGAMEPALETTE,     // 334
-    CON_SETDEFNAME,         // 335
-    CON_SETCFGNAME,         // 336
-    CON_IFVAROR,            // 337
-    CON_IFVARVAROR,         // 338
-    CON_IFVARXOR,           // 339
-    CON_IFVARVARXOR,        // 340
-    CON_IFVAREITHER,        // 341
-    CON_IFVARVAREITHER,     // 342
-    CON_GETARRAYSIZE,       // 343
-    CON_SAVENN,             // 344
-    CON_COPY,               // 345
-    CON_INV,                // 346
-    CON_SECTOROFWALL,       // 347
-    CON_QSTRNCAT,           // 348
-    CON_IFACTORSOUND,       // 349
-    CON_STOPACTORSOUND,     // 350
-    CON_IFCLIENT,           // 351
-    CON_IFSERVER,           // 352
-    CON_SECTSETINTERPOLATION, // 353
-    CON_SECTCLEARINTERPOLATION, // 354
-    CON_CLIPMOVE,           // 355
-    CON_LINEINTERSECT,      // 356
-    CON_RAYINTERSECT,       // 357
-    CON_CALCHYPOTENUSE,     // 358
-    CON_CLIPMOVENOSLIDE,    // 359
-    CON_INCLUDEDEFAULT,     // 360
-    CON_SETACTORSOUNDPITCH, // 361
-    CON_ECHO,               // 362
-    CON_SHOWVIEWUNBIASED,   // 363
-    CON_ROTATESPRITEA,      // 364
-    CON_SHADETO,            // 365
-    CON_ENDOFLEVEL,         // 366
-    CON_IFPLAYERSL,         // 367
-    CON_ACTIVATE,           // 368
-    CON_QSTRDIM,            // 369
-    CON_SCREENTEXT,         // 370
-    CON_DYNAMICSOUNDREMAP,  // 371
-    CON_SCREENSOUND,        // 372
-    CON_GETMUSICPOSITION,   // 373
-    CON_SETMUSICPOSITION,   // 374
-    CON_UNDEFINEVOLUME,     // 375
-    CON_UNDEFINESKILL,      // 376
-    CON_UNDEFINELEVEL,      // 377
-    CON_STARTCUTSCENE,      // 378
-    CON_IFCUTSCENE,         // 379
-    CON_DEFINEVOLUMEFLAGS,  // 380
-    CON_RESETPLAYERFLAGS,   // 381
-    CON_APPENDEVENT,        // 382
-    CON_DEFSTATE,           // 383
-    CON_SHIFTVARVARL,       // 384
-    CON_SHIFTVARVARR,       // 385
-    CON_IFVARVARLE,         // 386
-    CON_IFVARVARGE,         // 387
-    CON_IFVARVARBOTH,       // 388
-    CON_WHILEVARL,          // 389
-    CON_WHILEVARVARL,       // 390
-    CON_KLABS,              // 391
-    CON_IFVARLE,            // 392
-    CON_IFVARGE,            // 393
-    CON_IFVARBOTH,          // 394
-    CON_MOVESECTOR,         // 395
-    CON_FOR,                // 396
-    CON_NEXTSECTORNEIGHBORZ,// 397
-    CON_CLAMP,              // 398
-    CON_IFPLAYBACKON,       // 399
-    CON_DIVSCALE,           // 400
-    CON_SCALEVAR,           // 401
-    CON_UNDEFINEGAMEFUNC,   // 402
-    CON_GETCLOSESTCOL,      // 403
-    CON_DRAWLINE256,        // 404
-    CON_DRAWLINERGB,        // 405
-    CON_STARTTRACKSLOT,     // 406
-    CON_STOPALLMUSIC,       // 407
-    CON_ACTORSOUND,         // 408
-    CON_STARTSCREEN,        // 409
-    CON_SCREENPAL,          // 410
-    CON_QSTRCMP,            // 411
-    CON_DIVR,               // 412
-    CON_DIVRU,              // 413
-    CON_SWAPTRACKSLOT,      // 414
-    CON_PRELOADTRACKSLOTFORSWAP, // 415
-    CON_IFVARA,             // 416
-    CON_IFVARVARA,          // 417
-    CON_IFVARAE,            // 418
-    CON_IFVARVARAE,         // 419
-    CON_IFVARB,             // 420
-    CON_IFVARVARB,          // 421
-    CON_IFVARBE,            // 422
-    CON_IFVARVARBE,         // 423
-    CON_UNDEFINECHEAT,      // 424
-    CON_SHOWVIEWQ16,        // 425
-    CON_SHOWVIEWQ16UNBIASED,// 426
-    CON_GETTILEDATA,        // 427
-    CON_SETTILEDATA,        // 428
-    CON_DAMAGEEVENTTILE,    // 429
-    CON_DAMAGEEVENTTILERANGE, // 430
-    CON_SPAWNWALLGLASS,     // 431
-    CON_SPAWNWALLSTAINEDGLASS, // 432
-    CON_SPAWNCEILINGGLASS,  // 433
-    CON_SWAPARRAYS,         // 434
     CON_END
 };
 // KEEPINSYNC with the keyword list in lunatic/con_lang.lua
-
-#endif
 
 #ifdef __cplusplus
 }

@@ -89,7 +89,6 @@ static vec2_t mgametextcenter(int32_t x, int32_t y, char const * t, int32_t f = 
 #define mminitext(x,y,t,p) minitext_(x, y, t, 0, p, 2|8|16|ROTATESPRITE_FULL16)
 #define mmenutext menutext
 
-#ifndef EDUKE32_STANDALONE
 static void shadowminitext(int32_t x, int32_t y, const char *t, int32_t p)
 {
     int32_t f = 0;
@@ -99,7 +98,7 @@ static void shadowminitext(int32_t x, int32_t y, const char *t, int32_t p)
 
     G_ScreenTextShadow(1, 1, MINIFONT, x, y, 65536, 0, 0, t, 0, p, 2|8|16|ROTATESPRITE_FULL16, 0, 4<<16, 8<<16, 1<<16, 0, f, 0, 0, xdim-1, ydim-1);
 }
-#endif
+
 static void creditsminitext(int32_t x, int32_t y, const char *t, int32_t p)
 {
     int32_t f = TEXT_XCENTER;
@@ -140,7 +139,7 @@ static void Menu_DrawTopBarCaption(const char *caption, const vec2_t origin)
 
 static FORCE_INLINE int32_t Menu_CursorShade(void)
 {
-    return VM_OnEventWithReturn(EVENT_MENUCURSORSHADE, -1, myconnectindex, 4-(sintable[(totalclock<<4)&2047]>>11));
+    return 4-(sintable[(totalclock<<4)&2047]>>11);
 }
 static void Menu_DrawCursorCommon(int32_t x, int32_t y, int32_t z, int32_t picnum, int32_t ydim_upper = 0, int32_t ydim_lower = ydim-1)
 {
@@ -149,12 +148,12 @@ static void Menu_DrawCursorCommon(int32_t x, int32_t y, int32_t z, int32_t picnu
 static void Menu_DrawCursorLeft(int32_t x, int32_t y, int32_t z)
 {
     if (IONMAIDEN) return;
-    Menu_DrawCursorCommon(x, y, z, VM_OnEventWithReturn(EVENT_MENUCURSORLEFT, -1, myconnectindex, SPINNINGNUKEICON+((totalclock>>3)%7)));
+    Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+((totalclock>>3)%7));
 }
 static void Menu_DrawCursorRight(int32_t x, int32_t y, int32_t z)
 {
     if (IONMAIDEN) return;
-    Menu_DrawCursorCommon(x, y, z, VM_OnEventWithReturn(EVENT_MENUCURSORRIGHT, -1, myconnectindex, SPINNINGNUKEICON+6-((6+(totalclock>>3))%7)));
+    Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+6-((6+(totalclock>>3))%7));
 }
 static void Menu_DrawCursorTextTile(int32_t x, int32_t y, int32_t h, int32_t picnum, vec2s_t const & siz, int32_t ydim_upper = 0, int32_t ydim_lower = ydim-1)
 {
@@ -335,11 +334,7 @@ static MenuLink_t MEO_MAIN_NEWGAME_NETWORK = { MENU_NETWORK, MA_Advance, };
 MAKE_MENU_TOP_ENTRYLINK( s_SaveGame, MEF_MainMenu, MAIN_SAVEGAME, MENU_SAVE );
 MAKE_MENU_TOP_ENTRYLINK( s_LoadGame, MEF_MainMenu, MAIN_LOADGAME, MENU_LOAD );
 MAKE_MENU_TOP_ENTRYLINK( s_Options, MEF_MainMenu, MAIN_OPTIONS, MENU_OPTIONS );
-#ifdef EDUKE32_STANDALONE
-MAKE_MENU_TOP_ENTRYLINK( "Read me!", MEF_MainMenu, MAIN_HELP, MENU_STORY );
-#else
 MAKE_MENU_TOP_ENTRYLINK("Help", MEF_MainMenu, MAIN_HELP, MENU_STORY);
-#endif
 #ifndef EDUKE32_SIMPLE_MENU
 MAKE_MENU_TOP_ENTRYLINK( s_Credits, MEF_MainMenu, MAIN_CREDITS, MENU_CREDITS );
 #endif
@@ -564,7 +559,7 @@ static MenuEntry_t ME_DISPLAYSETUP_ASPECTRATIO = MAKE_MENUENTRY( "Widescreen:", 
 #ifdef USE_OPENGL
 static int32_t MEOSV_PaletteEmulation[] = { 0, r_usetileshades };
 static MenuOptionSet_t MEOS_PaletteEmulation = MAKE_MENUOPTIONSET( MEOSN_OffOn, MEOSV_PaletteEmulation, 0x3 );
-# if !(defined EDUKE32_STANDALONE) || defined POLYMER
+# ifdef POLYMER
 #  ifdef EDUKE32_SIMPLE_MENU
 static MenuOption_t MEO_DISPLAYSETUP_PALETTEEMULATION = MAKE_MENUOPTION(&MF_Redfont, &MEOS_PaletteEmulation, &r_usetileshades);
 static MenuEntry_t ME_DISPLAYSETUP_PALETTEEMULATION = MAKE_MENUENTRY("Palette emulation:", &MF_Redfont, &MEF_BigOptionsRt, &MEO_DISPLAYSETUP_PALETTEEMULATION, Option);
@@ -744,20 +739,14 @@ static MenuEntry_t *MEL_DISPLAYSETUP_GL[] = {
     &ME_DISPLAYSETUP_VIDEOSETUP,
     &ME_DISPLAYSETUP_ASPECTRATIO,
 #endif
-#ifndef EDUKE32_STANDALONE
     &ME_DISPLAYSETUP_TEXFILTER,
-#endif
 #ifdef EDUKE32_ANDROID_MENU
     &ME_DISPLAYSETUP_HIDEDPAD,
     &ME_DISPLAYSETUP_TOUCHALPHA,
 #else
-# ifndef EDUKE32_STANDALONE
     &ME_DISPLAYSETUP_ANISOTROPY,
-# endif
 # ifdef EDUKE32_SIMPLE_MENU
-#  ifndef EDUKE32_STANDALONE
     &ME_DISPLAYSETUP_PALETTEEMULATION,
-#  endif
 # else
     &ME_DISPLAYSETUP_ADVANCED_GL_POLYMOST,
 # endif
@@ -1184,11 +1173,7 @@ static MenuRangeInt32_t MEO_SOUND_VOLUME_MUSIC = MAKE_MENURANGE( &ud.config.Musi
 static MenuEntry_t ME_SOUND_VOLUME_MUSIC = MAKE_MENUENTRY( "Music:", &MF_Redfont, &MEF_BigOptionsRt, &MEO_SOUND_VOLUME_MUSIC, RangeInt32 );
 
 static MenuOption_t MEO_SOUND_DUKETALK = MAKE_MENUOPTION(&MF_Redfont, &MEOS_NoYes, NULL);
-#ifndef EDUKE32_STANDALONE
 static MenuEntry_t ME_SOUND_DUKETALK = MAKE_MENUENTRY( "Duke talk:", &MF_Redfont, &MEF_BigOptionsRt, &MEO_SOUND_DUKETALK, Option );
-#else
-static MenuEntry_t ME_SOUND_DUKETALK = MAKE_MENUENTRY("Player speech:", &MF_Redfont, &MEF_BigOptionsRt, &MEO_SOUND_DUKETALK, Option);
-#endif
 
 static char const *MEOSN_SOUND_SAMPLINGRATE[] = { "22050Hz", "44100Hz", "48000Hz", };
 static int32_t MEOSV_SOUND_SAMPLINGRATE[] = { 22050, 44100, 48000, };
@@ -1827,12 +1812,10 @@ void Menu_Init(void)
     }
 
     // prepare sound setup
-#ifndef EDUKE32_STANDALONE
     if (WW2GI)
         ME_SOUND_DUKETALK.name = "GI talk:";
     else if (NAM)
         ME_SOUND_DUKETALK.name = "Grunt talk:";
-#endif
 
     if (IONMAIDEN)
     {
@@ -1954,7 +1937,6 @@ static void Menu_Pre(MenuID_t cm)
                  (ud.screen_size > 8 && !(ud.statusbarflags & STATUSBAR_NOSHRINK)) * ((ud.screen_size - 8) >> 2)
                  -1;
 
-#ifndef EDUKE32_STANDALONE
         if (videoGetRenderMode() != REND_CLASSIC)
         {
             //POGOTODO: allow setting anisotropy again while r_useindexedcolortextures is set when support is added down the line
@@ -1973,7 +1955,6 @@ static void Menu_Pre(MenuID_t cm)
                 }
             }
         }
-#endif
         break;
 
     case MENU_POLYMER:
@@ -2486,7 +2467,6 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
         mgametextcenter(origin.x, origin.y + (90<<16), "Waiting for votes");
         break;
 
-#ifndef EDUKE32_STANDALONE
     case MENU_BUYDUKE:
         mgametextcenter(origin.x, origin.y + (33<<16), "You are playing the shareware\n"
                                                        "version of Duke Nukem 3D.  While\n"
@@ -2499,11 +2479,10 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
 
         mgametextcenter(origin.x, origin.y + ((148+16)<<16), "Press any key or button...");
         break;
-#endif
+
     case MENU_CREDITS:
     case MENU_CREDITS2:
     case MENU_CREDITS3:
-#ifndef EDUKE32_STANDALONE
         if (!VOLUMEALL || !PLUTOPAK)
         {
             int32_t m;
@@ -2614,19 +2593,17 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
                                                                "Duke Nukem 3D\n"
                                                                "(C) 1996 3D Realms Entertainment");
 
-#if !defined(EDUKE32_ANDROID_MENU) && !defined(EDUKE32_STANDALONE)
                 if (VOLUMEONE)
                 {
                     mgametextcenter(origin.x, origin.y + (106<<16), "Please read LICENSE.DOC for shareware\n"
                                                                     "distribution grants and restrictions.");
                 }
-#endif
                 mgametextcenter(origin.x, origin.y + ((VOLUMEONE?134:115)<<16), "Made in Dallas, Texas USA");
                 break;
             }
         }
         break;
-#endif
+
     case MENU_CREDITS4:   // JBF 20031220
         l = 7;
 
@@ -3287,10 +3264,8 @@ static void Menu_EntryOptionDidModify(MenuEntry_t *entry)
         }
     }
 #ifdef USE_OPENGL
-#ifndef EDUKE32_STANDALONE
     else if (entry == &ME_DISPLAYSETUP_ANISOTROPY || entry == &ME_DISPLAYSETUP_TEXFILTER)
         gltexapplyprops();
-#endif
     else if (entry == &ME_RENDERERSETUP_TEXQUALITY)
     {
         texcache_invalidate();
@@ -4150,8 +4125,6 @@ int Menu_Change(MenuID_t cm)
 {
     Menu_t * beginMenu = m_currentMenu;
 
-    cm = VM_OnEventWithReturn(EVENT_CHANGEMENU, g_player[screenpeek].ps->i, screenpeek, cm);
-
     if (cm == MENU_PREVIOUS)
     {
         m_currentMenu = m_previousMenu;
@@ -4408,7 +4381,7 @@ enum MenuTextFlags_t
 static void Menu_GetFmt(const MenuFont_t *font, uint8_t const status, int32_t *s, int32_t *z)
 {
     if (status & MT_Selected)
-        *s = VM_OnEventWithReturn(EVENT_MENUSHADESELECTED, -1, myconnectindex, sintable[(totalclock<<5)&2047]>>12);
+        *s = sintable[(totalclock<<5)&2047]>>12;
     else
         *s = font->shade_deselected;
     // sum shade values
@@ -6859,15 +6832,6 @@ void M_DisplayMenus(void)
         m_menuchange_watchpoint++;
 #endif
 
-    if (m_parentMenu)
-    {
-        ud.returnvar[0] = origin.x;
-        ud.returnvar[1] = origin.y;
-        VM_OnEventWithReturn(EVENT_DISPLAYINACTIVEMENU, g_player[screenpeek].ps->i, screenpeek, m_parentMenu->menuID);
-        origin.x = ud.returnvar[0];
-        origin.y = ud.returnvar[1];
-    }
-
     // Determine animation values.
     if (totalclock < m_animation.start + m_animation.length)
     {
@@ -6875,19 +6839,7 @@ void M_DisplayMenus(void)
 
         origin.x = mulscale15(screenwidth, m_animation.in(&m_animation));
         previousOrigin.x = mulscale15(screenwidth, m_animation.out(&m_animation));
-
-        ud.returnvar[0] = previousOrigin.x;
-        ud.returnvar[1] = previousOrigin.y;
-        VM_OnEventWithReturn(EVENT_DISPLAYINACTIVEMENU, g_player[screenpeek].ps->i, screenpeek, m_animation.previous->menuID);
-        previousOrigin.x = ud.returnvar[0];
-        previousOrigin.y = ud.returnvar[1];
     }
-
-    ud.returnvar[0] = origin.x;
-    ud.returnvar[1] = origin.y;
-    VM_OnEventWithReturn(EVENT_DISPLAYMENU, g_player[screenpeek].ps->i, screenpeek, g_currentMenu);
-    origin.x = ud.returnvar[0];
-    origin.y = ud.returnvar[1];
 
     if (m_parentMenu && backgroundOK)
     {
@@ -6911,24 +6863,6 @@ void M_DisplayMenus(void)
     if (m_menuchange_watchpoint >= 3)
         m_menuchange_watchpoint = 0;
 #endif
-
-    if (m_parentMenu)
-    {
-        ud.returnvar[0] = origin.x;
-        ud.returnvar[1] = origin.y;
-        VM_OnEventWithReturn(EVENT_DISPLAYINACTIVEMENUREST, g_player[screenpeek].ps->i, screenpeek, m_parentMenu->menuID);
-    }
-
-    if (totalclock < m_animation.start + m_animation.length)
-    {
-        ud.returnvar[0] = previousOrigin.x;
-        ud.returnvar[1] = previousOrigin.y;
-        VM_OnEventWithReturn(EVENT_DISPLAYINACTIVEMENUREST, g_player[screenpeek].ps->i, screenpeek, m_animation.previous->menuID);
-    }
-
-    ud.returnvar[0] = origin.x;
-    ud.returnvar[1] = origin.y;
-    VM_OnEventWithReturn(EVENT_DISPLAYMENUREST, g_player[screenpeek].ps->i, screenpeek, g_currentMenu);
 
 #if !defined EDUKE32_TOUCH_DEVICES
     if (tilesiz[CROSSHAIR].x > 0 && mousestatus)
@@ -6966,13 +6900,7 @@ void M_DisplayMenus(void)
     // Display the mouse cursor, except on touch devices.
     if (MOUSEACTIVECONDITION)
     {
-        if (VM_HaveEvent(EVENT_DISPLAYCURSOR))
-        {
-            ud.returnvar[0] = m_mousepos.x;
-            ud.returnvar[1] = m_mousepos.y;
-            ud.returnvar[2] = CURSORALPHA;
-        }
-        int32_t a = VM_OnEventWithReturn(EVENT_DISPLAYCURSOR, g_player[screenpeek].ps->i, screenpeek, CROSSHAIR);
+        int32_t a = CROSSHAIR;
 
         if ((unsigned) a < MAXTILES)
         {

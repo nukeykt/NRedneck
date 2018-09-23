@@ -170,10 +170,8 @@ void G_InitDynamicSounds(void);
 
 void G_ProcessDynamicSoundMapping(const char *szLabel, int32_t lValue);
 
-#if !defined LUNATIC
 void initsoundhashnames(void);
 void freesoundhashnames(void);
-#endif
 
 extern int32_t KICK_HIT;
 extern int32_t PISTOL_RICOCHET;

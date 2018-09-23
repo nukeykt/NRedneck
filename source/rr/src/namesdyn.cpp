@@ -26,11 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "namesdyn.h"
 #include "global.h"
 
-#ifdef DYNTILEREMAP_ENABLE
-# define DVPTR(x) &x
-#else
-# define DVPTR(x) NULL
-#endif
+#define DVPTR(x) &x
 
 int16_t DynamicTileMap[MAXTILES];
 
@@ -41,7 +37,7 @@ struct dynitem
     const int16_t staticval;
 };
 
-LUNATIC_EXTERN struct dynitem g_dynTileList[] =
+static struct dynitem g_dynTileList[] =
 {
     { "SECTOREFFECTOR", DVPTR(SECTOREFFECTOR), SECTOREFFECTOR__STATIC },
     { "ACTIVATOR", DVPTR(ACTIVATOR), ACTIVATOR__STATIC },
@@ -639,8 +635,6 @@ LUNATIC_EXTERN struct dynitem g_dynTileList[] =
     { NULL, NULL, -1 },
  };
 
-#ifdef DYNTILEREMAP_ENABLE
-
 int32_t SECTOREFFECTOR = SECTOREFFECTOR__STATIC;
 int32_t ACTIVATOR = ACTIVATOR__STATIC;
 int32_t TOUCHPLATE = TOUCHPLATE__STATIC;
@@ -1236,7 +1230,6 @@ int32_t SIGN1 = SIGN1__STATIC;
 int32_t SIGN2 = SIGN2__STATIC;
 int32_t JURYGUY = JURYGUY__STATIC;
 
-#if !defined LUNATIC
 static hashtable_t h_names = {512, NULL};
 
 void G_ProcessDynamicTileMapping(const char *szLabel, int32_t lValue)
@@ -1272,8 +1265,6 @@ void freehashnames(void)
 {
     hash_free(&h_names);
 }
-#endif
-#endif
 
 // This is run after all CON define's have been processed to set up the
 // dynamic->static tile mapping.
@@ -1284,11 +1275,7 @@ void G_InitDynamicTiles(void)
     Bmemset(DynamicTileMap, 0, sizeof(DynamicTileMap));
 
     for (i=0; g_dynTileList[i].staticval >= 0; i++)
-#ifdef DYNTILEREMAP_ENABLE
         DynamicTileMap[*(g_dynTileList[i].dynvalptr)] = g_dynTileList[i].staticval;
-#else
-        DynamicTileMap[g_dynTileList[i].staticval] = g_dynTileList[i].staticval;
-#endif
 
     g_blimpSpawnItems[0] = RPGSPRITE;
     g_blimpSpawnItems[1] = CHAINGUNSPRITE;

@@ -29,10 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "sbar.h"
 #include "savegame.h"
 
-#ifdef LUNATIC
-# include "lunatic_game.h"
-#endif
-
 #ifdef EDUKE32_TOUCH_DEVICES
 #include "in_android.h"
 #endif
@@ -486,11 +482,6 @@ static int32_t osdcmd_vidmode(osdfuncparm_t const * const parm)
     return OSDCMD_OK;
 }
 
-#ifdef LUNATIC
-// Returns: INT32_MIN if no such CON label, its value else.
-LUNATIC_CB int32_t (*El_GetLabelValue)(const char *label);
-#endif
-
 static int32_t osdcmd_spawn(osdfuncparm_t const * const parm)
 {
     int32_t picnum = 0;
@@ -534,12 +525,6 @@ static int32_t osdcmd_spawn(osdfuncparm_t const * const parm)
         else
         {
             int32_t i;
-#ifdef LUNATIC
-            i = g_labelCnt;
-            picnum = El_GetLabelValue(parm->parms[0]);
-            if (picnum != INT32_MIN)
-                i = !i;
-#else
             int32_t j;
 
             for (j=0; j<2; j++)
@@ -557,7 +542,6 @@ static int32_t osdcmd_spawn(osdfuncparm_t const * const parm)
                 if (i < g_labelCnt)
                     break;
             }
-#endif
             if (i==g_labelCnt)
             {
                 OSD_Printf("spawn: Invalid tile label given\n");
@@ -591,121 +575,6 @@ static int32_t osdcmd_spawn(osdfuncparm_t const * const parm)
 
     return OSDCMD_OK;
 }
-
-#if !defined LUNATIC
-static int32_t osdcmd_setvar(osdfuncparm_t const * const parm)
-{
-    int32_t i, varval;
-    char varname[256];
-
-    if (parm->numparms != 2) return OSDCMD_SHOWHELP;
-
-    if (numplayers > 1)
-    {
-        OSD_Printf("Command not allowed in multiplayer\n");
-        return OSDCMD_OK;
-    }
-
-    strcpy(varname,parm->parms[1]);
-    varval = Batol(varname);
-    i = hash_find(&h_gamevars,varname);
-    if (i >= 0)
-        varval=Gv_GetVar(i, g_player[screenpeek].ps->i, screenpeek);
-
-    strcpy(varname,parm->parms[0]);
-    i = hash_find(&h_gamevars,varname);
-    if (i >= 0)
-        Gv_SetVar(i, varval, g_player[screenpeek].ps->i, screenpeek);
-    return OSDCMD_OK;
-}
-
-static int32_t osdcmd_addlogvar(osdfuncparm_t const * const parm)
-{
-    int32_t i;
-    char varname[256];
-
-    if (parm->numparms != 1) return OSDCMD_SHOWHELP;
-
-    if (numplayers > 1)
-    {
-        OSD_Printf("Command not allowed in multiplayer\n");
-        return OSDCMD_OK;
-    }
-
-    strcpy(varname,parm->parms[0]);
-    i = hash_find(&h_gamevars,varname);
-    if (i >= 0)
-        OSD_Printf("%s = %d\n", varname, Gv_GetVar(i, g_player[screenpeek].ps->i, screenpeek));
-    return OSDCMD_OK;
-}
-
-static int32_t osdcmd_setactorvar(osdfuncparm_t const * const parm)
-{
-    int32_t i, varval, ID;
-    char varname[256];
-
-    if (parm->numparms != 3) return OSDCMD_SHOWHELP;
-
-    if (numplayers > 1)
-    {
-        OSD_Printf("Command not allowed in multiplayer\n");
-        return OSDCMD_OK;
-    }
-
-    ID=Batol(parm->parms[0]);
-    if (ID>=MAXSPRITES)
-    {
-        OSD_Printf("Invalid sprite ID\n");
-        return OSDCMD_OK;
-    }
-
-    varval = Batol(parm->parms[2]);
-    strcpy(varname,parm->parms[2]);
-    varval = Batol(varname);
-    i = hash_find(&h_gamevars,varname);
-    if (i >= 0)
-        varval=Gv_GetVar(i, g_player[screenpeek].ps->i, screenpeek);
-
-    strcpy(varname,parm->parms[1]);
-    i = hash_find(&h_gamevars,varname);
-    if (i >= 0)
-        Gv_SetVar(i, varval, ID, -1);
-    return OSDCMD_OK;
-}
-#else
-static int32_t osdcmd_lua(osdfuncparm_t const * const parm)
-{
-    // Should be used like
-    // lua "lua code..."
-    // (the quotes making the whole string passed as one argument)
-
-    int32_t ret;
-
-    if (parm->numparms != 1)
-        return OSDCMD_SHOWHELP;
-
-    if (!L_IsInitialized(&g_ElState))
-    {
-        OSD_Printf("Lua state is not initialized.\n");
-        return OSDCMD_OK;
-    }
-
-    // TODO: "=<expr>" as shorthand for "print(<expr>)", like in the
-    //  stand-alone Lua interpreter?
-    // TODO: reserve some table to explicitly store stuff on the top level, for
-    //  debugging convenience?
-
-    // For the 'lua' OSD command, don't make errors appear on-screen:
-    el_addNewErrors = 0;
-    ret = L_RunString(&g_ElState, parm->parms[0], -1, "console");
-    el_addNewErrors = 1;
-
-    if (ret != 0)
-        OSD_Printf("Error running the Lua code (error code %d)\n", ret);
-
-    return OSDCMD_OK;
-}
-#endif
 
 static int32_t osdcmd_addpath(osdfuncparm_t const * const parm)
 {
@@ -1222,11 +1091,7 @@ static int32_t osdcmd_quickload(osdfuncparm_t const * const UNUSED(parm))
 static int32_t osdcmd_screenshot(osdfuncparm_t const * const parm)
 {
 //    KB_ClearKeysDown();
-#ifndef EDUKE32_STANDALONE
     static const char *fn = "duke0000.png";
-#else
-    static const char *fn = "capt0000.png";
-#endif
 
     if (parm->numparms == 1 && !Bstrcasecmp(parm->parms[0], "tga"))
         videoCaptureScreenTGA(fn, 0);
@@ -1424,33 +1289,7 @@ static int32_t osdcmd_printtimes(osdfuncparm_t const * const UNUSED(parm))
 
     char buf[32];
     int32_t maxlen = 0;
-    int32_t haveev=0, haveac=0;
-    const char nn = Bstrlen("EVENT_");
-
-    for (int i=0; i<MAXEVENTS; i++)
-    {
-        int32_t len = Bstrlen(EventNames[i]+nn);
-        Bassert(len < (int32_t)sizeof(buf));
-        maxlen = max(len, maxlen);
-    }
-
-    for (int i=0; i<MAXEVENTS; i++)
-        if (g_eventCalls[i])
-        {
-            int32_t n=Bsprintf(buf, "%s", EventNames[i]+nn);
-
-            if (!haveev)
-            {
-                haveev = 1;
-                OSD_Printf("\nevent times: event, total calls, total time [ms], mean time/call [us]\n");
-            }
-
-            buf[n] = 0;
-
-            OSD_Printf("%17s, %8d, %10.3f, %10.3f,\n",
-                buf, g_eventCalls[i], g_eventTotalMs[i],
-                1000*g_eventTotalMs[i]/g_eventCalls[i]);
-        }
+    int32_t haveac=0;
 
     for (int i=0; i<MAXTILES; i++)
         if (g_actorCalls[i])
@@ -1848,14 +1687,7 @@ int32_t registerosdcommands(void)
     OSD_RegisterFunction("restartmap", "restartmap: restarts the current map", osdcmd_restartmap);
     OSD_RegisterFunction("restartsound","restartsound: reinitializes the sound system",osdcmd_restartsound);
     OSD_RegisterFunction("restartvid","restartvid: reinitializes the video mode",osdcmd_restartvid);
-#if !defined LUNATIC
-    OSD_RegisterFunction("addlogvar","addlogvar <gamevar>: prints the value of a gamevar", osdcmd_addlogvar);
-    OSD_RegisterFunction("setvar","setvar <gamevar> <value>: sets the value of a gamevar", osdcmd_setvar);
-    OSD_RegisterFunction("setvarvar","setvarvar <gamevar1> <gamevar2>: sets the value of <gamevar1> to <gamevar2>", osdcmd_setvar);
-    OSD_RegisterFunction("setactorvar","setactorvar <actor#> <gamevar> <value>: sets the value of <actor#>'s <gamevar> to <value>", osdcmd_setactorvar);
-#else
-    OSD_RegisterFunction("lua", "lua \"Lua code...\": runs Lunatic code", osdcmd_lua);
-#endif
+
     OSD_RegisterFunction("screenshot","screenshot [format]: takes a screenshot.", osdcmd_screenshot);
 
     OSD_RegisterFunction("spawn","spawn <picnum> [palnum] [cstat] [ang] [x y z]: spawns a sprite with the given properties",osdcmd_spawn);

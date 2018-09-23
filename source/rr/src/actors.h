@@ -115,55 +115,18 @@ enum actionflags
     AF_VIEWPOINT = 1u<<0u,
 };
 
-#ifdef LUNATIC
-struct action
-{
-    // These members MUST be in this exact order because FFI cdata of this type
-    // can be initialized by passing a table with numeric indices (con.action).
-    int16_t startframe, numframes;
-    int16_t viewtype, incval, delay;
-    uint16_t flags;
-};
-
-struct move
-{
-    // These members MUST be in this exact order.
-    int16_t hvel, vvel;
-};
-
-#pragma pack(push,1)
-typedef struct { int32_t id; struct move mv; } con_move_t;
-typedef struct { int32_t id; struct action ac; } con_action_t;
-#pragma pack(pop)
-#endif
-
 // Select an actor's actiontics and movflags locations depending on
 // whether we compile the Lunatic build.
 // <spr>: sprite pointer
 // <a>: actor_t pointer
-#ifdef LUNATIC
-# define AC_ACTIONTICS(spr, a) ((a)->actiontics)
-# define AC_MOVFLAGS(spr, a) ((a)->movflags)
-#else
 # define AC_ACTIONTICS(spr, a) ((spr)->lotag)
 # define AC_MOVFLAGS(spr, a) ((spr)->hitag)
-#endif
 
 // (+ 40 16 16 4 8 6 8 6 4 20)
 #pragma pack(push, 1)
 typedef struct
 {
     int32_t t_data[10];  // 40b sometimes used to hold offsets to con code
-
-#ifdef LUNATIC
-    // total: 18b
-    struct move   mv;
-    struct action ac;
-    // Gets incremented by TICSPERFRAME on each A_Execute() call:
-    uint16_t actiontics;
-    // Movement flags, sprite[i].hitag in C-CON:
-    uint16_t movflags;
-#endif
 
     int32_t flags;                             // 4b
     vec3_t  bpos;                              // 12b
@@ -189,13 +152,6 @@ typedef struct
 {
     int32_t t_data[10];  // 40b sometimes used to hold offsets to con code
 
-#ifdef LUNATIC
-    struct move   mv;
-    struct action ac;
-    uint16_t      actiontics;
-    uint16_t movflags;
-#endif
-
     int32_t flags;                             // 4b
     vec3_t  bpos;                              // 12b
     int32_t floorz, ceilingz;                  // 8b
@@ -213,10 +169,8 @@ typedef struct
 
 typedef struct
 {
-#if !defined  LUNATIC
     intptr_t *execPtr;  // pointer to CON script for this tile, formerly actorscrptr
     intptr_t *loadPtr;  // pointer to load time CON script, formerly actorLoadEventScrPtr or something
-#endif
     projectile_t *proj;
     projectile_t *defproj;
     uint32_t      flags;       // formerly SpriteFlags, ActorType
@@ -325,10 +279,6 @@ void                Sect_ToggleInterpolation(int sectnum, int doset);
 static FORCE_INLINE void   Sect_ClearInterpolation(int sectnum) { Sect_ToggleInterpolation(sectnum, 0); }
 static FORCE_INLINE void   Sect_SetInterpolation(int sectnum) { Sect_ToggleInterpolation(sectnum, 1); }
 
-#ifdef LUNATIC
-int32_t G_ToggleWallInterpolation(int32_t w, int32_t doset);
-#endif
-
 #if KRANDDEBUG
 # define ACTOR_INLINE __fastcall
 # define ACTOR_INLINE_HEADER extern __fastcall
@@ -337,10 +287,9 @@ int32_t G_ToggleWallInterpolation(int32_t w, int32_t doset);
 # define ACTOR_INLINE_HEADER EXTERN_INLINE_HEADER
 #endif
 
-extern int32_t A_MoveSpriteClipdist(int32_t spritenum, vec3_t const * const change, uint32_t cliptype, int32_t clipdist);
+extern int32_t A_MoveSprite(int32_t spritenum, vec3_t const * const change, uint32_t cliptype);
 ACTOR_INLINE_HEADER int A_CheckEnemyTile(int const tileNum);
 ACTOR_INLINE_HEADER int A_SetSprite(int const spriteNum, uint32_t cliptype);
-ACTOR_INLINE_HEADER int32_t A_MoveSprite(int const spriteNum, vec3_t const * const change, uint32_t cliptype);
 
 EXTERN_INLINE_HEADER int G_CheckForSpaceCeiling(int const sectnum);
 EXTERN_INLINE_HEADER int G_CheckForSpaceFloor(int const sectnum);
@@ -365,11 +314,6 @@ ACTOR_INLINE int A_SetSprite(int const spriteNum, uint32_t cliptype)
     vec3_t davect = { (sprite[spriteNum].xvel * (sintable[(sprite[spriteNum].ang + 512) & 2047])) >> 14,
                       (sprite[spriteNum].xvel * (sintable[sprite[spriteNum].ang & 2047])) >> 14, sprite[spriteNum].zvel };
     return (A_MoveSprite(spriteNum, &davect, cliptype) == 0);
-}
-
-ACTOR_INLINE int32_t A_MoveSprite(int const spriteNum, vec3_t const * const change, uint32_t cliptype)
-{
-    return A_MoveSpriteClipdist(spriteNum, change, cliptype, -1);
 }
 
 # endif

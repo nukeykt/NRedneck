@@ -527,13 +527,7 @@ static int32_t G_GetInvOn(const DukePlayer_t *p)
 
 static int32_t G_GetMorale(int32_t p_i, int32_t snum)
 {
-#if !defined LUNATIC
-    return Gv_GetVarByLabel("PLR_MORALE", -1, p_i, snum);
-#else
-    UNREFERENCED_PARAMETER(p_i);
-    UNREFERENCED_PARAMETER(snum);
     return -1;
-#endif
 }
 
 static inline void rotatesprite_althud(int32_t sx, int32_t sy, int32_t z, int16_t a, int16_t picnum, int8_t dashade, char dapalnum, int32_t dastat)
@@ -654,10 +648,10 @@ void G_DrawStatusBar(int32_t snum)
                 rotatesprite_althudr(57, hudoffset-15, sbarsc(i), 0, ammo_sprites[p->curr_weapon], 0, 0, 10+512);
             }
 
-            if (PWEAPON(snum, p->curr_weapon, WorksLike) == HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
+            if (p->curr_weapon== HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
             else i = p->curr_weapon;
 
-            if (PWEAPON(snum, p->curr_weapon, WorksLike) != KNEE_WEAPON &&
+            if (p->curr_weapon != KNEE_WEAPON &&
                 (!althud_flashing || totalclock&32 || p->ammo_amount[i] > (p->max_ammo_amount[i]/10)))
                 G_DrawAltDigiNum(-20, -(hudoffset-22), p->ammo_amount[i], -16, 10+16+512);
 
@@ -746,7 +740,7 @@ void G_DrawStatusBar(int32_t snum)
 
             rotatesprite_fs(sbarx(37), yofssh+sbary(200-28), sb16, 0, AMMOBOX, 0, 21, orient);
 
-            if (PWEAPON(snum, p->curr_weapon, WorksLike) == HANDREMOTE_WEAPON)
+            if (p->curr_weapon == HANDREMOTE_WEAPON)
                 i = HANDBOMB_WEAPON;
             else
                 i = p->curr_weapon;
@@ -977,9 +971,9 @@ void G_DrawStatusBar(int32_t snum)
     if (u&1024)
     {
         if (u != -1) G_PatchStatusBar(196, SBY+17, 219, SBY+17+11);
-        if (PWEAPON(snum, p->curr_weapon, WorksLike) != KNEE_WEAPON)
+        if (p->curr_weapon != KNEE_WEAPON)
         {
-            if (PWEAPON(snum, p->curr_weapon, WorksLike) == HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
+            if (p->curr_weapon == HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
             else i = p->curr_weapon;
             G_DrawDigiNum(230-22, SBY+17, p->ammo_amount[i], -16, 10+16);
         }
@@ -1044,13 +1038,8 @@ void G_DrawBackground(void)
 
         // when not rendering a game, fullscreen wipe
         //        Gv_SetVar(g_iReturnVarID,tilesizx[MENUTILE]==320&&tilesizy[MENUTILE]==200?MENUTILE:BIGHOLE, -1, -1);
-        bgtile = VM_OnEventWithReturn(EVENT_GETMENUTILE, g_player[screenpeek].ps->i, screenpeek, bgtile);
         // MENU_TILE: is the menu tile tileable?
-#if !defined LUNATIC
-        if (Gv_GetVarByLabel("MENU_TILE", !fstilep, -1, -1))
-#else
         if (!fstilep)
-#endif
         {
             if ((unsigned) bgtile < MAXTILES)
                 for (y=y1; y<y2; y+=tilesiz[bgtile].y)
@@ -1062,7 +1051,7 @@ void G_DrawBackground(void)
         return;
     }
 
-    int32_t const dapicnum = VM_OnEventWithReturn(EVENT_DISPLAYBORDER, g_player[screenpeek].ps->i, screenpeek, BIGHOLE);
+    int32_t const dapicnum = BIGHOLE;
 
     // XXX: if dapicnum is not available, this might leave the menu background
     // not drawn, leading to "HOM".

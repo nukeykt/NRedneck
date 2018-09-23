@@ -43,7 +43,7 @@ struct dynitem
     const int16_t staticval;
 };
 
-LUNATIC_EXTERN struct dynitem g_dynSoundList[] =
+static struct dynitem g_dynSoundList[] =
 {
     { "KICK_HIT", DVPTR(KICK_HIT), KICK_HIT__STATIC },
     { "PISTOL_RICOCHET", DVPTR(PISTOL_RICOCHET), PISTOL_RICOCHET__STATIC },
@@ -327,7 +327,6 @@ int32_t EXPANDERSHOOT = EXPANDERSHOOT__STATIC;
 int32_t INTRO4_B = INTRO4_B__STATIC;
 int32_t BIGBANG = BIGBANG__STATIC;
 
-#if !defined LUNATIC
 static hashtable_t h_names = {512, NULL};
 
 void G_ProcessDynamicSoundMapping(const char *szLabel, int32_t lValue)
@@ -363,7 +362,6 @@ void freesoundhashnames(void)
 {
     hash_free(&h_names);
 }
-#endif
 #endif
 
 // This is run after all CON define's have been processed to set up the

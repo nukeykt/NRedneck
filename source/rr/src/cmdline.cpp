@@ -26,11 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "renderlayer.h"
 #include "cmdline.h"
 
-#ifdef LUNATIC
-char const * const * g_argv;
-const char **g_elModules;
-#endif
-
 int32_t g_commandSetup = 0;
 int32_t g_noSetup = 0;
 int32_t g_noAutoLoad = 0;
@@ -62,10 +57,6 @@ void G_ShowParameterHelp(void)
         "-mh [file.def]\tInclude an additional definitions module\n"
         "-mx [file.con]\tInclude an additional CON script module\n"
         "-m\t\tDisable enemies\n"
-#ifndef EDUKE32_STANDALONE
-        "-nam\t\tRun in NAM compatibility mode\n"
-        "-napalm\t\tRun in NAPALM compatibility mode\n"
-#endif
         "-rts [file.rts]\tLoad a custom Remote Ridicule sound bank\n"
         "-r\t\tRecord demo\n"
         "-s#\t\tStart game on skill level #\n"
@@ -77,9 +68,6 @@ void G_ShowParameterHelp(void)
         "-usecwd\t\tRead data and configuration from current directory\n"
         "-u#########\tUser's favorite weapon order (default: 3425689071)\n"
         "-v#\t\tStart game on episode #, see -l\n"
-#ifndef EDUKE32_STANDALONE
-        "-ww2gi\t\tRun in WWII GI compatibility mode\n"
-#endif
         "-x [game.con]\tLoad custom CON script\n"
         "-#\t\tLoad and run a game from slot # (0-9)\n"
         //              "\n-?/--help\tDisplay this help message and exit\n"
@@ -115,11 +103,6 @@ void G_ShowDebugHelp(void)
         "-z#/-condebug\tEnable line-by-line CON compile debugging at level #\n"
         "-conversion YYYYMMDD\tSelects CON script version for compatibility with older mods\n"
         "-rotatesprite-no-widescreen\tStretch screen drawing from scripts to fullscreen\n"
-#ifdef LUNATIC
-        "-Lopts=<opt1>,<opt2>,...\n"
-        "  Pass options to Lunatic, valid ones are:\n"
-        "  diag, nojit, traces, dump, strict\n"
-#endif
         ;
 #ifdef WM_MSGBOX_WINDOW
     Bsnprintf(tempbuf, sizeof(tempbuf), HEAD2 " %s", s_buildRev);
@@ -165,10 +148,6 @@ void G_CheckCommandLine(int32_t argc, char const * const * argv)
     int16_t i = 1, j;
     const char *c, *k;
 
-#ifdef LUNATIC
-    g_argv = argv;
-    g_elModules = (const char **) Xcalloc(argc+1, sizeof(char *));
-#endif
     ud.fta_on = 1;
     ud.god = 0;
     ud.m_respawn_items = 0;
@@ -202,9 +181,6 @@ void G_CheckCommandLine(int32_t argc, char const * const * argv)
 
     if (argc > 1)
     {
-#ifdef LUNATIC
-        int32_t numlmods = 0;
-#endif
         initprintf("Application parameters: ");
         while (i < argc)
             initprintf("%s ", argv[i++]);
@@ -293,26 +269,6 @@ void G_CheckCommandLine(int32_t argc, char const * const * argv)
                     i++;
                     continue;
                 }
-#ifndef EDUKE32_STANDALONE
-                if (!Bstrcasecmp(c+1, "nam"))
-                {
-                    g_gameType = GAMEFLAG_NAM;
-                    i++;
-                    continue;
-                }
-                if (!Bstrcasecmp(c+1, "napalm"))
-                {
-                    g_gameType = GAMEFLAG_NAM|GAMEFLAG_NAPALM;
-                    i++;
-                    continue;
-                }
-                if (!Bstrcasecmp(c+1, "ww2gi"))
-                {
-                    g_gameType = GAMEFLAG_WW2GI;
-                    i++;
-                    continue;
-                }
-#endif
                 if (!Bstrcasecmp(c+1, "setup"))
                 {
                     g_commandSetup = TRUE;
@@ -601,10 +557,6 @@ void G_CheckCommandLine(int32_t argc, char const * const * argv)
                         G_AddDemo(c);
                     break;
                 }
-#ifdef LUNATIC
-                case 'f':
-                    break;
-#endif
                 case 'g':
                     c++;
                     if (*c)
@@ -764,10 +716,6 @@ void G_CheckCommandLine(int32_t argc, char const * const * argv)
                 case 'w':
                     ud.coords = 1;
                     break;
-#ifdef LUNATIC
-                case 'W':
-                    break;
-#endif
                 case 'x':
                     c++;
                     if (*c)
@@ -822,13 +770,6 @@ void G_CheckCommandLine(int32_t argc, char const * const * argv)
                         initprintf("Using RTS file \"%s\".\n", g_rtsNamePtr);
                         continue;
                     }
-#ifdef LUNATIC
-                    if (!Bstrcmp(k, ".lua"))  // NOTE: case sensitive!
-                    {
-                        g_elModules[numlmods++] = argv[i++];
-                        continue;
-                    }
-#endif
                 }
             }
 

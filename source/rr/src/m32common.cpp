@@ -1430,11 +1430,7 @@ too_many_errors:
 #define MENU_BG_COLOR editorcolors[0]
 #define MENU_BG_COLOR_SEL editorcolors[1]
 
-#ifdef LUNATIC
-# define MENU_HAVE_DESCRIPTION 1
-#else
 # define MENU_HAVE_DESCRIPTION 0
-#endif
 
 typedef struct StatusBarMenu_ {
     const char *const menuname;
@@ -1452,31 +1448,6 @@ typedef struct StatusBarMenu_ {
     { MenuName, 0, 0, ProcessFunc, {}, {}, {} }
 #define MENU_INITIALIZER(MenuName, CustomStartIndex, ProcessFunc, ...) \
     { MenuName, CustomStartIndex, CustomStartIndex, ProcessFunc, {}, {}, ## __VA_ARGS__ }
-
-#ifdef LUNATIC
-static void M_Clear(StatusBarMenu *m)
-{
-    int32_t i;
-
-    m->numentries = 0;
-    Bmemset(m->auxdata, 0, sizeof(m->auxdata));
-    Bmemset(m->name, 0, sizeof(m->name));
-
-    for (i=0; i<MENU_MAX_ENTRIES; i++)
-        DO_FREE_AND_NULL(m->description[i]);
-}
-
-static int32_t M_HaveDescription(StatusBarMenu *m)
-{
-    int32_t i;
-
-    for (i=0; i<MENU_MAX_ENTRIES; i++)
-        if (m->description[i] != NULL)
-            return 1;
-
-    return 0;
-}
-#endif
 
 // NOTE: Does not handle description strings! (Only the Lua menu uses them.)
 static void M_UnregisterFunction(StatusBarMenu *m, intptr_t auxdata)
@@ -1923,63 +1894,3 @@ static void FuncMenu_Process(const StatusBarMenu *m, int32_t col, int32_t row)
 
     }  // switch (col)
 }
-
-#ifdef LUNATIC
-typedef const char *(*luamenufunc_t)(void);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern void LM_Register(const char *name, luamenufunc_t funcptr, const char *description);
-extern void LM_Clear(void);
-#ifdef __cplusplus
-}
-#endif
-
-static int32_t g_numLuaFuncs = 0;
-static luamenufunc_t g_LuaFuncPtrs[MENU_MAX_ENTRIES];
-
-static void LuaFuncMenu_Process(const StatusBarMenu *m, int32_t col, int32_t row)
-{
-    luamenufunc_t func = g_LuaFuncPtrs[col*8 + row];
-    const char *errmsg;
-
-    Bassert(func != NULL);
-    errmsg = func();
-
-    if (errmsg == NULL)
-    {
-        printmessage16("Lua function executed successfully");
-    }
-    else
-    {
-        printmessage16("There were errors executing the Lua function, see OSD");
-        OSD_Printf("Errors executing Lua function \"%s\": %s\n", m->name[col*8 + row], errmsg);
-    }
-}
-
-static StatusBarMenu g_LuaFuncMenu = MENU_INITIALIZER_EMPTY("Lua functions", LuaFuncMenu_Process);
-
-void LuaFuncMenu(void)
-{
-    M_EnterMainLoop(&g_LuaFuncMenu);
-}
-
-LUNATIC_EXTERN void LM_Register(const char *name, luamenufunc_t funcptr, const char *description)
-{
-    if (name == NULL || g_numLuaFuncs == MENU_MAX_ENTRIES)
-        return;
-
-    g_LuaFuncPtrs[g_numLuaFuncs] = funcptr;
-    M_RegisterFunction(&g_LuaFuncMenu, name, g_numLuaFuncs, description);
-    g_numLuaFuncs++;
-}
-
-LUNATIC_EXTERN void LM_Clear(void)
-{
-    M_Clear(&g_LuaFuncMenu);
-
-    g_numLuaFuncs = 0;
-    Bmemset(g_LuaFuncPtrs, 0, sizeof(g_LuaFuncPtrs));
-}
-#endif

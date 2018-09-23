@@ -45,10 +45,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "android.h"
 #endif
 
-#ifdef LUNATIC
-# include "lunatic_game.h"
-#endif
-
 // Uncomment to prevent anything except mirrors from drawing. It is sensible to
 // also uncomment ENGINE_CLEAR_SCREEN in build/src/engine_priv.h.
 //#define DEBUG_MIRRORS_ONLY
@@ -76,11 +72,7 @@ const char* AppTechnicalName = APPBASENAME;
 
 int32_t g_quitDeadline = 0;
 
-#ifdef LUNATIC
-camera_t g_camera;
-#else
 int32_t g_cameraDistance = 0, g_cameraClock = 0;
-#endif
 static int32_t g_quickExit;
 
 char boardfilename[BMAX_PATH] = {0}, currentboardfilename[BMAX_PATH] = {0};
@@ -203,11 +195,7 @@ void G_HandleSpecialKeys(void)
     {
         KB_ClearKeyDown(sc_F12);
         videoCaptureScreen(
-#ifndef EDUKE32_STANDALONE
         "duke0000.tga"
-#else
-        "capt0000.tga"
-#endif
         ,
         0);
         P_DoQuote(QUOTE_SCREEN_SAVED, g_player[myconnectindex].ps);
@@ -262,10 +250,6 @@ extern int32_t g_doQuickSave;
 
 void G_GameExit(const char *msg)
 {
-#ifdef LUNATIC
-    El_PrintTimes();
-    El_DestroyState(&g_ElState);
-#endif
     if (*msg != 0) g_player[myconnectindex].ps->palette = BASEPAL;
 
     if (ud.recstat == 1)
@@ -277,16 +261,14 @@ void G_GameExit(const char *msg)
 
     if (!g_quickExit)
     {
-        if (VM_OnEventWithReturn(EVENT_EXITGAMESCREEN, g_player[myconnectindex].ps->i, myconnectindex, 0) == 0 &&
-           g_mostConcurrentPlayers > 1 && g_player[myconnectindex].ps->gm&MODE_GAME && GTFLAGS(GAMETYPE_SCORESHEET) && *msg == ' ')
+        if (g_mostConcurrentPlayers > 1 && g_player[myconnectindex].ps->gm&MODE_GAME && GTFLAGS(GAMETYPE_SCORESHEET) && *msg == ' ')
         {
             G_BonusScreen(1);
             videoSetGameMode(ud.config.ScreenMode,ud.config.ScreenWidth,ud.config.ScreenHeight,ud.config.ScreenBPP,ud.detail);
         }
 
         // shareware and TEN screens
-        if (VM_OnEventWithReturn(EVENT_EXITPROGRAMSCREEN, g_player[myconnectindex].ps->i, myconnectindex, 0) == 0 &&
-           *msg != 0 && *(msg+1) != 'V' && *(msg+1) != 'Y')
+        if (*msg != 0 && *(msg+1) != 'V' && *(msg+1) != 'Y')
             G_DisplayExtraScreens();
     }
 
@@ -710,8 +692,6 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
         pub = 0;
     }
 
-    VM_OnEvent(EVENT_DISPLAYSTART, pPlayer->i, playerNum);
-
     if (ud.overhead_on == 2 || ud.show_help || (pPlayer->cursectnum == -1 && videoGetRenderMode() != REND_CLASSIC))
         return;
 
@@ -745,27 +725,18 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
         CAMERA(q16ang) = fix16_from_int(actor[ud.camerasprite].tempang
                                       + mulscale16(((pSprite->ang + 1024 - actor[ud.camerasprite].tempang) & 2047) - 1024, smoothRatio));
 
-        int const noDraw = VM_OnEventWithReturn(EVENT_DISPLAYROOMSCAMERA, pPlayer->i, playerNum, 0);
-
-        if (noDraw != 1)  // event return values other than 0 and 1 are reserved
-        {
-            if (EDUKE32_PREDICT_FALSE(noDraw != 0))
-                OSD_Printf(OSD_ERROR "ERROR: EVENT_DISPLAYROOMSCAMERA return value must be 0 or 1, "
-                           "other values are reserved.\n");
-
 #ifdef LEGACY_ROR
-            G_SE40(smoothRatio);
+        G_SE40(smoothRatio);
 #endif
 #ifdef POLYMER
-            if (videoGetRenderMode() == REND_POLYMER)
-                polymer_setanimatesprites(G_DoSpriteAnimations, pSprite->x, pSprite->y, fix16_to_int(CAMERA(q16ang)), smoothRatio);
+        if (videoGetRenderMode() == REND_POLYMER)
+            polymer_setanimatesprites(G_DoSpriteAnimations, pSprite->x, pSprite->y, fix16_to_int(CAMERA(q16ang)), smoothRatio);
 #endif
-            yax_preparedrawrooms();
-            renderDrawRoomsQ16(pSprite->x, pSprite->y, pSprite->z - ZOFFSET6, CAMERA(q16ang), fix16_from_int(pSprite->yvel), pSprite->sectnum);
-            yax_drawrooms(G_DoSpriteAnimations, pSprite->sectnum, 0, smoothRatio);
-            G_DoSpriteAnimations(pSprite->x, pSprite->y, fix16_to_int(CAMERA(q16ang)), smoothRatio);
-            renderDrawMasks();
-        }
+        yax_preparedrawrooms();
+        renderDrawRoomsQ16(pSprite->x, pSprite->y, pSprite->z - ZOFFSET6, CAMERA(q16ang), fix16_from_int(pSprite->yvel), pSprite->sectnum);
+        yax_drawrooms(G_DoSpriteAnimations, pSprite->sectnum, 0, smoothRatio);
+        G_DoSpriteAnimations(pSprite->x, pSprite->y, fix16_to_int(CAMERA(q16ang)), smoothRatio);
+        renderDrawMasks();
     }
     else
     {
@@ -997,48 +968,35 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
             break;
         }
 
-        // NOTE: might be rendering off-screen here, so CON commands that draw stuff
-        //  like showview must cope with that situation or bail out!
-        int const noDraw = VM_OnEventWithReturn(EVENT_DISPLAYROOMS, pPlayer->i, playerNum, 0);
-
         CAMERA(q16horiz) = fix16_clamp(CAMERA(q16horiz), F16(HORIZ_MIN), F16(HORIZ_MAX));
 
-        if (noDraw != 1)  // event return values other than 0 and 1 are reserved
-        {
-/*
-            if (EDUKE32_PREDICT_FALSE(dont_draw != 0))
-                OSD_Printf(OSD_ERROR "ERROR: EVENT_DISPLAYROOMS return value must be 0 or 1, "
-                           "other values are reserved.\n");
-*/
-
-            G_HandleMirror(CAMERA(pos.x), CAMERA(pos.y), CAMERA(pos.z), CAMERA(q16ang), CAMERA(q16horiz), smoothRatio);
+        G_HandleMirror(CAMERA(pos.x), CAMERA(pos.y), CAMERA(pos.z), CAMERA(q16ang), CAMERA(q16horiz), smoothRatio);
 #ifdef LEGACY_ROR
-            G_SE40(smoothRatio);
+        G_SE40(smoothRatio);
 #endif
 #ifdef POLYMER
-            if (videoGetRenderMode() == REND_POLYMER)
-                polymer_setanimatesprites(G_DoSpriteAnimations, CAMERA(pos.x),CAMERA(pos.y),fix16_to_int(CAMERA(q16ang)),smoothRatio);
+        if (videoGetRenderMode() == REND_POLYMER)
+            polymer_setanimatesprites(G_DoSpriteAnimations, CAMERA(pos.x),CAMERA(pos.y),fix16_to_int(CAMERA(q16ang)),smoothRatio);
 #endif
-            // for G_PrintCoords
-            dr_viewingrange = viewingrange;
-            dr_yxaspect = yxaspect;
+        // for G_PrintCoords
+        dr_viewingrange = viewingrange;
+        dr_yxaspect = yxaspect;
 #ifdef DEBUG_MIRRORS_ONLY
-            gotpic[MIRROR>>3] |= (1<<(MIRROR&7));
+        gotpic[MIRROR>>3] |= (1<<(MIRROR&7));
 #else
-            yax_preparedrawrooms();
-            renderDrawRoomsQ16(CAMERA(pos.x),CAMERA(pos.y),CAMERA(pos.z),CAMERA(q16ang),CAMERA(q16horiz),CAMERA(sect));
-            yax_drawrooms(G_DoSpriteAnimations, CAMERA(sect), 0, smoothRatio);
+        yax_preparedrawrooms();
+        renderDrawRoomsQ16(CAMERA(pos.x),CAMERA(pos.y),CAMERA(pos.z),CAMERA(q16ang),CAMERA(q16horiz),CAMERA(sect));
+        yax_drawrooms(G_DoSpriteAnimations, CAMERA(sect), 0, smoothRatio);
 #ifdef LEGACY_ROR
-            if ((unsigned)ror_sprite < MAXSPRITES && drawing_ror == 1)  // viewing from bottom
-                G_OROR_DupeSprites(&sprite[ror_sprite]);
+        if ((unsigned)ror_sprite < MAXSPRITES && drawing_ror == 1)  // viewing from bottom
+            G_OROR_DupeSprites(&sprite[ror_sprite]);
 #endif
-            G_DoSpriteAnimations(CAMERA(pos.x),CAMERA(pos.y),fix16_to_int(CAMERA(q16ang)),smoothRatio);
+        G_DoSpriteAnimations(CAMERA(pos.x),CAMERA(pos.y),fix16_to_int(CAMERA(q16ang)),smoothRatio);
 #ifdef LEGACY_ROR
-            drawing_ror = 0;
+        drawing_ror = 0;
 #endif
-            renderDrawMasks();
+        renderDrawMasks();
 #endif
-        }
 
         if (g_screenCapture)
         {
@@ -1137,47 +1095,15 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
         newaspect_enable = 0;
         renderSetAspect(viewingRange, yxAspect);
     }
-
-    VM_OnEvent(EVENT_DISPLAYROOMSEND, g_player[screenpeek].ps->i, screenpeek);
 }
 
 void G_DumpDebugInfo(void)
 {
-#if !defined LUNATIC
     static char const s_WEAPON[] = "WEAPON";
     int32_t i,j,x;
     //    FILE * fp=fopen("condebug.log","w");
 
     VM_ScriptInfo(insptr, 64);
-    buildprint("\nCurrent gamevar values:\n");
-
-    for (i=0; i<MAX_WEAPONS; i++)
-    {
-        for (j=0; j<numplayers; j++)
-        {
-            buildprint("Player ", j, "\n\n");
-            buildprint(s_WEAPON, i, "_CLIP ", PWEAPON(j, i, Clip), "\n");
-            buildprint(s_WEAPON, i, "_RELOAD ", PWEAPON(j, i, Reload), "\n");
-            buildprint(s_WEAPON, i, "_FIREDELAY ", PWEAPON(j, i, FireDelay), "\n");
-            buildprint(s_WEAPON, i, "_TOTALTIME ", PWEAPON(j, i, TotalTime), "\n");
-            buildprint(s_WEAPON, i, "_HOLDDELAY ", PWEAPON(j, i, HoldDelay), "\n");
-            buildprint(s_WEAPON, i, "_FLAGS ", PWEAPON(j, i, Flags), "\n");
-            buildprint(s_WEAPON, i, "_SHOOTS ", PWEAPON(j, i, Shoots), "\n");
-            buildprint(s_WEAPON, i, "_SPAWNTIME ", PWEAPON(j, i, SpawnTime), "\n");
-            buildprint(s_WEAPON, i, "_SPAWN ", PWEAPON(j, i, Spawn), "\n");
-            buildprint(s_WEAPON, i, "_SHOTSPERBURST ", PWEAPON(j, i, ShotsPerBurst), "\n");
-            buildprint(s_WEAPON, i, "_WORKSLIKE ", PWEAPON(j, i, WorksLike), "\n");
-            buildprint(s_WEAPON, i, "_INITIALSOUND ", PWEAPON(j, i, InitialSound), "\n");
-            buildprint(s_WEAPON, i, "_FIRESOUND ", PWEAPON(j, i, FireSound), "\n");
-            buildprint(s_WEAPON, i, "_SOUND2TIME ", PWEAPON(j, i, Sound2Time), "\n");
-            buildprint(s_WEAPON, i, "_SOUND2SOUND ", PWEAPON(j, i, Sound2Sound), "\n");
-            buildprint(s_WEAPON, i, "_RELOADSOUND1 ", PWEAPON(j, i, ReloadSound1), "\n");
-            buildprint(s_WEAPON, i, "_RELOADSOUND2 ", PWEAPON(j, i, ReloadSound2), "\n");
-            buildprint(s_WEAPON, i, "_SELECTSOUND ", PWEAPON(j, i, SelectSound), "\n");
-            buildprint(s_WEAPON, i, "_FLASHCOLOR ", PWEAPON(j, i, FlashColor), "\n");
-        }
-        buildprint("\n");
-    }
 
     for (x=0; x<MAXSTATUS; x++)
     {
@@ -1186,32 +1112,11 @@ void G_DumpDebugInfo(void)
         {
             buildprint("Sprite ", j, " (", TrackerCast(sprite[j].x), ",", TrackerCast(sprite[j].y), ",", TrackerCast(sprite[j].z),
                 ") (picnum: ", TrackerCast(sprite[j].picnum), ")\n");
-            for (i=0; i<g_gameVarCount; i++)
-            {
-                if (aGameVars[i].flags & (GAMEVAR_PERACTOR))
-                {
-                    if (aGameVars[i].pValues[j] != aGameVars[i].defaultValue)
-                    {
-                        buildprint("gamevar ", aGameVars[i].szLabel, " ", aGameVars[i].pValues[j], " GAMEVAR_PERACTOR");
-                        if (aGameVars[i].flags != GAMEVAR_PERACTOR)
-                        {
-                            buildprint(" // ");
-                            if (aGameVars[i].flags & (GAMEVAR_SYSTEM))
-                            {
-                                buildprint(" (system)");
-                            }
-                        }
-                        buildprint("\n");
-                    }
-                }
-            }
             buildprint("\n");
             j = nextspritestat[j];
         }
     }
-    Gv_DumpValues();
 //    fclose(fp);
-#endif
     saveboard("debug.map", &g_player[myconnectindex].ps->pos, fix16_to_int(g_player[myconnectindex].ps->q16ang),
               g_player[myconnectindex].ps->cursectnum);
 }
@@ -1220,7 +1125,6 @@ void G_DumpDebugInfo(void)
 // else only if it equals 0.
 static int32_t G_InitActor(int32_t i, int32_t tilenum, int32_t set_movflag_uncond)
 {
-#if !defined LUNATIC
     if (g_tile[tilenum].execPtr)
     {
         SH(i) = *(g_tile[tilenum].execPtr);
@@ -1232,25 +1136,6 @@ static int32_t G_InitActor(int32_t i, int32_t tilenum, int32_t set_movflag_uncon
 
         return 1;
     }
-#else
-    if (El_HaveActor(tilenum))
-    {
-        // ^^^ C-CON takes precedence for now.
-        const el_actor_t *a = &g_elActors[tilenum];
-        auto movflagsptr = &AC_MOVFLAGS(&sprite[i], &actor[i]);
-
-        SH(i) = a->strength;
-        AC_ACTION_ID(actor[i].t_data) = a->act.id;
-        AC_MOVE_ID(actor[i].t_data) = a->mov.id;
-        Bmemcpy(&actor[i].ac, &a->act.ac, sizeof(struct action));
-        Bmemcpy(&actor[i].mv, &a->mov.mv, sizeof(struct move));
-
-        if (set_movflag_uncond || *movflagsptr == 0)
-            *movflagsptr = a->movflags;
-
-        return 1;
-    }
-#endif
 
     return 0;
 }
@@ -1301,23 +1186,6 @@ int32_t A_InsertSprite(int16_t whatsect,int32_t s_x,int32_t s_y,int32_t s_z,int1
 
     spriteext[i] = NullSprExt;
     spritesmooth[i] = NullSprSmooth;
-
-#if defined LUNATIC
-    if (!g_noResetVars)
-#endif
-        A_ResetVars(i);
-#if defined LUNATIC
-    g_noResetVars = 0;
-#endif
-
-    if (VM_HaveEvent(EVENT_EGS))
-    {
-        int32_t p, pl = A_FindPlayer(s, &p);
-
-        block_deletesprite++;
-        VM_OnEventWithDist_(EVENT_EGS, i, pl, p);
-        block_deletesprite--;
-    }
 
     return i;
 }
@@ -1398,13 +1266,11 @@ int A_Spawn(int spriteNum, int tileNum)
 #endif
 
         if ((pSprite->cstat & 48)
-#ifndef EDUKE32_STANDALONE
             && pSprite->picnum != SPEAKER
             && pSprite->picnum != LETTER
             && pSprite->picnum != DUCK
             && pSprite->picnum != TARGET
             && pSprite->picnum != TRIPBOMB
-#endif
             && pSprite->picnum != VIEWSCREEN
             && pSprite->picnum != VIEWSCREEN2
             && (!(pSprite->picnum >= CRACK1 && pSprite->picnum <= CRACK4)))
@@ -1412,7 +1278,6 @@ int A_Spawn(int spriteNum, int tileNum)
             if (pSprite->shade == 127)
                 goto SPAWN_END;
 
-#ifndef EDUKE32_STANDALONE
             if (A_CheckSwitchTile(newSprite) && (pSprite->cstat & 16))
             {
                 if (pSprite->pal && pSprite->picnum != ACCESSSWITCH && pSprite->picnum != ACCESSSWITCH2)
@@ -1433,7 +1298,6 @@ int A_Spawn(int spriteNum, int tileNum)
 
                 goto SPAWN_END;
             }
-#endif
 
             if (pSprite->hitag)
             {
@@ -1459,12 +1323,10 @@ int A_Spawn(int spriteNum, int tileNum)
 
     if (pSprite->picnum >= CAMERA1 && pSprite->picnum <= CAMERA1 + 4)
         pSprite->picnum = CAMERA1;
-#ifndef EDUKE32_STANDALONE
     else if (pSprite->picnum >= BOLT1 && pSprite->picnum <= BOLT1 + 3)
         pSprite->picnum = BOLT1;
     else if (pSprite->picnum >= SIDEBOLT1 && pSprite->picnum <= SIDEBOLT1 + 3)
         pSprite->picnum = SIDEBOLT1;
-#endif
         switch (DYNAMICTILEMAP(pSprite->picnum))
         {
         default:
@@ -1544,7 +1406,6 @@ int A_Spawn(int spriteNum, int tileNum)
                 changespritestat(newSprite, STAT_ACTOR);
             }
             break;
-#ifndef EDUKE32_STANDALONE
         case CAMERAPOLE__STATIC:
             pSprite->extra = 1;
             pSprite->cstat &= 32768;
@@ -2544,7 +2405,6 @@ int A_Spawn(int spriteNum, int tileNum)
         case PIPE4__STATIC:
         case PIPE5__STATIC:
         case PIPE6__STATIC:
-#endif
         case GRATE1__STATIC:
         case FANSPRITE__STATIC:
             pSprite->clipdist = 32;
@@ -2647,14 +2507,12 @@ int A_Spawn(int spriteNum, int tileNum)
             }
             fallthrough__;
 #endif
-#ifndef EDUKE32_STANDALONE
         case EXPLOSION2BOT__STATIC:
         case BURNING__STATIC:
         case BURNING2__STATIC:
         case SMALLSMOKE__STATIC:
         case SHRINKEREXPLOSION__STATIC:
         case COOLEXPLOSION1__STATIC:
-#endif
             if (spriteNum >= 0)
             {
                 pSprite->ang = sprite[spriteNum].ang;
@@ -2726,7 +2584,6 @@ int A_Spawn(int spriteNum, int tileNum)
                 changespritestat(newSprite, STAT_MISC);
                 break;
             }
-#ifndef EDUKE32_STANDALONE
             fallthrough__;
         case WATERBUBBLEMAKER__STATIC:
             if (EDUKE32_PREDICT_FALSE(pSprite->hitag && pSprite->picnum == WATERBUBBLEMAKER))
@@ -2736,7 +2593,6 @@ int A_Spawn(int spriteNum, int tileNum)
                            newSprite,TrackerCast(pSprite->x),TrackerCast(pSprite->y));
                 pSprite->hitag = 0;
             }
-#endif
             pSprite->cstat |= 32768;
             changespritestat(newSprite, STAT_STANDABLE);
             break;
@@ -3399,13 +3255,6 @@ int A_Spawn(int spriteNum, int tileNum)
         }
 
 SPAWN_END:
-    if (VM_HaveEvent(EVENT_SPAWN))
-    {
-        int32_t p;
-        int32_t pl=A_FindPlayer(&sprite[newSprite],&p);
-        VM_OnEventWithDist_(EVENT_SPAWN,newSprite, pl, p);
-    }
-
     return newSprite;
 }
 
@@ -3448,7 +3297,6 @@ static int getofs_viewtype_mirrored(uint16_t & cstat, int angDiff)
 }
 
 // XXX: this fucking sucks and needs to be replaced with a SFLAG
-#ifndef EDUKE32_STANDALONE
 static int G_CheckAdultTile(int tileNum)
 {
     UNREFERENCED_PARAMETER(tileNum);
@@ -3518,7 +3366,6 @@ static int G_CheckAdultTile(int tileNum)
     }
     return 0;
 }
-#endif
 
 static inline void G_DoEventAnimSprites(int tspriteNum)
 {
@@ -3529,7 +3376,6 @@ static inline void G_DoEventAnimSprites(int tspriteNum)
         return;
 
     spriteext[tsprOwner].tspr = &tsprite[tspriteNum];
-    VM_OnEvent_(EVENT_ANIMATESPRITES, tsprOwner, screenpeek);
     spriteext[tsprOwner].tspr = NULL;
 }
 
@@ -3664,11 +3510,7 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
     {
         int32_t switchpic;
         int32_t curframe;
-#if !defined LUNATIC
         int32_t scrofs_action;
-#else
-        int32_t startframe, viewtype;
-#endif
         //is the perfect time to animate sprites
         uspritetype *const t = &tsprite[j];
         const int32_t i = t->owner;
@@ -3676,7 +3518,6 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
         // NOTE: not const spritetype because set at SET_SPRITE_NOT_TSPRITE (see below).
         uspritetype *const pSprite = (i < 0) ? &tsprite[j] : (uspritetype *)&sprite[i];
 
-#ifndef EDUKE32_STANDALONE
         if (ud.lockout && G_CheckAdultTile(DYNAMICTILEMAP(pSprite->picnum)))
         {
             t->xrepeat = t->yrepeat = 0;
@@ -3688,7 +3529,7 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
             t->shade = -127;
             t->cstat |= 8192;
         }
-#endif
+
         if (t->statnum == TSPR_TEMP)
             continue;
 
@@ -3715,12 +3556,7 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
         const int32_t sect = pSprite->sectnum;
 
         curframe = AC_CURFRAME(actor[i].t_data);
-#if !defined LUNATIC
         scrofs_action = AC_ACTION_ID(actor[i].t_data);
-#else
-        startframe = actor[i].ac.startframe;
-        viewtype = actor[i].ac.viewtype;
-#endif
         switchpic = pSprite->picnum;
         // Some special cases because dynamictostatic system can't handle
         // addition to constants.
@@ -3731,7 +3567,6 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
 
         switch (DYNAMICTILEMAP(switchpic))
         {
-#ifndef EDUKE32_STANDALONE
         case DUKELYINGDEAD__STATIC:
             t->z += (24<<8);
             break;
@@ -3793,7 +3628,6 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
         case CRYSTALAMMO__STATIC:
             t->shade = (sintable[(totalclock<<4)&2047]>>10);
             continue;
-#endif
         case VIEWSCREEN__STATIC:
         case VIEWSCREEN2__STATIC:
         {
@@ -3832,7 +3666,6 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
 
             break;
         }
-#ifndef EDUKE32_STANDALONE
         case SHRINKSPARK__STATIC:
             t->picnum = SHRINKSPARK+((totalclock>>4)&3);
             break;
@@ -3872,7 +3705,6 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
             t->picnum = RECON+frameOffset;
 
             break;
-#endif
         case APLAYER__STATIC:
             playerNum = P_GetP(pSprite);
 
@@ -3986,12 +3818,10 @@ void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoo
             {
                 // Display APLAYER sprites with action PSTAND when viewed through
                 // a camera.  Not implemented for Lunatic.
-#if !defined LUNATIC
                 const intptr_t *aplayer_scr = g_tile[APLAYER].execPtr;
                 // [0]=strength, [1]=actionofs, [2]=moveofs
 
                 scrofs_action = aplayer_scr[1];
-#endif
                 curframe = 0;
             }
 
@@ -4037,7 +3867,6 @@ PALONLY:
                 t->z = actor[i].floorz;
 
             break;
-#ifndef EDUKE32_STANDALONE
         case JIBS1__STATIC:
         case JIBS2__STATIC:
         case JIBS3__STATIC:
@@ -4080,7 +3909,6 @@ PALONLY:
                 break;
             }
             fallthrough__;
-#endif
         default:
             G_MaybeTakeOnFloorPal(t, sect);
             break;
@@ -4088,16 +3916,11 @@ PALONLY:
 
         if (G_HaveActor(pSprite->picnum))
         {
-#if !defined LUNATIC
             if ((unsigned)scrofs_action + ACTION_VIEWTYPE >= (unsigned)g_scriptSize)
                 goto skip;
 
             l = apScript[scrofs_action + ACTION_VIEWTYPE];
             uint16_t const action_flags = apScript[scrofs_action + ACTION_FLAGS];
-#else
-            l = viewtype;
-            uint16_t const action_flags = actor[i].ac.flags;
-#endif
 
             int const invertp = l < 0;
             l = klabs(l);
@@ -4152,11 +3975,7 @@ PALONLY:
                 }
             }
 
-#if !defined LUNATIC
             t->picnum += frameOffset + apScript[scrofs_action + ACTION_STARTFRAME] + l*curframe;
-#else
-            t->picnum += frameOffset + startframe + l*curframe;
-#endif
             // XXX: t->picnum can be out-of-bounds by bad user code.
 
             if (l > 0)
@@ -4171,9 +3990,7 @@ PALONLY:
         /* completemirror() already reverses the drawn frame, so the above isn't necessary.
          * Even Polymost's and Polymer's mirror seems to function correctly this way. */
 
-#if !defined LUNATIC
 skip:
-#endif
         // Night vision goggles tsprite tinting.
         // XXX: Currently, for the splitscreen mod, sprites will be pal6-colored iff the first
         // player has nightvision on.  We should pass stuff like "from which player is this view
@@ -4259,7 +4076,6 @@ skip:
 
         switch (DYNAMICTILEMAP(pSprite->picnum))
         {
-#ifndef EDUKE32_STANDALONE
         case LASERLINE__STATIC:
             if (sector[t->sectnum].lotag == ST_2_UNDERWATER) t->pal = 8;
             t->z = sprite[pSprite->owner].z-(3<<8);
@@ -4276,7 +4092,6 @@ skip:
         case SHRINKEREXPLOSION__STATIC:
         case RPG__STATIC:
         case FLOORFLAME__STATIC:
-#endif
         case EXPLOSION2__STATIC:
             if (t->picnum == EXPLOSION2)
             {
@@ -4286,7 +4101,6 @@ skip:
             t->shade = -127;
             t->cstat |= 8192+1024;
             break;
-#ifndef EDUKE32_STANDALONE
         case FIRE__STATIC:
         case FIRE2__STATIC:
             t->cstat |= 128;
@@ -4336,7 +4150,6 @@ skip:
         case FRAMEEFFECT1_13__STATIC:
             if (PLUTOPAK) break;
             fallthrough__;
-#endif
         case FRAMEEFFECT1__STATIC:
             if (pSprite->owner >= 0 && sprite[pSprite->owner].statnum < MAXSTATUS)
             {
@@ -4385,15 +4198,6 @@ skip:
 #endif
     }
 
-    if (VM_HaveEvent(EVENT_ANIMATESPRITES))
-    {
-        for (j = spritesortcnt-1; j>=0; j--)
-            G_DoEventAnimSprites(j);
-    }
-
-#ifdef LUNATIC
-    VM_OnEvent(EVENT_ANIMATEALLSPRITES, -1, -1);
-#endif
 #ifdef DEBUGGINGAIDS
     g_spriteStat.numonscreen = spritesortcnt;
 #endif
@@ -5505,11 +5309,7 @@ void G_UpdateAppTitle(void)
 {
     if (g_gameNamePtr)
     {
-#ifdef EDUKE32_STANDALONE
-        Bstrcpy(tempbuf, g_gameNamePtr);
-#else
         Bsprintf(tempbuf, "%s - " APPNAME, g_gameNamePtr);
-#endif
         wm_setapptitle(tempbuf);
     }
     else
@@ -5554,7 +5354,6 @@ static void G_Cleanup(void)
     {
         Bfree(g_sounds[i].filename);
     }
-#if !defined LUNATIC
     if (label != (char *)&sprite[0]) Bfree(label);
     if (labelcode != (int32_t *)&sector[0]) Bfree(labelcode);
     Bfree(apScript);
@@ -5562,13 +5361,8 @@ static void G_Cleanup(void)
 
 //    Bfree(MusicPtr);
 
-    Gv_Clear();
-
-    hash_free(&h_gamevars);
-    hash_free(&h_arrays);
     hash_free(&h_labels);
     hash_free(&h_gamefuncs);
-#endif
 
     hash_loop(&h_dukeanim, G_FreeHashAnim);
     hash_free(&h_dukeanim);
@@ -5609,21 +5403,15 @@ void G_Shutdown(void)
 
 static void G_CompileScripts(void)
 {
-#if !defined LUNATIC
     int32_t psm = pathsearchmode;
 
     label     = (char *)&sprite[0];     // V8: 16384*44/64 = 11264  V7: 4096*44/64 = 2816
     labelcode = (int32_t *)&sector[0]; // V8: 4096*40/4 = 40960    V7: 1024*40/4 = 10240
     labeltype = (int32_t *)&wall[0];   // V8: 16384*32/4 = 131072  V7: 8192*32/4 = 65536
-#endif
 
     if (g_scriptNamePtr != NULL)
         Bcorrectfilename(g_scriptNamePtr,0);
 
-#if defined LUNATIC
-    Gv_Init();
-    C_InitProjectiles();
-#else
     // if we compile for a V7 engine wall[] should be used for label names since it's bigger
     pathsearchmode = 1;
 
@@ -5657,9 +5445,7 @@ static void G_CompileScripts(void)
     Bmemset(sector, 0, MAXSECTORS*sizeof(sectortype));
     Bmemset(wall, 0, MAXWALLS*sizeof(walltype));
 
-    VM_OnEvent(EVENT_INIT, -1, -1);
     pathsearchmode = psm;
-#endif
 }
 
 static inline void G_CheckGametype(void)
@@ -5697,13 +5483,12 @@ static void G_PostLoadPalette(void)
 // Has to be after setting the dynamic names (e.g. SHARK).
 static void A_InitEnemyFlags(void)
 {
-#ifndef EDUKE32_STANDALONE
     int DukeEnemies[] = {
         SHARK, RECON, DRONE,
         LIZTROOPONTOILET, LIZTROOPJUSTSIT, LIZTROOPSTAYPUT, LIZTROOPSHOOT,
-        LIZTROOPJETPACK, LIZTROOPSHOOT, LIZTROOPDUCKING, LIZTROOPRUNNING, LIZTROOP,
-        OCTABRAIN, COMMANDER, COMMANDERSTAYPUT, PIGCOP, PIGCOPSTAYPUT, PIGCOPDIVE, EGG,
-        LIZMAN, LIZMANSPITTING, LIZMANJUMP, ORGANTIC,
+        LIZTROOPJETPACK, LIZTROOPDUCKING, LIZTROOPRUNNING, LIZTROOP,
+        OCTABRAIN, COMMANDER, COMMANDERSTAYPUT, PIGCOP, EGG, PIGCOPSTAYPUT, PIGCOPDIVE,
+        LIZMAN, LIZMANSPITTING, LIZMANFEEDING, LIZMANJUMP, ORGANTIC,
         BOSS1, BOSS2, BOSS3, BOSS4, RAT, ROTATEGUN };
 
     int SolidEnemies[] = { TANK, BOSS1, BOSS2, BOSS3, BOSS4, RECON, ROTATEGUN };
@@ -5724,57 +5509,10 @@ static void A_InitEnemyFlags(void)
 
     for (bssize_t i=ARRAY_SIZE(GreenSlimeFoodEnemies)-1; i>=0; i--)
         SETFLAG(GreenSlimeFoodEnemies[i], SFLAG_GREENSLIMEFOOD);
-#endif
 }
 #undef SETFLAG
 
 static void G_SetupGameButtons(void);
-
-#ifdef LUNATIC
-// Will be used to store CON code translated to Lua.
-int32_t g_elCONSize;
-char *g_elCON;  // NOT 0-terminated!
-
-LUNATIC_EXTERN void El_SetCON(const char *conluacode)
-{
-    int32_t slen = Bstrlen(conluacode);
-
-    g_elCON = (char *)Xmalloc(slen);
-
-    g_elCONSize = slen;
-    Bmemcpy(g_elCON, conluacode, slen);
-}
-
-void El_CreateGameState(void)
-{
-    int32_t i;
-
-    El_DestroyState(&g_ElState);
-
-    if ((i = El_CreateState(&g_ElState, "game")))
-    {
-        initprintf("Lunatic: Error initializing global ELua state (code %d)\n", i);
-    }
-    else
-    {
-        extern const char luaJIT_BC__defs_game[];
-
-        if ((i = L_RunString(&g_ElState, luaJIT_BC__defs_game,
-                             LUNATIC_DEFS_BC_SIZE, "_defs_game.lua")))
-        {
-            initprintf("Lunatic: Error preparing global ELua state (code %d)\n", i);
-            El_DestroyState(&g_ElState);
-        }
-    }
-
-    if (i)
-        G_GameExit("Failure setting up Lunatic!");
-
-# if !defined DEBUGGINGAIDS
-    El_ClearErrors();
-# endif
-}
-#endif
 
 // Throw in everything here that needs to be called after a Lua game state
 // recreation (or on initial startup in a non-Lunatic build.)
@@ -5818,23 +5556,12 @@ static void G_Startup(void)
     if (engineInit())
         G_FatalEngineError();
 
-#ifdef LUNATIC
-    El_CreateGameState();
-    C_InitQuotes();
-#endif
-
     G_InitDynamicTiles();
     G_InitDynamicSounds();
 
     // These depend on having the dynamic tile and/or sound mappings set up:
     G_InitMultiPsky(CLOUDYOCEAN, MOONSKY1, BIGORBIT1, LA);
-    Gv_FinalizeWeaponDefaults();
     G_PostCreateGameState();
-#ifdef LUNATIC
-    // NOTE: This is only effective for CON-defined EVENT_INIT. See EVENT_INIT
-    // not in _defs_game.lua.
-    VM_OnEvent(EVENT_INIT, -1, -1);
-#endif
     if (g_netServer || ud.multimode > 1) G_CheckGametype();
 
     if (g_noSound) ud.config.SoundToggle = 0;
@@ -6033,8 +5760,7 @@ static int G_EndOfLevel(void)
             ud.display_bonus_screen == 1)
             CONFIG_SetMapBestTime(g_loadedMapHack.md4, g_player[myconnectindex].ps->player_par);
 
-        if ((VM_OnEventWithReturn(EVENT_ENDLEVELSCREEN, g_player[myconnectindex].ps->i, myconnectindex, 0)) == 0 &&
-            ud.display_bonus_screen == 1)
+        if (ud.display_bonus_screen == 1)
         {
             int32_t i = ud.screen_size;
             ud.screen_size = 0;
@@ -6051,10 +5777,8 @@ static int G_EndOfLevel(void)
             ud.eog = 0;
             if ((!g_netServer && ud.multimode < 2))
             {
-#ifndef EDUKE32_STANDALONE
                 if (!VOLUMEALL)
                     G_DoOrderScreen();
-#endif
                 g_player[myconnectindex].ps->gm = 0;
                 Menu_Open(myconnectindex);
                 Menu_Change(MENU_MAIN);
@@ -6087,9 +5811,6 @@ static int G_EndOfLevel(void)
 void app_crashhandler(void)
 {
     G_CloseDemoWrite();
-#if !defined LUNATIC
-    VM_ScriptInfo(insptr, 64);
-#endif
     G_GameQuit();
 }
 
@@ -6101,34 +5822,12 @@ static int32_t check_filename_casing(void)
 }
 #endif
 
-#ifdef LUNATIC
-const char *g_sizes_of_what[] = {
-    "sectortype", "walltype", "spritetype", "spriteext_t",
-    "actor_t", "DukePlayer_t", "playerdata_t",
-    "user_defs", "tiledata_t", "weapondata_t",
-    "projectile_t",
-};
-int32_t g_sizes_of[] = {
-    sizeof(sectortype), sizeof(walltype), sizeof(spritetype), sizeof(spriteext_t),
-    sizeof(actor_t), sizeof(DukePlayer_t), sizeof(playerdata_t),
-    sizeof(user_defs), sizeof(tiledata_t), sizeof(weapondata_t),
-    sizeof(projectile_t)
-};
-
-DukePlayer_t *g_player_ps[MAXPLAYERS];
-#endif
-
 void G_MaybeAllocPlayer(int32_t pnum)
 {
     if (g_player[pnum].ps == NULL)
         g_player[pnum].ps = (DukePlayer_t *)Xcalloc(1, sizeof(DukePlayer_t));
     if (g_player[pnum].inputBits == NULL)
         g_player[pnum].inputBits = (input_t *)Xcalloc(1, sizeof(input_t));
-
-#ifdef LUNATIC
-    g_player_ps[pnum] = g_player[pnum].ps;
-    g_player[pnum].ps->wa.idx = pnum;
-#endif
 }
 
 
@@ -6183,10 +5882,6 @@ int app_main(int argc, char const * const * argv)
     extern int32_t (*check_filename_casing_fn)(void);
     check_filename_casing_fn = check_filename_casing;
 #endif
-#endif
-
-#ifdef EDUKE32_STANDALONE
-    G_DeleteOldSaves();
 #endif
 
     G_ExtPreInit(argc, argv);
@@ -6259,7 +5954,7 @@ int app_main(int argc, char const * const * argv)
 #endif
     CONFIG_ReadSetup();
 
-#if defined(_WIN32) && !defined (EDUKE32_STANDALONE)
+#if defined(_WIN32)
 
 //    initprintf("build %d\n",(uint8_t)Batoi(BUILDDATE));
 
@@ -6333,7 +6028,6 @@ int app_main(int argc, char const * const * argv)
     if (!g_useCwd)
         G_CleanupSearchPaths();
 
-#ifndef EDUKE32_STANDALONE
     G_SetupCheats();
 
     if (SHAREWARE)
@@ -6348,7 +6042,6 @@ int app_main(int argc, char const * const * argv)
             kclose(kFile);
         }
     }
-#endif
 
     // gotta set the proper title after we compile the CONs if this is the full version
 
@@ -6430,8 +6123,6 @@ int app_main(int argc, char const * const * argv)
     G_PostLoadPalette();
 
     tileDelete(MIRROR);
-
-    Gv_ResetSystemDefaults(); // called here to populate our fake tilesizx and tilesizy arrays presented to CON with sizes generated by dummytiles
 
     if (numplayers == 1 && boardfilename[0] != 0)
     {
@@ -7007,7 +6698,6 @@ int G_DoMoveThings(void)
     return 0;
 }
 
-#ifndef EDUKE32_STANDALONE
 void A_SpawnWallGlass(int spriteNum, int wallNum, int glassCnt)
 {
     if (wallNum < 0)
@@ -7119,7 +6809,6 @@ void A_SpawnRandomGlass(int spriteNum, int wallNum, int glassCnt)
         sprite[k].pal = krand() & 7;
     }
 }
-#endif
 
 static void G_SetupGameButtons(void)
 {

@@ -87,13 +87,6 @@ typedef struct {
 #ifndef NEW_MAP_FORMAT
     wallext_t wallext[MAXWALLS];
 #endif
-#if !defined LUNATIC
-    intptr_t *vars[MAXGAMEVARS];
-    intptr_t *arrays[MAXGAMEARRAYS];
-    int32_t arraysiz[MAXGAMEARRAYS];
-#else
-    char *savecode;
-#endif
 #ifdef YAX_ENABLE
     int32_t numyaxbunches;
 # if !defined NEW_MAP_FORMAT
@@ -102,9 +95,6 @@ typedef struct {
 # endif
 #endif
 } mapstate_t;
-
-extern void G_SaveMapState();
-extern void G_RestoreMapState();
 
 typedef struct {
     int32_t partime, designertime;
@@ -118,9 +108,7 @@ void G_ActivateBySector(int sect,int j);
 int S_FindMusicSFX(int sectNum, int *sndptr);
 int A_CallSound(int sectNum,int spriteNum);
 int A_CheckHitSprite(int spriteNum,int16_t *hitSprite);
-void A_DamageObject_Internal(int spriteNum, int const dmgSrc);
 void A_DamageObject(int spriteNum,int const dmgSrc);
-void A_DamageWall_Internal(int spr, int dawallnum, const vec3_t *pos, int atwith);
 void A_DamageWall(int spr,int dawallnum,const vec3_t *pos,int atwith);
 int __fastcall A_FindPlayer(const spritetype *pSprite,int32_t *dist);
 void G_AlignWarpElevators(void);
@@ -141,9 +129,6 @@ int isanearoperator(int lotag);
 int isanunderoperator(int lotag);
 int P_ActivateSwitch(int playerNum, int nObject, int nSwitchType);
 void P_CheckSectors(int snum);
-void Sect_DamageFloor_Internal(int const spriteNum, int const sectNum);
-void Sect_DamageFloor(int const spriteNum, int const sectNum);
-void Sect_DamageCeiling_Internal(int const spriteNum, int const sectNum);
 void Sect_DamageCeiling(int const spriteNum, int const sectNum);
 int SetAnimation(int sectNum,int32_t *animPtr,int goalVal,int animVel);
 
@@ -153,7 +138,7 @@ int SetAnimation(int sectNum,int32_t *animPtr,int goalVal,int animVel);
 static inline int G_GetForcefieldPicnum(int wallNum)
 {
     int tileNum = wall[wallNum].overpicnum;
-    if (tileNum == W_FORCEFIELD + 1)
+    if (tileNum == W_FORCEFIELD + 1 || tileNum == W_FORCEFIELD + 2)
         tileNum = W_FORCEFIELD;
     return tileNum;
 }

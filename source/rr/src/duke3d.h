@@ -45,24 +45,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define HEAD2                   APPNAME
 
-#ifdef EDUKE32_STANDALONE
-    #define VOLUMEALL           (1)
-    #define PLUTOPAK            (1)
-    #define VOLUMEONE           (0)
-#else
-    #define VOLUMEALL           (g_Shareware == 0)
-    #define PLUTOPAK            (g_scriptVersion >= 14)
-    #define VOLUMEONE           (g_Shareware == 1)
-#endif
+#define VOLUMEALL           (g_Shareware == 0)
+#define PLUTOPAK            (g_scriptVersion >= 14)
+#define VOLUMEONE           (g_Shareware == 1)
 
 // increase by 3, because atomic GRP adds 1, and Shareware adds 2
-#ifdef LUNATIC
-// Lunatic
-# define BYTEVERSION_EDUKE32      330
-#else
 // Non-Lua build
 # define BYTEVERSION_EDUKE32      330
-#endif
 
 //#define BYTEVERSION_13      27
 //#define BYTEVERSION_14      116
@@ -150,26 +139,14 @@ EDUKE32_STATIC_ASSERT(7 <= MAXTILES-MAXUSERTILES);
 #include "gamevars.h"
 #include "screentext.h"
 
-#ifdef LUNATIC
-# include "lunatic_game.h"
-#endif
-
 static inline int32_t G_HaveActor(int spriteNum)
 {
-#ifdef LUNATIC
-    return El_HaveActor(spriteNum);
-#else
     return g_tile[spriteNum].execPtr!=NULL;
-#endif
 }
 
 static inline int32_t G_DefaultActorHealth(int spriteNum)
 {
-#ifdef LUNATIC
-    return g_elActors[spriteNum].strength;
-#else
     return G_HaveActor(spriteNum) ? g_tile[spriteNum].execPtr[0] : 0;
-#endif
 }
 
 #endif

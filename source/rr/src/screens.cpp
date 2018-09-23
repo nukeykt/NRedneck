@@ -51,7 +51,6 @@ int32_t g_noLogoAnim = 0;
 int32_t g_noLogo = 0;
 
 ////////// OFTEN-USED FEW-LINERS //////////
-#ifndef EDUKE32_STANDALONE
 static void G_HandleEventsWhileNoInput(void)
 {
     I_ClearAllInput();
@@ -78,7 +77,6 @@ static int32_t G_PlaySoundWhileNoInput(int32_t soundnum)
 
     return 0;
 }
-#endif
 //////////
 
 void P_SetGamePalette(DukePlayer_t *player, uint32_t palid, int32_t set)
@@ -274,9 +272,6 @@ static int32_t gtextsc(int32_t sc)
 
 static void G_DrawCameraText(int16_t i)
 {
-    if (VM_OnEvent(EVENT_DISPLAYCAMERAOSD, i, screenpeek) != 0)
-        return;
-
     if (!T1(i))
     {
         rotatesprite_win(24<<16, 33<<16, 65536L, 0, CAMCORNER, 0, 0, 2);
@@ -598,8 +593,6 @@ static void G_DrawOverheadMap(int32_t cposx, int32_t cposy, int32_t czoom, int16
                 i = APLAYERTOP+((totalclock>>4)&3);
             else
                 i = APLAYERTOP;
-
-            i = VM_OnEventWithReturn(EVENT_DISPLAYOVERHEADMAPPLAYER, pPlayer->i, p, i);
 
             if (i < 0)
                 continue;
@@ -1098,9 +1091,7 @@ void G_DisplayRest(int32_t smoothratio)
 
             G_RestoreInterpolations();
 
-            int32_t const textret = VM_OnEvent(EVENT_DISPLAYOVERHEADMAPTEXT, g_player[screenpeek].ps->i, screenpeek);
-
-            if (textret == 0 && ud.overhead_on == 2)
+            if (ud.overhead_on == 2)
             {
                 const int32_t a = (ud.screen_size > 0) ? 147 : 179;
                 if (!(G_GetLogoFlags() & LOGO_HIDEEPISODE) && !G_HaveUserMap())
@@ -1112,8 +1103,7 @@ void G_DisplayRest(int32_t smoothratio)
 
     if (pp->invdisptime > 0) G_DrawInventory(pp);
 
-    if (VM_OnEvent(EVENT_DISPLAYSBAR, g_player[screenpeek].ps->i, screenpeek) == 0)
-        G_DrawStatusBar(screenpeek);
+    G_DrawStatusBar(screenpeek);
 
 #ifdef SPLITSCREEN_MOD_HACKS
     // HACK
@@ -1179,12 +1169,10 @@ void G_DisplayRest(int32_t smoothratio)
 
     if (g_player[myconnectindex].ps->newowner == -1 && ud.overhead_on == 0 && ud.crosshair && ud.camerasprite == -1)
     {
-        ud.returnvar[0] = (160<<16) - (g_player[myconnectindex].ps->look_ang<<15);
-        ud.returnvar[1] = 100<<16;
-        int32_t a = VM_OnEventWithReturn(EVENT_DISPLAYCROSSHAIR, g_player[screenpeek].ps->i, screenpeek, CROSSHAIR);
+        int32_t a = CROSSHAIR;
         if ((unsigned) a < MAXTILES)
         {
-            vec2_t crosshairpos = { ud.returnvar[0], ud.returnvar[1] };
+            vec2_t crosshairpos = { (160<<16) - (g_player[myconnectindex].ps->look_ang<<15), 100<<16 };
             uint8_t crosshair_pal = CROSSHAIR_PAL;
             uint32_t crosshair_o = 1|2;
             uint32_t crosshair_scale = divscale16(ud.crosshairscale, 100);
@@ -1253,13 +1241,6 @@ void G_DisplayRest(int32_t smoothratio)
     }
 #endif
 
-    if (VM_HaveEvent(EVENT_DISPLAYREST))
-    {
-        int32_t vr=viewingrange, asp=yxaspect;
-        VM_OnEvent_(EVENT_DISPLAYREST, g_player[screenpeek].ps->i, screenpeek);
-        renderSetAspect(vr, asp);
-    }
-
     if (ud.pause_on==1 && (g_player[myconnectindex].ps->gm&MODE_MENU) == 0)
         menutext_center(100, "Game Paused");
 
@@ -1277,7 +1258,7 @@ void G_DisplayRest(int32_t smoothratio)
     G_PrintFPS();
 
     // JBF 20040124: display level stats in screen corner
-    if (ud.overhead_on != 2 && ud.levelstats && VM_OnEvent(EVENT_DISPLAYLEVELSTATS, g_player[screenpeek].ps->i, screenpeek) == 0)
+    if (ud.overhead_on != 2 && ud.levelstats)
     {
         DukePlayer_t const * const myps = g_player[myconnectindex].ps;
 
@@ -1337,10 +1318,6 @@ void G_DisplayRest(int32_t smoothratio)
     if (g_Debug)
         G_ShowCacheLocks();
 
-#ifdef LUNATIC
-    El_DisplayErrors();
-#endif
-
 #ifndef EDUKE32_TOUCH_DEVICES
     if (VOLUMEONE)
     {
@@ -1372,8 +1349,6 @@ void G_DisplayRest(int32_t smoothratio)
             applied = 0;
         }
     }
-
-    VM_OnEvent(EVENT_DISPLAYEND, g_player[screenpeek].ps->i, screenpeek);
 }
 
 void G_FadePalette(int32_t r, int32_t g, int32_t b, int32_t e)
@@ -1444,10 +1419,6 @@ static void fadepaltile(int32_t r, int32_t g, int32_t b, int32_t start, int32_t 
         start += step;
     } while (start != end+step);
 }
-
-#ifdef LUNATIC
-int32_t g_logoFlags = 255;
-#endif
 
 #ifdef __ANDROID__
 int inExtraScreens = 0;
@@ -1535,7 +1506,6 @@ void G_DisplayLogo(void)
     FX_StopAllSounds(); // JBF 20031228
     S_ClearSoundLocks();  // JBF 20031228
     if (!g_noLogo /* && (!g_netServer && ud.multimode < 2) */ &&
-        VM_OnEventWithReturn(EVENT_MAINMENUSCREEN, g_player[myconnectindex].ps->i, myconnectindex, 0) == 0 &&
         (logoflags & LOGO_ENABLED))
     {
         if (
@@ -1710,20 +1680,11 @@ void G_DisplayLogo(void)
                         }
                     }
 
-#ifdef LUNATIC
-                    g_elEventError = 0;
-#endif
-                    VM_OnEvent(EVENT_LOGO, -1, screenpeek);
-
                     if (g_restorePalette)
                     {
                         P_SetGamePalette(g_player[myconnectindex].ps, g_player[myconnectindex].ps->palette, 0);
                         g_restorePalette = 0;
                     }
-#ifdef LUNATIC
-                    if (g_elEventError)
-                        break;
-#endif
                 }
 
                 G_HandleAsync();
@@ -1746,7 +1707,6 @@ void G_DisplayLogo(void)
     videoClearScreen(0L);
 }
 
-#ifndef EDUKE32_STANDALONE
 void G_DoOrderScreen(void)
 {
     int32_t i;
@@ -2080,7 +2040,6 @@ static void G_BonusCutscenes(void)
         break;
     }
 }
-#endif
 
 static void G_DisplayMPResultsScreen(void)
 {
@@ -2242,10 +2201,8 @@ void G_BonusScreen(int32_t bonusonly)
     FX_SetReverb(0L);
     CONTROL_BindsEnabled = 1; // so you can use your screenshot bind on the score screens
 
-#ifndef EDUKE32_STANDALONE
     if (!bonusonly)
         G_BonusCutscenes();
-#endif
 
     P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);   // JBF 20040308
     G_FadePalette(0, 0, 0, 252);   // JBF 20031228
@@ -2549,8 +2506,6 @@ void G_BonusScreen(int32_t bonusonly)
             }
             else
                 break;
-
-            VM_OnEvent(EVENT_DISPLAYBONUSSCREEN, g_player[screenpeek].ps->i, screenpeek);
         }
     } while (1);
 }

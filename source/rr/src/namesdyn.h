@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 //-------------------------------------------------------------------------
 
-#define DYNTILEREMAP_ENABLE
-
 
 #define SECTOREFFECTOR__STATIC 1
 #define ACTIVATOR__STATIC 2
@@ -621,14 +619,10 @@ extern int16_t DynamicTileMap[MAXTILES];
 
 void G_InitDynamicTiles(void);
 
-#ifdef DYNTILEREMAP_ENABLE
-
 void G_ProcessDynamicTileMapping(const char *szLabel, int32_t lValue);
 
-#if !defined LUNATIC
 void inithashnames(void);
 void freehashnames(void);
-#endif
 
 extern int32_t SECTOREFFECTOR;
 extern int32_t ACTIVATOR;
@@ -1226,18 +1220,3 @@ extern int32_t JURYGUY;
 
 #define DYNAMICTILEMAP(Tilenum) (DynamicTileMap[Tilenum])
 
-#else  /* if !defined DYNTILEREMAP_ENABLE */
-
-#define G_ProcessDynamicTileMapping(x, y) ((void)(0))
-
-#define inithashnames() ((void)0)
-#define freehashnames() ((void)0)
-
-#include "names.h"
-#undef SPACESHUTTLE
-#undef CANNON
-#undef CANNONBALLS
-
-#define DYNAMICTILEMAP(Tilenum) (Tilenum)
-
-#endif

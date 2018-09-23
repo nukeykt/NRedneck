@@ -292,7 +292,6 @@ void CONFIG_SetDefaults(void)
 
     Bstrcpy(szPlayerName, "Player");
 
-#ifndef EDUKE32_STANDALONE
     Bstrcpy(ud.ridecule[0], "An inspiration for birth control.");
     Bstrcpy(ud.ridecule[1], "You're gonna die for that!");
     Bstrcpy(ud.ridecule[2], "It hurts to be you.");
@@ -303,7 +302,6 @@ void CONFIG_SetDefaults(void)
     Bstrcpy(ud.ridecule[7], "Ha ha ha... wasted!");
     Bstrcpy(ud.ridecule[8], "You suck!");
     Bstrcpy(ud.ridecule[9], "AARRRGHHHHH!!!");
-#endif
 
     // JBF 20031211
 
@@ -360,8 +358,6 @@ void CONFIG_SetDefaults(void)
         ud.config.JoystickAnalogueAxes[i] = CONFIG_AnalogNameToNum(joystickanalogdefaults[i]);
         CONTROL_MapAnalogAxis(i, ud.config.JoystickAnalogueAxes[i], controldevice_joystick);
     }
-
-    VM_OnEvent(EVENT_SETDEFAULTS, g_player[myconnectindex].ps->i, myconnectindex);
 }
 
 
@@ -572,7 +568,7 @@ int32_t CONFIG_ReadSetup(void)
     {
         if (SafeFileExists(g_setupFileName))  // JBF 20031211
             ud.config.scripthandle = SCRIPT_Load(g_setupFileName);
-#if !defined(EDUKE32_TOUCH_DEVICES) && !defined(EDUKE32_STANDALONE)
+#if !defined(EDUKE32_TOUCH_DEVICES)
         else if (SafeFileExists(SETUPFILENAME))
         {
             int32_t i;

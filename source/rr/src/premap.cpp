@@ -26,10 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "demo.h"
 #include "savegame.h"
 
-#ifdef LUNATIC
-# include "lunatic_game.h"
-#endif
-
 static int32_t g_whichPalForPlayer = 9;
 
 static uint8_t precachehightile[2][MAXTILES>>3];
@@ -273,7 +269,7 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
 
     if (ud.recstat != 2)
     {
-        j = VM_OnEventWithReturn(EVENT_GETLOADTILE, g_player[screenpeek].ps->i, screenpeek, LOADSCREEN);
+        j = LOADSCREEN;
 
         //g_player[myconnectindex].ps->palette = palette;
         P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 1);    // JBF 20040308
@@ -324,7 +320,6 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
             rotatesprite(158<<16,144<<16,65536,0,929,0,0,2+8+16,0,0,ii,ydim-1);
         }
 
-        VM_OnEventWithReturn(EVENT_DISPLAYLOADINGSCREEN, g_player[screenpeek].ps->i, screenpeek, percent);
         videoNextPage();
 
         if (!statustext)
@@ -344,7 +339,7 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
         }
         /*Gv_SetVar(g_iReturnVarID,LOADSCREEN, -1, -1);*/
 
-        j = VM_OnEventWithReturn(EVENT_GETLOADTILE, g_player[screenpeek].ps->i, screenpeek, LOADSCREEN);
+        j = LOADSCREEN;
 
         if ((uint32_t)j < 2*MAXTILES)
         {
@@ -359,7 +354,6 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
 
         menutext_center(105,"Loading...");
         if (statustext) gametext_center_number(180, statustext);
-        VM_OnEventWithReturn(EVENT_DISPLAYLOADINGSCREEN, g_player[screenpeek].ps->i, screenpeek, percent);
         videoNextPage();
     }
 }
@@ -552,17 +546,6 @@ void G_UpdateScreenArea(void)
         y1 = scale(y1,ydim,200*100);
         y2 = scale(y2,ydim,200*100);
 
-        if (VM_HaveEvent(EVENT_UPDATESCREENAREA))
-        {
-            ud.returnvar[0] = y1;
-            ud.returnvar[1] = x2;
-            ud.returnvar[2] = y2;
-            x1 = VM_OnEventWithReturn(EVENT_UPDATESCREENAREA, g_player[screenpeek].ps->i, screenpeek, x1);
-            y1 = ud.returnvar[0];
-            x2 = ud.returnvar[1];
-            y2 = ud.returnvar[2];
-        }
-
         videoSetViewableArea(x1,y1,x2-1,y2-1);
     }
 
@@ -617,9 +600,6 @@ void P_RandomSpawnPoint(int playerNum)
 static inline void P_ResetTintFade(DukePlayer_t *const pPlayer)
 {
     pPlayer->pals.f = 0;
-#ifdef LUNATIC
-    pPlayer->palsfadeprio = 0;
-#endif
 }
 
 void P_ResetPlayer(int playerNum)
@@ -686,8 +666,6 @@ void P_ResetPlayer(int playerNum)
 
     pPlayer->reloading     = 0;
     pPlayer->movement_lock = 0;
-
-    VM_OnEvent(EVENT_RESETPLAYER, pPlayer->i, playerNum);
 }
 
 void P_ResetStatus(int playerNum)
@@ -774,10 +752,7 @@ void P_ResetStatus(int playerNum)
     pPlayer->cheat_phase       = 0;
     pPlayer->on_crane          = -1;
 
-    pPlayer->kickback_pic = ((PWEAPON(playerNum, pPlayer->curr_weapon, WorksLike) == PISTOL_WEAPON)
-                             && (PWEAPON(playerNum, pPlayer->curr_weapon, Reload) > PWEAPON(playerNum, pPlayer->curr_weapon, TotalTime)))
-                            ? PWEAPON(playerNum, pPlayer->curr_weapon, TotalTime)
-                            : 0;
+    pPlayer->kickback_pic = (pPlayer->curr_weapon == PISTOL_WEAPON) ? 5 : 0;
 
     pPlayer->weapon_pos         = WEAPON_POS_START;
     pPlayer->walking_snd_toggle = 0;
@@ -791,7 +766,6 @@ void P_ResetStatus(int playerNum)
     pPlayer->frag_ps            = playerNum;
 
     P_UpdateScreenPal(pPlayer);
-    VM_OnEvent(EVENT_RESETPLAYER, pPlayer->i, playerNum);
 }
 
 void P_ResetWeapons(int playerNum)
@@ -803,7 +777,7 @@ void P_ResetWeapons(int playerNum)
 
     pPlayer->weapon_pos                 = WEAPON_POS_START;
     pPlayer->curr_weapon                = PISTOL_WEAPON;
-    pPlayer->kickback_pic               = PWEAPON(playerNum, pPlayer->curr_weapon, TotalTime);
+    pPlayer->kickback_pic               = 5;
     pPlayer->gotweapon                  = ((1 << PISTOL_WEAPON) | (1 << KNEE_WEAPON) | (1 << HANDREMOTE_WEAPON));
     pPlayer->ammo_amount[PISTOL_WEAPON] = min(pPlayer->max_ammo_amount[PISTOL_WEAPON], 48);
     pPlayer->last_weapon                = -1;
@@ -811,8 +785,6 @@ void P_ResetWeapons(int playerNum)
     pPlayer->last_pissed_time           = 0;
     pPlayer->holster_weapon             = 0;
     pPlayer->last_used_weapon           = -1;
-
-    VM_OnEvent(EVENT_RESETWEAPONS, pPlayer->i, playerNum);
 }
 
 void P_ResetInventory(int playerNum)
@@ -827,8 +799,6 @@ void P_ResetInventory(int playerNum)
     pPlayer->holoduke_on            = -1;
     pPlayer->inven_icon             = ICON_NONE;
     pPlayer->inv_amount[GET_SHIELD] = g_startArmorAmount;
-
-    VM_OnEvent(EVENT_RESETINVENTORY, pPlayer->i, playerNum);
 }
 
 static void resetprestat(int playerNum, int gameMode)
@@ -850,10 +820,7 @@ static void resetprestat(int playerNum, int gameMode)
 
     P_ResetTintFade(pPlayer);
 
-    pPlayer->kickback_pic = ((PWEAPON(playerNum, pPlayer->curr_weapon, WorksLike) == PISTOL_WEAPON)
-                             && (PWEAPON(playerNum, pPlayer->curr_weapon, Reload) > PWEAPON(playerNum, pPlayer->curr_weapon, TotalTime)))
-                            ? PWEAPON(playerNum, pPlayer->curr_weapon, TotalTime)
-                            : 0;
+    pPlayer->kickback_pic = (pPlayer->curr_weapon == PISTOL_WEAPON) ? 5 : 0;
 
     pPlayer->last_weapon           = -1;
     pPlayer->weapreccnt            = 0;
@@ -884,7 +851,7 @@ static void resetprestat(int playerNum, int gameMode)
         P_ResetWeapons(playerNum);
         P_ResetInventory(playerNum);
     }
-    else if (PWEAPON(playerNum, pPlayer->curr_weapon, WorksLike) == HANDREMOTE_WEAPON)
+    else if (pPlayer->curr_weapon == HANDREMOTE_WEAPON)
     {
         pPlayer->ammo_amount[HANDBOMB_WEAPON]++;
         pPlayer->curr_weapon = HANDBOMB_WEAPON;
@@ -969,8 +936,6 @@ static void prelevel(char g)
 
     G_SetupGlobalPsky();
 
-    VM_OnEvent(EVENT_PRELEVEL, -1, -1);
-
     int missedCloudSectors = 0;
 
     for (bssize_t i=0; i<numsectors; i++)
@@ -1027,11 +992,7 @@ static void prelevel(char g)
     // NOTE: must be safe loop because callbacks could delete sprites.
     for (bssize_t nextSprite, SPRITES_OF_STAT_SAFE(STAT_DEFAULT, i, nextSprite))
     {
-        A_ResetVars(i);
-#if !defined LUNATIC
-        A_LoadActor(i);
-#endif
-        VM_OnEvent(EVENT_LOADACTOR, i, -1);
+        //A_LoadActor(i);
         if (G_CheckExitSprite(i))
         {
             g_player[0].ps->exitx = SX(i);
@@ -1042,6 +1003,7 @@ static void prelevel(char g)
             case GPSPEED__STATIC:
                 // DELETE_AFTER_LOADACTOR. Must not change statnum.
                 sector[SECT(i)].extra = SLT(i);
+                A_DeleteSprite(i);
                 break;
 
             case CYCLER__STATIC:
@@ -1058,32 +1020,21 @@ static void prelevel(char g)
                 g_cyclers[g_cyclerCnt][4] = SHT(i);
                 g_cyclers[g_cyclerCnt][5] = (SA(i) == 1536);
                 g_cyclerCnt++;
-                break;
-
-            case SECTOREFFECTOR__STATIC:
-            case ACTIVATOR__STATIC:
-            case TOUCHPLATE__STATIC:
-            case ACTIVATORLOCKED__STATIC:
-            case MUSICANDSFX__STATIC:
-            case LOCATORS__STATIC:
-            case MASTERSWITCH__STATIC:
-            case RESPAWN__STATIC:
-                sprite[i].cstat &= ~(1|16|32|256);
-                break;
-            }
-    }
-
-    // Delete some effector / effector modifier sprites AFTER the loop running
-    // the LOADACTOR events. DELETE_AFTER_LOADACTOR.
-    for (bssize_t nextSprite, SPRITES_OF_STAT_SAFE(STAT_DEFAULT, i, nextSprite))
-        if (!G_CheckExitSprite(i))
-            switch (DYNAMICTILEMAP(PN(i)))
-            {
-            case GPSPEED__STATIC:
-            case CYCLER__STATIC:
                 A_DeleteSprite(i);
                 break;
+
+            //case SECTOREFFECTOR__STATIC:
+            //case ACTIVATOR__STATIC:
+            //case TOUCHPLATE__STATIC:
+            //case ACTIVATORLOCKED__STATIC:
+            //case MUSICANDSFX__STATIC:
+            //case LOCATORS__STATIC:
+            //case MASTERSWITCH__STATIC:
+            //case RESPAWN__STATIC:
+            //    sprite[i].cstat &= ~(1|16|32|256);
+            //    break;
             }
+    }
 
     for (size_t i = 0; i < MAXSPRITES; i++)
     {
@@ -1097,7 +1048,7 @@ static void prelevel(char g)
             A_Spawn(-1, i);
     }
 
-    G_SetupRotfixedSprites();
+    //G_SetupRotfixedSprites();
 
     for (bssize_t i=headspritestat[STAT_DEFAULT]; i>=0; i=nextspritestat[i])
     {
@@ -1315,7 +1266,6 @@ void G_NewGame(int volumeNum, int levelNum, int skillNum)
     ready2send = 0;
 
     if (ud.m_recstat != 2 && ud.last_level >= 0 &&
-        VM_OnEventWithReturn(EVENT_EXITGAMESCREEN, g_player[myconnectindex].ps->i, myconnectindex, 0) == 0 &&
         (g_netServer || ud.multimode > 1) && (ud.coop&GAMETYPE_SCORESHEET))
         G_BonusScreen(1);
 
@@ -1337,7 +1287,6 @@ void G_NewGame(int volumeNum, int levelNum, int skillNum)
 
     // we don't want the intro to play after the multiplayer setup screen
     if ((!g_netServer && ud.multimode < 2) && UserMap == 0 &&
-        VM_OnEventWithReturn(EVENT_NEWGAMESCREEN, g_player[myconnectindex].ps->i, myconnectindex, 0) == 0 &&
         levelNum == 0 && volumeNum == 3 && ud.lockout == 0 && (G_GetLogoFlags() & LOGO_NOE4CUTSCENE)==0)
     {
         S_PlaySpecialMusicOrNothing(MUS_BRIEFING);
@@ -1375,17 +1324,7 @@ end_vol4a:
     pPlayer->gm = 0;
     Menu_Close(0);
 
-#if !defined LUNATIC
     //AddLog("Newgame");
-    Gv_ResetVars();
-
-    Gv_InitWeaponPointers();
-
-    // PK: Gv_ResetVars() might trip up the system (pointer) gamevars,
-    // e.g. if some earlier-version CON code had been loaded before
-    Gv_RefreshPointers();
-#endif
-    Gv_ResetSystemDefaults();
 
     for (bssize_t i=0; i<(MAXVOLUMES*MAXLEVELS); i++)
         G_FreeMapState(i);
@@ -1394,27 +1333,19 @@ end_vol4a:
     {
         for (bssize_t weaponNum = 0; weaponNum < MAX_WEAPONS; weaponNum++)
         {
-            if (PWEAPON(0, weaponNum, WorksLike) == PISTOL_WEAPON)
+            if (weaponNum == PISTOL_WEAPON)
             {
                 pPlayer->curr_weapon = weaponNum;
                 pPlayer->gotweapon |= (1 << weaponNum);
                 pPlayer->ammo_amount[weaponNum] = min(pPlayer->max_ammo_amount[weaponNum], 48);
             }
-            else if (PWEAPON(0, weaponNum, WorksLike) == KNEE_WEAPON || PWEAPON(0, weaponNum, WorksLike) == HANDREMOTE_WEAPON)
+            else if (weaponNum == KNEE_WEAPON || weaponNum == HANDREMOTE_WEAPON)
                 pPlayer->gotweapon |= (1 << weaponNum);
         }
         pPlayer->last_weapon = -1;
     }
 
     display_mirror = 0;
-
-#ifdef LUNATIC
-    // NOTE: Lunatic state creation is relatively early. No map has yet been loaded.
-    // XXX: What about the cases where G_EnterLevel() is called without a preceding G_NewGame()?
-    El_CreateGameState();
-    G_PostCreateGameState();
-#endif
-    VM_OnEvent(EVENT_NEWGAME, g_player[screenpeek].ps->i, screenpeek);
 }
 
 static void resetpspritevars(char gameMode)
@@ -1808,22 +1739,14 @@ int G_EnterLevel(int gameMode)
     if (Menu_HaveUserMap())
     {
         if (g_gameNamePtr)
-#ifdef EDUKE32_STANDALONE
-            Bsnprintf(apptitle, sizeof(apptitle), "%s - %s", boardfilename, g_gameNamePtr);
-#else
             Bsnprintf(apptitle, sizeof(apptitle), "%s - %s - " APPNAME, boardfilename, g_gameNamePtr);
-#endif
         else
             Bsnprintf(apptitle, sizeof(apptitle), "%s - " APPNAME, boardfilename);
     }
     else
     {
         if (g_gameNamePtr)
-#ifdef EDUKE32_STANDALONE
-            Bsprintf(apptitle,"%s - %s",g_mapInfo[mii].name,g_gameNamePtr);
-#else
             Bsprintf(apptitle, "%s - %s - " APPNAME, g_mapInfo[mii].name, g_gameNamePtr);
-#endif
         else
             Bsprintf(apptitle,"%s - " APPNAME,g_mapInfo[mii].name);
     }
@@ -1883,10 +1806,6 @@ int G_EnterLevel(int gameMode)
             ud.last_level == -1)
         {
             S_PlayLevelMusicOrNothing(mii);
-        }
-        else
-        {
-            S_ContinueLevelMusic();
         }
     }
 
@@ -1964,13 +1883,6 @@ int G_EnterLevel(int gameMode)
 
     Bmemcpy(currentboardfilename, boardfilename, BMAX_PATH);
 
-    for (TRAVERSE_CONNECT(i))
-    {
-        const int32_t ret = VM_OnEventWithReturn(EVENT_ENTERLEVEL, g_player[i].ps->i, i, 0);
-        if (ret == 0)
-            break;
-    }
-
     if (G_HaveUserMap())
     {
         OSD_Printf(OSDTEXT_YELLOW "User Map: %s\n", boardfilename);
@@ -1998,25 +1910,6 @@ void G_FreeMapState(int levelNum)
 
     if (pMapInfo->savedstate == NULL)
         return;
-
-#if !defined LUNATIC
-    for (bssize_t j=0; j<g_gameVarCount; j++)
-    {
-        if (aGameVars[j].flags & GAMEVAR_NORESET)
-            continue;
-
-        if (aGameVars[j].flags & (GAMEVAR_PERPLAYER|GAMEVAR_PERACTOR))
-            ALIGNED_FREE_AND_NULL(pMapInfo->savedstate->vars[j]);
-    }
-
-    for (bssize_t j=0; j<g_gameArrayCount; j++)
-    {
-        if (aGameArrays[j].flags & GAMEARRAY_RESTORE)
-            ALIGNED_FREE_AND_NULL(pMapInfo->savedstate->arrays[j]);
-    }
-#else
-    Bfree(pMapInfo->savedstate->savecode);
-#endif
 
     ALIGNED_FREE_AND_NULL(pMapInfo->savedstate);
 }

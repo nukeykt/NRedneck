@@ -145,13 +145,6 @@ typedef struct {
     int32_t autostep, autostep_sbw;
 
     uint32_t interface_toggle_flag;
-#ifdef LUNATIC
-    int32_t pipebombControl, pipebombLifetime, pipebombLifetimeVar;
-    int32_t tripbombControl, tripbombLifetime, tripbombLifetimeVar;
-
-    int32_t zrange;
-    int16_t angrange, autoaimang;
-#endif
     uint16_t max_actors_killed, actors_killed;
     uint16_t gotweapon, zoom;
 
@@ -203,13 +196,6 @@ typedef struct {
 
     int8_t last_used_weapon;
 
-#ifdef LUNATIC
-    int8_t palsfadespeed, palsfadenext, palsfadeprio, padding2_;
-
-    // The player index. Always valid since we have no loose DukePlayer_t's
-    // anywhere (like with spritetype_t): g_player[i].ps->wa.idx == i.
-    struct { int32_t idx; } wa;
-#endif
     // int8_t padding_[0];
 } DukePlayer_t;
 
@@ -255,32 +241,6 @@ typedef struct
     int32_t FlashColor;  // Muzzle flash color
 } weapondata_t;
 
-#ifdef LUNATIC
-# define PWEAPON(Player, Weapon, Wmember) (g_playerWeapon[Player][Weapon].Wmember)
-extern weapondata_t g_playerWeapon[MAXPLAYERS][MAX_WEAPONS];
-#else
-# define PWEAPON(Player, Weapon, Wmember) (aplWeapon ## Wmember [Weapon][Player])
-extern intptr_t         *aplWeaponClip[MAX_WEAPONS];            // number of items in clip
-extern intptr_t         *aplWeaponReload[MAX_WEAPONS];          // delay to reload (include fire)
-extern intptr_t         *aplWeaponFireDelay[MAX_WEAPONS];       // delay to fire
-extern intptr_t         *aplWeaponHoldDelay[MAX_WEAPONS];       // delay after release fire button to fire (0 for none)
-extern intptr_t         *aplWeaponTotalTime[MAX_WEAPONS];       // The total time the weapon is cycling before next fire.
-extern intptr_t         *aplWeaponFlags[MAX_WEAPONS];           // Flags for weapon
-extern intptr_t         *aplWeaponShoots[MAX_WEAPONS];          // what the weapon shoots
-extern intptr_t         *aplWeaponSpawnTime[MAX_WEAPONS];       // the frame at which to spawn an item
-extern intptr_t         *aplWeaponSpawn[MAX_WEAPONS];           // the item to spawn
-extern intptr_t         *aplWeaponShotsPerBurst[MAX_WEAPONS];   // number of shots per 'burst' (one ammo per 'burst'
-extern intptr_t         *aplWeaponWorksLike[MAX_WEAPONS];       // What original the weapon works like
-extern intptr_t         *aplWeaponInitialSound[MAX_WEAPONS];    // Sound made when initialy firing. zero for no sound
-extern intptr_t         *aplWeaponFireSound[MAX_WEAPONS];       // Sound made when firing (each time for automatic)
-extern intptr_t         *aplWeaponSound2Time[MAX_WEAPONS];      // Alternate sound time
-extern intptr_t         *aplWeaponSound2Sound[MAX_WEAPONS];     // Alternate sound sound ID
-extern intptr_t         *aplWeaponReloadSound1[MAX_WEAPONS];    // Sound of magazine being removed
-extern intptr_t         *aplWeaponReloadSound2[MAX_WEAPONS];    // Sound of magazine being inserted
-extern intptr_t         *aplWeaponSelectSound[MAX_WEAPONS];     // Sound for weapon selection
-extern intptr_t         *aplWeaponFlashColor[MAX_WEAPONS];      // Color for polymer muzzle flash
-#endif
-
 typedef struct {
     int32_t workslike, cstat; // 8b
     int32_t hitradius, range, flashcolor; // 12b
@@ -320,34 +280,21 @@ extern int32_t          ticrandomseed;
 
 #define SHOOT_HARDCODED_ZVEL INT32_MIN
 
-int A_ShootWithZvel(int spriteNum, int projecTile, int forceZvel);
-static inline int A_Shoot(int spriteNum, int projecTile)
-{
-    return A_ShootWithZvel(spriteNum, projecTile, SHOOT_HARDCODED_ZVEL);
-}
+int A_Shoot(int spriteNum, int projecTile);
 
 static inline void P_PalFrom(DukePlayer_t *pPlayer, uint8_t f, uint8_t r, uint8_t g, uint8_t b)
 {
-#ifdef LUNATIC
-    // Compare with _defs_game.lua: player[]:_palfrom().
-    if (pPlayer->pals.f == 0 || pPlayer->palsfadeprio <= 0)
-#endif
-    {
-        pPlayer->pals.f = f;
-        pPlayer->pals.r = r;
-        pPlayer->pals.g = g;
-        pPlayer->pals.b = b;
-#ifdef LUNATIC
-        pPlayer->palsfadespeed = pPlayer->palsfadenext = 0;
-#endif
-    }
+    pPlayer->pals.f = f;
+    pPlayer->pals.r = r;
+    pPlayer->pals.g = g;
+    pPlayer->pals.b = b;
 }
 
 void    P_AddKills(DukePlayer_t * const pPlayer, uint16_t kills);
 int32_t A_GetHitscanRange(int spriteNum);
 void    P_GetInput(int playerNum);
 void P_AddAmmo(DukePlayer_t * const pPlayer, int const weaponNum, int const addAmount);
-void    P_AddWeapon(DukePlayer_t *pPlayer, int weaponNum, int switchWeapon);
+void    P_AddWeapon(DukePlayer_t *pPlayer, int weaponNum);
 void    P_CheckWeapon(DukePlayer_t *pPlayer);
 void    P_DisplayScuba(void);
 void    P_DisplayWeapon(void);
@@ -371,16 +318,6 @@ extern "C" {
 int     P_GetOverheadPal(const DukePlayer_t *pPlayer);
 
 int Proj_GetDamage(projectile_t const *pProj);
-
-#if !defined LUNATIC
-void P_SetWeaponGamevars(int playerNum, const DukePlayer_t *pPlayer);
-#else
-static inline void P_SetWeaponGamevars(int playerNum, const DukePlayer_t *pPlayer)
-{
-    UNREFERENCED_PARAMETER(playerNum);
-    UNREFERENCED_PARAMETER(pPlayer);
-}
-#endif
 
 // Get the player index given an APLAYER sprite pointer.
 static inline int P_GetP(const void *pSprite)

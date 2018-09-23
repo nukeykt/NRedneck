@@ -117,32 +117,12 @@ void A_DeleteSprite(int spriteNum);
 
 static inline int32_t G_GetLogoFlags(void)
 {
-#if !defined LUNATIC
-    return Gv_GetVarByLabel("LOGO_FLAGS",255, -1, -1);
-#else
-    extern int32_t g_logoFlags;
-    return g_logoFlags;
-#endif
+    return 255;
 }
 
-#ifdef LUNATIC
-typedef struct {
-    vec3_t pos;
-    int32_t dist, clock;
-    fix16_t q16horiz, q16ang;
-    int16_t sect;
-} camera_t;
-
-extern camera_t g_camera;
-
-# define CAMERA(Membname) (g_camera.Membname)
-# define CAMERADIST (g_camera.dist)
-# define CAMERACLOCK (g_camera.clock)
-#else
 # define CAMERA(Membname) (ud.camera ## Membname)
 # define CAMERADIST g_cameraDistance
 # define CAMERACLOCK g_cameraClock
-#endif
 
 #endif
 
@@ -157,9 +137,7 @@ extern camera_t g_camera;
 
 // KEEPINSYNC lunatic/_defs_game.lua
 typedef struct {
-#if !defined LUNATIC
     vec3_t camerapos;
-#endif
     int32_t const_visibility,uw_framerate;
     int32_t camera_time,folfvel,folavel,folx,foly,fola;
     int32_t reccnt,crosshairscale;
@@ -192,14 +170,12 @@ typedef struct {
     int32_t autosave;
     int32_t autosavedeletion, maxautosaves;
 
-    int32_t returnvar[MAX_RETURN_VALUES-1];
+    //int32_t returnvar[MAX_RETURN_VALUES-1];
 
     uint32_t userbytever;
 
-#if !defined LUNATIC
     fix16_t cameraq16ang, cameraq16horiz;
     int16_t camerasect;
-#endif
     int16_t pause_on,from_bonus;
     int16_t camerasprite,last_camsprite;
     int16_t last_level,secretlevel;
@@ -311,10 +287,8 @@ extern float r_ambientlight;
 
 extern int32_t g_Debug;
 extern int32_t g_Shareware;
-#if !defined LUNATIC
 extern int32_t g_cameraClock;
 extern int32_t g_cameraDistance;
-#endif
 extern int32_t g_crosshairSum;
 extern int32_t g_doQuickSave;
 extern int32_t g_forceWeaponChoice;
@@ -353,9 +327,6 @@ void Yax_SetBunchZs(int32_t sectnum, int32_t cf, int32_t daz);
 #define Yax_SetBunchZs(sectnum, cf, daz)
 #endif
 
-#ifdef LUNATIC
-void El_CreateGameState(void);
-#endif
 void G_PostCreateGameState(void);
 
 void A_SpawnCeilingGlass(int spriteNum,int sectNum,int glassCnt);
@@ -567,10 +538,6 @@ static inline int G_GetViewscreenSizeShift(const uspritetype *tspr)
 }
 
 extern void G_PrintCurrentMusic(void);
-
-#ifdef LUNATIC
-void El_SetCON(const char *conluacode);
-#endif
 
 EXTERN_INLINE_HEADER void G_SetStatusBarScale(int32_t sc);
 
