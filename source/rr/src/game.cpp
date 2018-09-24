@@ -2400,9 +2400,6 @@ int A_Spawn(int spriteNum, int tileNum)
             changespritestat(newSprite, STAT_DEFAULT);
             break;
 
-        case FRAMEEFFECT1_13__STATIC:
-            if (PLUTOPAK) break;
-            fallthrough__;
         case FRAMEEFFECT1__STATIC:
             if (spriteNum >= 0)
             {
@@ -4133,9 +4130,6 @@ skip:
             if (T1(i) > 2) t->cstat &= ~16;
             else if (T1(i) > 1) t->cstat &= ~4;
             break;
-        case FRAMEEFFECT1_13__STATIC:
-            if (PLUTOPAK) break;
-            fallthrough__;
         case FRAMEEFFECT1__STATIC:
             if (pSprite->owner >= 0 && sprite[pSprite->owner].statnum < MAXSTATUS)
             {

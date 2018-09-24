@@ -240,7 +240,7 @@ void C_InitHashes()
     for (i=0; i < ARRAY_SIZE(tables); i++)
         hash_init(tables[i]);
 
-    inithashnames();
+    //inithashnames();
     initsoundhashnames();
 
     for (tokenmap_t const & keyword : vm_keywords)
@@ -2500,7 +2500,7 @@ void C_Compile(const char *fileName)
     for (unsigned i=0; i < ARRAY_SIZE(tables_free); i++)
         hash_free(tables_free[i]);
 
-    freehashnames();
+    //freehashnames();
     freesoundhashnames();
 
     if (g_scriptDebug)

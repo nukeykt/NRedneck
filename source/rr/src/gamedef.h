@@ -824,6 +824,43 @@ enum ScriptKeywords_t
     CON_IFNOSOUNDS,         // 109
     CON_CLIPDIST,           // 110
     CON_IFANGDIFFL,         // 111
+    CON_FEATHERS,           // 112
+    CON_IFNOCOVER,          // 113
+    CON_IFHITTRUCK,         // 114
+    CON_IFTIPCOW,           // 115
+    CON_ISDRUNK,            // 116
+    CON_ISEAT,              // 117
+    CON_DESTROYIT,          // 118
+    CON_LARRYBIRD,          // 119
+    CON_STRAFELEFT,         // 120
+    CON_STRAFERIGHT,        // 121
+    CON_IFACTORHEALTHG,     // 122
+    CON_IFACTORHEALTHL,     // 123
+    CON_SLAPPLAYER,         // 124
+    CON_IFPDRUNK,           // 125
+    CON_TEARITUP,           // 126
+    CON_SMACKBUBBA,         // 127
+    CON_SOUNDTAGONCE,       // 128
+    CON_SOUNDTAG,           // 129
+    CON_IFSOUNDID,          // 130
+    CON_IFSOUNDDIST,        // 131
+    CON_IFONMUD,            // 132
+    CON_IFCOOP,             // 133
+    CON_IFMOTOFAST,         // 134
+    CON_IFWIND,             // 135
+    CON_SMACKSPRITE,        // 136
+    CON_IFONMOTO,           // 137
+    CON_IFONBOAT,           // 138
+    CON_FAKEBUBBA,          // 139
+    CON_MAMATRIGGER,        // 140
+    CON_MAMASPAWN,          // 141
+    CON_MAMAQUAKE,          // 142
+    CON_MAMAEND,            // 143
+    CON_NEWPIC,             // 144
+    CON_GARYBANJO,          // 145
+    CON_MOTOLOOPSND,        // 146
+    CON_IFSIZEDOWN,         // 147
+    CON_RNDMOVE,            // 148
     CON_END
 };
 // KEEPINSYNC with the keyword list in lunatic/con_lang.lua
