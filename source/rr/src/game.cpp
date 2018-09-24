@@ -5463,32 +5463,59 @@ static void G_PostLoadPalette(void)
 // Has to be after setting the dynamic names (e.g. SHARK).
 static void A_InitEnemyFlags(void)
 {
-    int DukeEnemies[] = {
-        SHARK, RECON, DRONE,
-        LIZTROOPONTOILET, LIZTROOPJUSTSIT, LIZTROOPSTAYPUT, LIZTROOPSHOOT,
-        LIZTROOPJETPACK, LIZTROOPDUCKING, LIZTROOPRUNNING, LIZTROOP,
-        OCTABRAIN, COMMANDER, COMMANDERSTAYPUT, PIGCOP, EGG, PIGCOPSTAYPUT, PIGCOPDIVE,
-        LIZMAN, LIZMANSPITTING, LIZMANFEEDING, LIZMANJUMP, ORGANTIC,
-        BOSS1, BOSS2, BOSS3, BOSS4, RAT, ROTATEGUN };
+    if (RR)
+    {
+        int DukeEnemies[] = {
+            SHARK, RECON, DRONE,
+            LIZTROOPONTOILET, LIZTROOPJUSTSIT, LIZTROOPSTAYPUT, LIZTROOPSHOOT,
+            LIZTROOPJETPACK, LIZTROOPDUCKING, LIZTROOPRUNNING, LIZTROOP,
+            OCTABRAIN, COMMANDER, COMMANDERSTAYPUT, PIGCOP, EGG, PIGCOPSTAYPUT, PIGCOPDIVE,
+            LIZMAN, LIZMANSPITTING, LIZMANFEEDING, LIZMANJUMP, ORGANTIC,
+            BOSS1, BOSS2, BOSS3, BOSS4, RAT, ROTATEGUN };
 
-    int SolidEnemies[] = { TANK, BOSS1, BOSS2, BOSS3, BOSS4, RECON, ROTATEGUN };
-    int NoWaterDipEnemies[] = { OCTABRAIN, COMMANDER, DRONE };
-    int GreenSlimeFoodEnemies[] = { LIZTROOP, LIZMAN, PIGCOP, NEWBEAST };
+        int SolidEnemies[] = { TANK, BOSS1, BOSS2, BOSS3, BOSS4, RECON, ROTATEGUN };
+        int NoWaterDipEnemies[] = { DRONE };
 
-    for (bssize_t i=GREENSLIME; i<=GREENSLIME+7; i++)
-        SETFLAG(i, SFLAG_HARDCODED_BADGUY);
+        for (bssize_t i = ARRAY_SIZE(DukeEnemies) - 1; i >= 0; i--)
+            SETFLAG(DukeEnemies[i], SFLAG_HARDCODED_BADGUY);
 
-    for (bssize_t i=ARRAY_SIZE(DukeEnemies)-1; i>=0; i--)
-        SETFLAG(DukeEnemies[i], SFLAG_HARDCODED_BADGUY);
+        for (bssize_t i = ARRAY_SIZE(SolidEnemies) - 1; i >= 0; i--)
+            SETFLAG(SolidEnemies[i], SFLAG_NODAMAGEPUSH);
 
-    for (bssize_t i=ARRAY_SIZE(SolidEnemies)-1; i>=0; i--)
-        SETFLAG(SolidEnemies[i], SFLAG_NODAMAGEPUSH);
+        for (bssize_t i = ARRAY_SIZE(NoWaterDipEnemies) - 1; i >= 0; i--)
+            SETFLAG(NoWaterDipEnemies[i], SFLAG_NOWATERDIP);
 
-    for (bssize_t i=ARRAY_SIZE(NoWaterDipEnemies)-1; i>=0; i--)
-        SETFLAG(NoWaterDipEnemies[i], SFLAG_NOWATERDIP);
+        return;
+    }
+    else
+    {
+        int DukeEnemies[] = {
+            SHARK, RECON, DRONE,
+            LIZTROOPONTOILET, LIZTROOPJUSTSIT, LIZTROOPSTAYPUT, LIZTROOPSHOOT,
+            LIZTROOPJETPACK, LIZTROOPDUCKING, LIZTROOPRUNNING, LIZTROOP,
+            OCTABRAIN, COMMANDER, COMMANDERSTAYPUT, PIGCOP, EGG, PIGCOPSTAYPUT, PIGCOPDIVE,
+            LIZMAN, LIZMANSPITTING, LIZMANFEEDING, LIZMANJUMP, ORGANTIC,
+            BOSS1, BOSS2, BOSS3, BOSS4, RAT, ROTATEGUN };
 
-    for (bssize_t i=ARRAY_SIZE(GreenSlimeFoodEnemies)-1; i>=0; i--)
-        SETFLAG(GreenSlimeFoodEnemies[i], SFLAG_GREENSLIMEFOOD);
+        int SolidEnemies[] = { TANK, BOSS1, BOSS2, BOSS3, BOSS4, RECON, ROTATEGUN };
+        int NoWaterDipEnemies[] = { OCTABRAIN, COMMANDER, DRONE };
+        int GreenSlimeFoodEnemies[] = { LIZTROOP, LIZMAN, PIGCOP, NEWBEAST };
+
+        for (bssize_t i=GREENSLIME; i<=GREENSLIME+7; i++)
+            SETFLAG(i, SFLAG_HARDCODED_BADGUY);
+
+        for (bssize_t i=ARRAY_SIZE(DukeEnemies)-1; i>=0; i--)
+            SETFLAG(DukeEnemies[i], SFLAG_HARDCODED_BADGUY);
+
+        for (bssize_t i=ARRAY_SIZE(SolidEnemies)-1; i>=0; i--)
+            SETFLAG(SolidEnemies[i], SFLAG_NODAMAGEPUSH);
+
+        for (bssize_t i=ARRAY_SIZE(NoWaterDipEnemies)-1; i>=0; i--)
+            SETFLAG(NoWaterDipEnemies[i], SFLAG_NOWATERDIP);
+
+        for (bssize_t i=ARRAY_SIZE(GreenSlimeFoodEnemies)-1; i>=0; i--)
+            SETFLAG(GreenSlimeFoodEnemies[i], SFLAG_GREENSLIMEFOOD);
+    }
 }
 #undef SETFLAG
 

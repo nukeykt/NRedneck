@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 //-------------------------------------------------------------------------
 
+#pragma once
 
 #define SECTOREFFECTOR__STATIC 1
 #define ACTIVATOR__STATIC 2
@@ -3523,3 +3524,47 @@ extern int32_t MAMAJIBB;
 
 #define DYNAMICTILEMAP(Tilenum) (DynamicTileMap[Tilenum])
 
+
+enum dukeweapon_t
+{
+    KNEE_WEAPON__STATIC,  // 0
+    PISTOL_WEAPON__STATIC,
+    SHOTGUN_WEAPON__STATIC,
+    CHAINGUN_WEAPON__STATIC,
+    RPG_WEAPON__STATIC,
+    HANDBOMB_WEAPON__STATIC,  // 5
+    SHRINKER_WEAPON__STATIC,
+    DEVISTATOR_WEAPON__STATIC,
+    TRIPBOMB_WEAPON__STATIC,
+    FREEZE_WEAPON__STATIC,
+    HANDREMOTE_WEAPON__STATIC,  // 10
+    GROW_WEAPON__STATIC,
+    BOWLINGBALL_WEAPON__STATIC,
+    MOTORCYCLE_WEAPON__STATIC,
+    BOAT_WEAPON__STATIC,
+    SLINGBLADE_WEAPON__STATIC,  // 15
+    CHICKEN_WEAPON__STATIC,
+    MAX_WEAPONS
+};
+
+extern int16_t DynamicWeaponMap[MAX_WEAPONS];
+
+extern int32_t KNEE_WEAPON;
+extern int32_t PISTOL_WEAPON;
+extern int32_t SHOTGUN_WEAPON;
+extern int32_t CHAINGUN_WEAPON;
+extern int32_t RPG_WEAPON;
+extern int32_t HANDBOMB_WEAPON;
+extern int32_t SHRINKER_WEAPON;
+extern int32_t DEVISTATOR_WEAPON;
+extern int32_t TRIPBOMB_WEAPON;
+extern int32_t FREEZE_WEAPON;
+extern int32_t HANDREMOTE_WEAPON;
+extern int32_t GROW_WEAPON;
+extern int32_t BOWLINGBALL_WEAPON;
+extern int32_t MOTORCYCLE_WEAPON;
+extern int32_t BOAT_WEAPON;
+extern int32_t SLINGBLADE_WEAPON;
+extern int32_t CHICKEN_WEAPON;
+
+#define DYNAMICWEAPONMAP(Weaponnum) (DynamicWeaponMap[Weaponnum])

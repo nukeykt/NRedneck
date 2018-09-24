@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "osd.h"
 #include "crc32.h"
 
-int32_t g_scriptVersion = 13; // 13 = 1.3D-style CON files, 14 = 1.4/1.5 style CON files
+int32_t g_scriptVersion = 14; // 13 = 1.3D-style CON files, 14 = 1.4/1.5 style CON files
 
 char g_scriptFileName[BMAX_PATH] = "(none)";  // file we're currently compiling
 
@@ -116,12 +116,16 @@ static tokenmap_t const vm_keywords[] =
     { "defineskillname",        CON_DEFINESKILLNAME },
     { "definesound",            CON_DEFINESOUND },
     { "definevolumename",       CON_DEFINEVOLUMENAME },
+    { "destroyit",              CON_DESTROYIT },
     { "else",                   CON_ELSE },
     { "enda",                   CON_ENDA },
     { "endofgame",              CON_ENDOFGAME },
     { "ends",                   CON_ENDS },
+    { "fakebubba",              CON_FAKEBUBBA },
     { "fall",                   CON_FALL },
+    { "feathers",               CON_MAIL },
     { "gamestartup",            CON_GAMESTARTUP },
+    { "garybanjo",              CON_GARYBANJO },
     { "getlastpal",             CON_GETLASTPAL },
     { "globalsound",            CON_GLOBALSOUND },
     { "guts",                   CON_GUTS },
@@ -129,6 +133,8 @@ static tokenmap_t const vm_keywords[] =
     { "ifaction",               CON_IFACTION },
     { "ifactioncount",          CON_IFACTIONCOUNT },
     { "ifactor",                CON_IFACTOR },
+    { "ifactorhealthg",         CON_IFACTORHEALTHG },
+    { "ifactorhealthl",         CON_IFACTORHEALTHL },
     { "ifactornotstayput",      CON_IFACTORNOTSTAYPUT },
     { "ifai",                   CON_IFAI },
     { "ifangdiffl",             CON_IFANGDIFFL },
@@ -144,36 +150,58 @@ static tokenmap_t const vm_keywords[] =
     { "ifgapzl",                CON_IFGAPZL },
     { "ifgotweaponce",          CON_IFGOTWEAPONCE },
     { "ifhitspace",             CON_IFHITSPACE },
+    { "ifhittruck",             CON_IFHITTRUCK },
     { "ifhitweapon",            CON_IFHITWEAPON },
     { "ifinouterspace",         CON_IFINOUTERSPACE },
     { "ifinspace",              CON_IFINSPACE },
     { "ifinwater",              CON_IFINWATER },
+    { "ifmotofast",             CON_IFMOTOFAST },
     { "ifmove",                 CON_IFMOVE },
     { "ifmultiplayer",          CON_IFMULTIPLAYER },
+    { "ifnocover",              CON_IFNOCOVER },
     { "ifnosounds",             CON_IFNOSOUNDS },
     { "ifnotmoving",            CON_IFNOTMOVING },
+    { "ifcoop",                 CON_IFCOOP },
+    { "ifonboat",               CON_IFONBOAT },
+    { "ifonmoto",               CON_IFONMOTO },
+    { "ifonmud",                CON_IFONMUD },
     { "ifonwater",              CON_IFONWATER },
     { "ifoutside",              CON_IFOUTSIDE },
     { "ifp",                    CON_IFP },
     { "ifpdistg",               CON_IFPDISTG },
     { "ifpdistl",               CON_IFPDISTL },
+    { "ifpdrunk",               CON_IFPDRUNK },
     { "ifphealthl",             CON_IFPHEALTHL },
     { "ifpinventory",           CON_IFPINVENTORY },
     { "ifrespawn",              CON_IFRESPAWN },
     { "ifrnd",                  CON_IFRND },
+    { "ifsizedown",             CON_IFSIZEDOWN },
+    { "ifsounddist",            CON_IFSOUNDDIST },
+    { "ifsoundid",              CON_IFSOUNDID },
     { "ifspawnedby",            CON_IFSPAWNEDBY },
     { "ifspritepal",            CON_IFSPRITEPAL },
     { "ifsquished",             CON_IFSQUISHED },
     { "ifstrength",             CON_IFSTRENGTH },
+    { "iftipcow",               CON_IFTIPCOW },
     { "ifwasweapon",            CON_IFWASWEAPON },
+    { "ifwind",                 CON_IFWIND },
     { "include",                CON_INCLUDE },
+    { "isdrunk",                CON_ISDRUNK },
+    { "iseat",                  CON_ISEAT },
     { "killit",                 CON_KILLIT },
+    { "larrybird",              CON_LARRYBIRD },
     { "lotsofglass",            CON_LOTSOFGLASS },
     { "mail",                   CON_MAIL },
+    { "mamaend",                CON_MAMAEND },
+    { "mamaquake",              CON_MAMAQUAKE },
+    { "mamaspawn",              CON_MAMASPAWN },
+    { "mamatrigger",            CON_MAMATRIGGER },
     { "mikesnd",                CON_MIKESND },
     { "money",                  CON_MONEY },
+    { "motoloopsnd",            CON_MOTOLOOPSND },
     { "move",                   CON_MOVE },
     { "music",                  CON_MUSIC },
+    { "newpic",                 CON_NEWPIC },
     { "nullop",                 CON_NULLOP },
     { "operate",                CON_OPERATE },
     { "palfrom",                CON_PALFROM },
@@ -185,17 +213,26 @@ static tokenmap_t const vm_keywords[] =
     { "resetcount",             CON_RESETCOUNT },
     { "resetplayer",            CON_RESETPLAYER },
     { "respawnhitag",           CON_RESPAWNHITAG },
+    { "rndmove",                CON_RNDMOVE },
     { "sizeat",                 CON_SIZEAT },
     { "sizeto",                 CON_SIZETO },
+    { "slapplayer",             CON_SLAPPLAYER },
     { "sleeptime",              CON_SLEEPTIME },
     { "shoot",                  CON_SHOOT },
+    { "smackbubba",             CON_SMACKBUBBA },
+    { "smacksprite",            CON_SMACKSPRITE },
     { "sound",                  CON_SOUND },
     { "soundonce",              CON_SOUNDONCE },
+    { "soundtag",               CON_SOUNDTAG },
+    { "soundtagonce",           CON_SOUNDTAGONCE },
     { "spawn",                  CON_SPAWN },
     { "spritepal",              CON_SPRITEPAL },
     { "state",                  CON_STATE },
     { "stopsound",              CON_STOPSOUND },
+    { "strafeleft",             CON_STRAFELEFT },
+    { "straferight",            CON_STRAFERIGHT },
     { "strength",               CON_STRENGTH },
+    { "tearitup",               CON_TEARITUP },
     { "tip",                    CON_TIP },
     { "tossweapon",             CON_TOSSWEAPON },
     { "useractor",              CON_USERACTOR },
@@ -821,22 +858,32 @@ void G_DoGameStartup(const int32_t *params)
     g_bouncemineRadius                = params[j++];
     g_seenineRadius                   = params[j++];
 
-    g_player[0].ps->max_ammo_amount[PISTOL_WEAPON]     = params[j++];
-    g_player[0].ps->max_ammo_amount[SHOTGUN_WEAPON]    = params[j++];
-    g_player[0].ps->max_ammo_amount[CHAINGUN_WEAPON]   = params[j++];
-    g_player[0].ps->max_ammo_amount[RPG_WEAPON]        = params[j++];
-    g_player[0].ps->max_ammo_amount[HANDBOMB_WEAPON]   = params[j++];
-    g_player[0].ps->max_ammo_amount[SHRINKER_WEAPON]   = params[j++];
-    g_player[0].ps->max_ammo_amount[DEVISTATOR_WEAPON] = params[j++];
-    g_player[0].ps->max_ammo_amount[TRIPBOMB_WEAPON]   = params[j++];
-    g_player[0].ps->max_ammo_amount[FREEZE_WEAPON]     = params[j++];
-    g_player[0].ps->max_ammo_amount[GROW_WEAPON]       = params[j++];
+    g_player[0].ps->max_ammo_amount[1] = params[j++];
+    g_player[0].ps->max_ammo_amount[2] = params[j++];
+    g_player[0].ps->max_ammo_amount[3] = params[j++];
+    g_player[0].ps->max_ammo_amount[4] = params[j++];
+    g_player[0].ps->max_ammo_amount[5] = params[j++];
+    g_player[0].ps->max_ammo_amount[6] = params[j++];
+    g_player[0].ps->max_ammo_amount[7] = params[j++];
+    g_player[0].ps->max_ammo_amount[8] = params[j++];
+    g_player[0].ps->max_ammo_amount[9] = params[j++];
+    g_player[0].ps->max_ammo_amount[11] = params[j++];
+
+    if (RR)
+        g_player[0].ps->max_ammo_amount[12] = params[j++];
 
     g_damageCameras     = params[j++];
     g_numFreezeBounces  = params[j++];
     g_freezerSelfDamage = params[j++];
     g_deleteQueueSize   = clamp(params[j++], 0, 1024);
     g_tripbombLaserMode = params[j++];
+
+    if (RRRA)
+    {
+        g_player[0].ps->max_ammo_amount[13] = params[j++];
+        g_player[0].ps->max_ammo_amount[14] = params[j++];
+        g_player[0].ps->max_ammo_amount[16] = params[j++];
+    }
 }
 
 void C_DefineMusic(int volumeNum, int levelNum, const char *fileName)
@@ -1336,6 +1383,11 @@ DO_DEFSTATE:
             g_scriptPtr--;
 
             C_SkipComments();
+            while (isaltok(*textptr) == 0)
+            {
+                textptr++;
+                if (*textptr == 0) break;
+            }
 
             j = 0;
             while (isaltok(*textptr))
@@ -1636,6 +1688,9 @@ DO_DEFSTATE:
         case CON_PAPER:
         case CON_SLEEPTIME:
         case CON_CLIPDIST:
+        case CON_ISDRUNK:
+        case CON_ISEAT:
+        case CON_NEWPIC:
         case CON_LOTSOFGLASS:
         case CON_QUOTE:
         case CON_SOUND:
@@ -1710,6 +1765,10 @@ DO_DEFSTATE:
         case CON_IFSPRITEPAL:
         case CON_IFGOTWEAPONCE:
         case CON_IFANGDIFFL:
+        case CON_IFACTORHEALTHG:
+        case CON_IFACTORHEALTHL:
+        case CON_IFSOUNDID:
+        case CON_IFSOUNDDIST:
         case CON_IFAI:
         case CON_IFACTION:
         case CON_IFMOVE:
@@ -1798,6 +1857,16 @@ DO_DEFSTATE:
         case CON_IFAWAYFROMWALL:
         case CON_IFCANSEETARGET:
         case CON_IFNOSOUNDS:
+        case CON_IFNOCOVER:
+        case CON_IFHITTRUCK:
+        case CON_IFTIPCOW:
+        case CON_IFONMUD:
+        case CON_IFCOOP:
+        case CON_IFMOTOFAST:
+        case CON_IFWIND:
+        case CON_IFONMOTO:
+        case CON_IFONBOAT:
+        case CON_IFSIZEDOWN:
             {
                 intptr_t offset;
                 intptr_t lastScriptPtr = (g_scriptPtr-&apScript[0]-1);
@@ -2256,6 +2325,24 @@ DO_DEFSTATE:
         case CON_PKICK:
         case CON_MIKESND:
         case CON_TOSSWEAPON:
+        case CON_DESTROYIT:
+        case CON_LARRYBIRD:
+        case CON_STRAFELEFT:
+        case CON_STRAFERIGHT:
+        case CON_SLAPPLAYER:
+        case CON_TEARITUP:
+        case CON_SMACKBUBBA:
+        case CON_SOUNDTAGONCE:
+        case CON_SOUNDTAG:
+        case CON_SMACKSPRITE:
+        case CON_FAKEBUBBA:
+        case CON_MAMATRIGGER:
+        case CON_MAMASPAWN:
+        case CON_MAMAQUAKE:
+        case CON_MAMAEND:
+        case CON_GARYBANJO:
+        case CON_MOTOLOOPSND:
+        case CON_RNDMOVE:
             continue;
 
         case CON_NULLOP:
@@ -2271,31 +2358,31 @@ DO_DEFSTATE:
 
         case CON_GAMESTARTUP:
             {
-                int32_t params[31];
+                int32_t params[34];
 
                 g_scriptPtr--;
-                for (j = 0; j < 31; j++)
+                for (j = 0; j < 34; j++)
                 {
                     C_GetNextValue(LABEL_DEFINE);
                     g_scriptPtr--;
                     params[j] = *g_scriptPtr;
 
-                    if (j != 12 && j != 21 && j != 25 && j != 29) continue;
+                    if (j != 29 && j != 30) continue;
 
                     if (C_GetKeyword() != -1)
                     {
-                        if (j == 12)
+                        /*if (j == 12)
                             g_scriptVersion = 10;
                         else if (j == 21)
                             g_scriptVersion = 11;
                         else if (j == 25)
                             g_scriptVersion = 13;
                         else if (j == 29)
-                            g_scriptVersion = 14;
+                            g_scriptVersion = 14;*/
                         break;
                     }
-                    else
-                        g_scriptVersion = 16;
+                    /*else
+                        g_scriptVersion = 16;*/
                 }
 
                 /*

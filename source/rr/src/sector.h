@@ -39,6 +39,8 @@ extern "C" {
 
 #define VIEWSCREEN_ACTIVE_DISTANCE 8192
 
+extern uint8_t g_shadedSector[MAXSECTORS];
+
 typedef struct {
     int16_t wallnum, tag;
 } animwalltype;

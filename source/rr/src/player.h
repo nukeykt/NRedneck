@@ -196,7 +196,13 @@ typedef struct {
 
     int8_t last_used_weapon;
 
-    // int8_t padding_[0];
+    uint8_t keys[5];
+    int16_t drink_amt, eat_amt;
+    int16_t level_end_timer;
+    int16_t moto_speed;
+    uint8_t on_motorcycle, on_boat;
+
+    int8_t padding_[3];
 } DukePlayer_t;
 
 // KEEPINSYNC lunatic/_defs_game.lua

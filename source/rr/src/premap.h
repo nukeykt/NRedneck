@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 extern "C" {
 #endif
 
+extern int16_t g_ambientLotag[64];
+extern int16_t g_ambientHitag[64];
 extern int32_t g_levelTextTime;
 extern int32_t voting,vote_map,vote_episode;
 extern palette_t CrosshairColors;

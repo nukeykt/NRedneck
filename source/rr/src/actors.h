@@ -75,7 +75,10 @@ enum amoveflags_t
     jumptoplayer_bits = 257,  // NOTE: two bits set!
     seekplayer        = 512,
     furthestdir       = 1024,
-    dodgebullet       = 4096
+    dodgebullet       = 4096,
+    justjump2         = 8192,
+    windang           = 16384,
+    antifaceplayerslow = 32768
 };
 
 // Defines for 'useractor' keyword
@@ -210,6 +213,7 @@ enum sflags_t
     SFLAG_REALCLIPDIST     = 0x01000000,
     SFLAG_WAKEUPBADGUYS    = 0x02000000,
     SFLAG_DAMAGEEVENT      = 0x04000000,
+    SFLAG_KILLCOUNT        = 0x08000000,
 };
 
 // Custom projectiles "workslike" flags.

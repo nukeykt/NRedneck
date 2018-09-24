@@ -47,6 +47,7 @@ enum vmflags_t
     VM_RETURN       = 0x00000001,
     VM_KILL         = 0x00000002,
     VM_NOEXECUTE    = 0x00000004,
+    VM_SAFEDELETE   = 0x00000008
 };
 
 int32_t g_tw;
@@ -70,6 +71,9 @@ int32_t g_structVarIDs   = -1;
 // for timing events and actors
 uint32_t g_actorCalls[MAXTILES];
 double g_actorTotalMs[MAXTILES], g_actorMinMs[MAXTILES], g_actorMaxMs[MAXTILES];
+
+int32_t g_windTime, g_windDir;
+int16_t g_fakeBubbaCnt, g_mamaSpawnCnt, g_banjoSong;
 
 GAMEEXEC_STATIC void VM_Execute(native_t loop);
 
@@ -344,6 +348,14 @@ void A_Fall(int const spriteNum)
         spriteGravity = 0;
     else if (sector[pSprite->sectnum].lotag == ST_2_UNDERWATER || EDUKE32_PREDICT_FALSE(G_CheckForSpaceCeiling(pSprite->sectnum)))
         spriteGravity = g_spriteGravity/6;
+    
+    if (RRRA && spriteGravity == g_spriteGravity)
+    {
+        if (pSprite->picnum == BIKERB || pSprite->picnum == CHEERB)
+            spriteGravity >>= 2;
+        else if (pSprite->picnum == BIKERBV2)
+            spriteGravity >>= 3;
+    }
 
     if (pSprite->statnum == STAT_ACTOR || pSprite->statnum == STAT_PLAYER || pSprite->statnum == STAT_ZOMBIEACTOR
         || pSprite->statnum == STAT_STANDABLE)
@@ -423,17 +435,16 @@ GAMEEXEC_STATIC void VM_AlterAng(int32_t const moveFlags)
     if (vm.pSprite->zvel < 648)
         vm.pSprite->zvel += ((moveptr[1]<<4) - vm.pSprite->zvel)/5;
 
-    if (A_CheckEnemySprite(vm.pSprite) && vm.pSprite->extra <= 0) // hack
-        return;
-
-    if (moveFlags&seekplayer)
+    if (RRRA && (moveFlags&windang))
+        vm.pSprite->ang = g_windDir;
+    else if (moveFlags&seekplayer)
     {
         int const spriteAngle    = vm.pSprite->ang;
         int const holoDukeSprite = vm.pPlayer->holoduke_on;
 
         // NOTE: looks like 'owner' is set to target sprite ID...
 
-        vm.pSprite->owner = (holoDukeSprite >= 0
+        vm.pSprite->owner = (!RR && holoDukeSprite >= 0
                              && cansee(sprite[holoDukeSprite].x, sprite[holoDukeSprite].y, sprite[holoDukeSprite].z, sprite[holoDukeSprite].sectnum,
                                        vm.pSprite->x, vm.pSprite->y, vm.pSprite->z, vm.pSprite->sectnum))
           ? holoDukeSprite
@@ -560,16 +571,46 @@ GAMEEXEC_STATIC void VM_Move(void)
         vm.pSprite->ang += ksgn(G_GetAngleDelta(vm.pSprite->ang, goalAng)) << 5;
     }
 
+    if (RRRA && (movflags&antifaceplayerslow))
+    {
+        int goalAng = (vm.pPlayer->newowner >= 0) ? getangle(vm.pPlayer->opos.x - vm.pSprite->x, vm.pPlayer->opos.y - vm.pSprite->y)
+                                                 : getangle(vm.pPlayer->pos.x - vm.pSprite->x, vm.pPlayer->pos.y - vm.pSprite->y);
+        goalAng = (goalAng+1024)&2047;
+
+        vm.pSprite->ang += ksgn(G_GetAngleDelta(vm.pSprite->ang, goalAng)) << 5;
+    }
+
     if ((movflags&jumptoplayer_bits) == jumptoplayer_bits)
     {
         if (AC_COUNT(vm.pData) < 16)
-            vm.pSprite->zvel -= (sintable[(512+(AC_COUNT(vm.pData)<<4))&2047]>>5);
+            vm.pSprite->zvel -= (RRRA && vm.pSprite->picnum == CHEER) ? (sintable[(512+(AC_COUNT(vm.pData)<<4))&2047]/40)
+            : (sintable[(512+(AC_COUNT(vm.pData)<<4))&2047]>>5);
     }
 
     if (movflags&face_player_smart)
     {
         vec2_t const vect = { vm.pPlayer->pos.x + (vm.pPlayer->vel.x / 768), vm.pPlayer->pos.y + (vm.pPlayer->vel.y / 768) };
         VM_AddAngle(2, getangle(vect.x - vm.pSprite->x, vect.y - vm.pSprite->y));
+    }
+
+    if (RRRA && (vm.pSprite->picnum == RABBIT || vm.pSprite->picnum == MAMA))
+    {
+        if(movflags&jumptoplayer_only)
+        {
+            if (AC_COUNT(vm.pData) < 8)
+                vm.pSprite->zvel -= sintable[(512+(AC_COUNT(vm.pData)<<4))&2047]/(vm.pSprite->picnum == RABBIT ? 30 : 35);
+        }
+        if(movflags&justjump2)
+        {
+            if (AC_COUNT(vm.pData) < 8)
+                vm.pSprite->zvel -= sintable[(512+(AC_COUNT(vm.pData)<<4))&2047]/(vm.pSprite->picnum == RABBIT ? 24 : 28);
+        }
+    }
+
+    if (RRRA && (movflags&windang))
+    {
+        if (AC_COUNT(vm.pData) < 8)
+            vm.pSprite->zvel -= sintable[(512+(AC_COUNT(vm.pData)<<4))&2047]/24;
     }
     
     if (AC_MOVE_ID(vm.pData) == 0 || movflags == 0)
@@ -579,6 +620,11 @@ GAMEEXEC_STATIC void VM_Move(void)
             vm.pActor->bpos.x = vm.pSprite->x;
             vm.pActor->bpos.y = vm.pSprite->y;
             setsprite(vm.spriteNum, (vec3_t *)vm.pSprite);
+        }
+        if (RR && A_CheckEnemySprite(vm.pSprite) && vm.pSprite->extra <= 0)
+        {
+            vm.pSprite->shade += (sector[vm.pSprite->sectnum].ceilingstat & 1) ? ((g_shadedSector[vm.pSprite->sectnum] == 1 ? 16 : sector[vm.pSprite->sectnum].ceilingshade) - vm.pSprite->shade) >> 1
+                                                                 : (sector[vm.pSprite->sectnum].floorshade - vm.pSprite->shade) >> 1;
         }
         return;
     }
@@ -613,11 +659,11 @@ GAMEEXEC_STATIC void VM_Move(void)
         int spriteXvel = vm.pSprite->xvel;
         int angDiff    = vm.pSprite->ang;
 
-        if (badguyp && vm.pSprite->picnum != ROTATEGUN)
+        if (badguyp && (vm.pSprite->picnum != ROTATEGUN || RR))
         {
-            if ((vm.pSprite->picnum == DRONE || vm.pSprite->picnum == COMMANDER) && vm.pSprite->extra > 0)
+            if ((vm.pSprite->picnum == DRONE || (!RR && vm.pSprite->picnum == COMMANDER)) && vm.pSprite->extra > 0)
             {
-                if (vm.pSprite->picnum == COMMANDER)
+                if (!RR && vm.pSprite->picnum == COMMANDER)
                 {
                     int32_t nSectorZ;
                     // NOTE: COMMANDER updates both actor[].floorz and
@@ -643,8 +689,9 @@ GAMEEXEC_STATIC void VM_Move(void)
                     if (vm.pSprite->zvel > 0)
                     {
                         vm.pActor->floorz = nSectorZ = VM_GetFlorZOfSlope();
-                        if (vm.pSprite->z > nSectorZ-(30<<8))
-                            vm.pSprite->z = nSectorZ-(30<<8);
+                        int const zDiff = RRRA ? (28<<8) : (30<<8);
+                        if (vm.pSprite->z > nSectorZ-zDiff)
+                            vm.pSprite->z = nSectorZ-zDiff;
                     }
                     else
                     {
@@ -657,7 +704,7 @@ GAMEEXEC_STATIC void VM_Move(void)
                     }
                 }
             }
-            else if (vm.pSprite->picnum != ORGANTIC)
+            else if (vm.pSprite->picnum != ORGANTIC || RR)
             {
                 // All other actors besides ORGANTIC don't update .floorz or
                 // .ceilingz here.
@@ -695,7 +742,10 @@ GAMEEXEC_STATIC void VM_Move(void)
                     vm.pPlayer->vel.y = mulscale16(vm.pPlayer->vel.y, vm.pPlayer->runspeed - 0x2000);
                 }
             }
-            else if (vm.pSprite->picnum != DRONE && vm.pSprite->picnum != SHARK && vm.pSprite->picnum != COMMANDER)
+            else if (vm.pSprite->picnum != DRONE && vm.pSprite->picnum != SHARK
+                && ((!RR && vm.pSprite->picnum != COMMANDER)
+                    || (RR && vm.pSprite->picnum != UFO1)
+                    || (RR && !RRRA && vm.pSprite->picnum != UFO2 && vm.pSprite->picnum != UFO3 && vm.pSprite->picnum != UFO4 && vm.pSprite->picnum != UFO5)))
             {
                 if (vm.pPlayer->actorsqu == vm.spriteNum)
                     return;
@@ -716,6 +766,32 @@ GAMEEXEC_STATIC void VM_Move(void)
             if (vm.pSprite->z < vm.pActor->ceilingz+ZOFFSET5)
                 vm.pSprite->z = vm.pActor->ceilingz+ZOFFSET5;
 
+        if (RRRA)
+        {
+            if (sector[vm.pSprite->sectnum].lotag != ST_1_ABOVE_WATER)
+            {
+                switch (DYNAMICTILEMAP(vm.pSprite->picnum))
+                {
+                case MINIONBOAT__STATICRR:
+                case HULK__STATICRR:
+                case CHEERBOAT__STATICRR:
+                    spriteXvel >>= 1;
+                    break;
+                }
+            }
+            else
+            {
+                switch (DYNAMICTILEMAP(vm.pSprite->picnum))
+                {
+                case BIKERB__STATICRR:
+                case BIKERBV2__STATICRR:
+                case CHEERB__STATICRR:
+                    spriteXvel >>= 1;
+                    break;
+                }
+            }
+        }
+
         vec3_t const vect
         = { (spriteXvel * (sintable[(angDiff + 512) & 2047])) >> 14, (spriteXvel * (sintable[angDiff & 2047])) >> 14, vm.pSprite->zvel };
 
@@ -725,7 +801,7 @@ GAMEEXEC_STATIC void VM_Move(void)
     if (!badguyp)
         return;
 
-    vm.pSprite->shade += (sector[vm.pSprite->sectnum].ceilingstat & 1) ? (sector[vm.pSprite->sectnum].ceilingshade - vm.pSprite->shade) >> 1
+    vm.pSprite->shade += (sector[vm.pSprite->sectnum].ceilingstat & 1) ? ((g_shadedSector[vm.pSprite->sectnum] == 1 ? 16 : sector[vm.pSprite->sectnum].ceilingshade) - vm.pSprite->shade) >> 1
                                                                  : (sector[vm.pSprite->sectnum].floorshade - vm.pSprite->shade) >> 1;
 
     if (sector[vm.pSprite->sectnum].floorpicnum == MIRROR)
@@ -799,11 +875,24 @@ static void VM_AddInventory(DukePlayer_t * const pPlayer, int const itemNum, int
     }
 
     case GET_ACCESS:
-        switch (vm.pSprite->pal)
+        if (RR)
         {
+            switch (vm.pSprite->lotag)
+            {
+                case 101: pPlayer->keys[1] = 1; break;
+                case 102: pPlayer->keys[2] = 1; break;
+                case 103: pPlayer->keys[3] = 1; break;
+                case 104: pPlayer->keys[4] = 1; break;
+            }
+        }
+        else
+        {
+            switch (vm.pSprite->pal)
+            {
                 case 0: pPlayer->got_access |= 1; break;
                 case 21: pPlayer->got_access |= 2; break;
                 case 23: pPlayer->got_access |= 4; break;
+            }
         }
         break;
 
@@ -825,6 +914,19 @@ static int32_t A_GetWaterZOffset(int const spriteNum)
 
     if (sector[pSprite->sectnum].lotag == ST_1_ABOVE_WATER)
     {
+        if (RRRA)
+        {
+            switch (DYNAMICTILEMAP(spriteNum))
+            {
+                case HULKBOAT__STATICRR:
+                    return (12<<8);
+                case MINIONBOAT__STATICRR:
+                    return (3<<8);
+                case CHEERBOAT__STATICRR:
+                case EMPTYBOAT__STATICRR:
+                    return (6<<8);
+            }
+        }
         if (A_CheckSpriteFlags(spriteNum, SFLAG_NOWATERDIP))
             return 0;
 
@@ -837,8 +939,75 @@ static int32_t A_GetWaterZOffset(int const spriteNum)
 static void VM_Fall(int const spriteNum, spritetype * const pSprite)
 {
     int spriteGravity = g_spriteGravity;
+    int hitSprite = 0;
 
     pSprite->xoffset = pSprite->yoffset = 0;
+
+    if (RR)
+    {
+        if (RRRA)
+        {
+            if (sector[vm.pSprite->sectnum].lotag == 801)
+            {
+                if (vm.pSprite->picnum == ROCK)
+                {
+                    A_Spawn(vm.spriteNum, ROCK2);
+                    A_Spawn(vm.spriteNum, ROCK2);
+                    vm.flags |= VM_SAFEDELETE;
+                }
+            }
+            else if (sector[vm.pSprite->sectnum].lotag == 802)
+            {
+                if (vm.pSprite->picnum != APLAYER && A_CheckEnemySprite(vm.pSprite) && vm.pSprite->z == vm.pActor->floorz - ZOFFSET)
+                {
+                    A_DoGuts(vm.spriteNum, JIBS6, 5);
+                    A_PlaySound(SQUISHED, vm.spriteNum);
+                    vm.flags |= VM_SAFEDELETE;
+                }
+            }
+            else if (sector[vm.pSprite->sectnum].lotag == 803)
+            {
+                if (vm.pSprite->picnum == ROCK2)
+                    vm.flags |= VM_SAFEDELETE;
+            }
+        }
+        if (sector[vm.pSprite->sectnum].lotag == 800)
+        {
+            if (vm.pSprite->picnum == AMMO)
+            {
+                vm.flags |= VM_SAFEDELETE;
+                return;
+            }
+            if (vm.pSprite->picnum != APLAYER && (A_CheckEnemySprite(vm.pSprite) || vm.pSprite->picnum == COW) && g_spriteExtra[vm.spriteNum] < 128)
+            {
+                vm.pSprite->z = vm.pActor->floorz-ZOFFSET;
+                vm.pSprite->zvel = 8000;
+                vm.pSprite->extra = 0;
+                g_spriteExtra[vm.spriteNum]++;
+                hitSprite = 1;
+            }
+            else if (vm.pSprite->picnum != APLAYER)
+            {
+                if (!g_spriteExtra[vm.spriteNum])
+                    vm.flags |= VM_SAFEDELETE;
+                return;
+            }
+            vm.pActor->picnum = SHOTSPARK1;
+            vm.pActor->extra = 1;
+        }
+        if (RRRA && EDUKE32_PREDICT_TRUE(sector[vm.pSprite->sectnum].lotag < 800 || sector[vm.pSprite->sectnum].lotag > 803)
+            && (sector[vm.pSprite->sectnum].floorpicnum == RRTILE7820 || sector[vm.pSprite->sectnum].floorpicnum == RRTILE7768))
+        {
+            if (vm.pSprite->picnum != MINION && vm.pSprite->pal != 19)
+            {
+                if ((krand()&3) == 1)
+                {
+                    vm.pActor->picnum = SHOTSPARK1;
+                    vm.pActor->extra = 5;
+                }
+            }
+        }
+    }
 
     if (sector[pSprite->sectnum].lotag == ST_2_UNDERWATER || EDUKE32_PREDICT_FALSE(G_CheckForSpaceCeiling(pSprite->sectnum)))
         spriteGravity = g_spriteGravity/6;
@@ -877,9 +1046,16 @@ static void VM_Fall(int const spriteNum, spritetype * const pSprite)
             // where they crashed into the ground when killed
             if (!(pSprite->picnum == APLAYER && pSprite->extra > 0) && pSprite->pal != 1 && pSprite->picnum != DRONE)
             {
-                A_DoGuts(spriteNum,JIBS6,15);
                 A_PlaySound(SQUISHED,spriteNum);
-                A_Spawn(spriteNum,BLOODPOOL);
+                if (hitSprite)
+                {
+                    A_DoGuts(spriteNum,JIBS6,5);
+                }
+                else
+                {
+                    A_DoGuts(spriteNum,JIBS6,15);
+                    A_Spawn(spriteNum,BLOODPOOL);
+                }
             }
             actor[spriteNum].picnum = SHOTSPARK1;
             actor[spriteNum].extra = 1;
@@ -1197,6 +1373,14 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     vm.pActor->timetosleep = SLEEPTIME;
                 continue;
 
+            case CON_IFNOCOVER:
+                tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z, vm.pSprite->sectnum, pPlayer->pos.x, pPlayer->pos.y,
+                            pPlayer->pos.z, sprite[pPlayer->i].sectnum);
+                VM_CONDITIONAL(tw);
+                if (tw)
+                    vm.pActor->timetosleep = SLEEPTIME;
+                continue;
+
             case CON_IFACTORNOTSTAYPUT: VM_CONDITIONAL(vm.pActor->actorstayput == -1); continue;
 
             case CON_IFCANSEE:
@@ -1206,7 +1390,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 // select sprite for monster to target
 // if holoduke is on, let them target holoduke first.
 //
-                if (pPlayer->holoduke_on >= 0)
+                if (DUKE && pPlayer->holoduke_on >= 0)
                 {
                     pSprite = (uspritetype *)&sprite[pPlayer->holoduke_on];
                     tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - (krand() & (ZOFFSET5 - 1)), vm.pSprite->sectnum, pSprite->x, pSprite->y,
@@ -1221,7 +1405,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 }
                 // can they see player, (or player's holoduke)
                 tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - (krand() & ((47 << 8))), vm.pSprite->sectnum, pSprite->x, pSprite->y,
-                            pSprite->z - (24 << 8), pSprite->sectnum);
+                            pSprite->z - (RR ? (28 << 8) : (24 << 8)), pSprite->sectnum);
 
                 if (tw == 0)
                 {
@@ -1298,6 +1482,89 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
             case CON_STRENGTH:
                 insptr++;
                 vm.pSprite->extra = *insptr++;
+                continue;
+
+            case CON_SMACKSPRITE:
+                insptr++;
+                if (krand()&1)
+                    vm.pSprite->ang = (vm.pSprite->ang-(512+(krand()&511)))&2047;
+                else
+                    vm.pSprite->ang = (vm.pSprite->ang+(512+(krand()&511)))&2047;
+                continue;
+
+            case CON_FAKEBUBBA:
+                insptr++;
+                switch (++g_fakeBubbaCnt)
+                {
+                case 1:
+                    A_Spawn(vm.spriteNum, PIG);
+                    break;
+                case 2:
+                    A_Spawn(vm.spriteNum, MINION);
+                    break;
+                case 3:
+                    A_Spawn(vm.spriteNum, CHEER);
+                    break;
+                case 4:
+                    A_Spawn(vm.spriteNum, VIXEN);
+                    G_OperateActivators(666, vm.playerNum);
+                    break;
+                }
+                continue;
+
+            case CON_RNDMOVE:
+                insptr++;
+                vm.pSprite->ang = krand()&2047;
+                vm.pSprite->xvel = 25;
+                continue;
+
+            case CON_MAMATRIGGER:
+                insptr++;
+                G_OperateActivators(667, vm.playerNum);
+                continue;
+
+            case CON_MAMASPAWN:
+                insptr++;
+                if (g_mamaSpawnCnt)
+                {
+                    g_mamaSpawnCnt--;
+                    A_Spawn(vm.spriteNum, RABBIT);
+                }
+                continue;
+
+            case CON_MAMAQUAKE:
+                insptr++;
+                if (vm.pSprite->pal == 31)
+                    g_earthquakeTime = 4;
+                else if(vm.pSprite->pal == 32)
+                    g_earthquakeTime = 6;
+                continue;
+
+            case CON_GARYBANJO:
+                insptr++;
+                if (g_banjoSong == 0)
+                {
+                    switch (krand()&3)
+                    {
+                    case 3:
+                        g_banjoSong = 262;
+                        break;
+                    case 0:
+                        g_banjoSong = 272;
+                        break;
+                    default:
+                        g_banjoSong = 273;
+                        break;
+                    }
+                    A_PlaySound(g_banjoSong, vm.spriteNum);
+                }
+                else if (!S_CheckSoundPlaying(vm.spriteNum, g_banjoSong))
+                    A_PlaySound(g_banjoSong, vm.spriteNum);
+                continue;
+            case CON_MOTOLOOPSND:
+                insptr++;
+                if (!S_CheckSoundPlaying(vm.spriteNum, 411))
+                    A_PlaySound(411, vm.spriteNum);
                 continue;
 
             case CON_IFGOTWEAPONCE:
@@ -1397,6 +1664,38 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 A_Shoot(vm.spriteNum, *insptr++);
                 continue;
 
+            case CON_IFSOUNDID:
+                insptr++;
+                VM_CONDITIONAL((int16_t)*insptr == g_ambientLotag[vm.pSprite->ang]);
+                continue;
+
+            case CON_IFSOUNDDIST:
+                insptr++;
+                if (*insptr == 0)
+                {
+                    VM_CONDITIONAL(g_ambientHitag[vm.pSprite->ang] > vm.playerDist);
+                }
+                else if (*insptr == 1)
+                {
+                    VM_CONDITIONAL(g_ambientHitag[vm.pSprite->ang] < vm.playerDist);
+                }
+                else
+                {
+                    VM_CONDITIONAL(0);
+                }
+                continue;
+
+            case CON_SOUNDTAG:
+                insptr++;
+                A_PlaySound(g_ambientLotag[vm.pSprite->ang], vm.spriteNum);
+                continue;
+
+            case CON_SOUNDTAGONCE:
+                insptr++;
+                if (!S_CheckSoundPlaying(vm.spriteNum, g_ambientLotag[vm.pSprite->ang]))
+                    A_PlaySound(g_ambientLotag[vm.pSprite->ang], vm.spriteNum);
+                continue;
+
             case CON_SOUNDONCE:
                 if (EDUKE32_PREDICT_FALSE((unsigned)*(++insptr) >= MAXSOUNDS))
                 {
@@ -1437,6 +1736,33 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 insptr++;
                 continue;
 
+            case CON_SMACKBUBBA:
+                insptr++;
+                if (!RRRA || vm.pSprite->pal != 105)
+                {
+                    for (bssize_t TRAVERSE_CONNECT(playerNum))
+                        g_player[playerNum].ps->gm = MODE_EOL;
+                    if (++ud.level_number > 6)
+                        ud.level_number = 0;
+                    ud.m_level_number = ud.level_number;
+                }
+                continue;
+
+            case CON_MAMAEND:
+                insptr++;
+                g_player[myconnectindex].ps->level_end_timer = 150;
+                continue;
+
+            case CON_IFACTORHEALTHG:
+                insptr++;
+                VM_CONDITIONAL(vm.pSprite->extra > (int16_t)*insptr);
+                continue;
+
+            case CON_IFACTORHEALTHL:
+                insptr++;
+                VM_CONDITIONAL(vm.pSprite->extra < (int16_t)*insptr);
+                continue;
+
             case CON_SOUND:
                 if (EDUKE32_PREDICT_FALSE((unsigned)*(++insptr) >= MAXSOUNDS))
                 {
@@ -1450,6 +1776,38 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
             case CON_TIP:
                 insptr++;
                 pPlayer->tipincs = GAMETICSPERSEC;
+                continue;
+
+            case CON_IFTIPCOW:
+                if (g_spriteExtra[vm.spriteNum] == 1)
+                {
+                    g_spriteExtra[vm.spriteNum]++;
+                    VM_CONDITIONAL(1);
+                }
+                else
+                    VM_CONDITIONAL(0);
+                continue;
+
+            case CON_IFHITTRUCK:
+                if (g_spriteExtra[vm.spriteNum] == 1)
+                {
+                    g_spriteExtra[vm.spriteNum]++;
+                    VM_CONDITIONAL(1);
+                }
+                else
+                    VM_CONDITIONAL(0);
+                continue;
+
+            case CON_TEARITUP:
+                insptr++;
+                for (bssize_t SPRITES_OF_SECT(vm.pSprite->sectnum, spriteNum))
+                {
+                    if (sprite[spriteNum].picnum == DESTRUCTO)
+                    {
+                        actor[spriteNum].picnum = SHOTSPARK1;
+                        actor[spriteNum].extra = 1;
+                    }
+                }
                 continue;
 
             case CON_FALL:
@@ -1492,7 +1850,10 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 
             case CON_ADDKILLS:
                 insptr++;
-                P_AddKills(pPlayer, *insptr++);
+                if ((g_spriteExtra[vm.spriteNum] < 1 || g_spriteExtra[vm.spriteNum] == 128)
+                    && A_CheckSpriteFlags(vm.spriteNum, SFLAG_KILLCOUNT))
+                    P_AddKills(pPlayer, *insptr);
+                insptr++;
                 vm.pActor->actorstayput = -1;
                 continue;
 
@@ -1526,11 +1887,218 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 ud.eog                   = 1;
                 continue;
 
+            case CON_ISDRUNK:
+                insptr++;
+                {
+                    pPlayer->drink_amt += *insptr;
+
+                    int newHealth = sprite[pPlayer->i].extra;
+
+                    if (newHealth > 0)
+                        newHealth += *insptr;
+                    if (newHealth > (pPlayer->max_player_health << 1))
+                        newHealth = (pPlayer->max_player_health << 1);
+                    if (newHealth < 0)
+                        newHealth = 0;
+
+                    if (ud.god == 0)
+                    {
+                        if (*insptr > 0)
+                        {
+                            if ((newHealth - *insptr) < (pPlayer->max_player_health >> 2) && newHealth >= (pPlayer->max_player_health >> 2))
+                                A_PlaySound(DUKE_GOTHEALTHATLOW, pPlayer->i);
+                            pPlayer->last_extra = newHealth;
+                        }
+
+                        sprite[pPlayer->i].extra = newHealth;
+                    }
+                    if (pPlayer->drink_amt > 100)
+                        pPlayer->drink_amt = 100;
+
+                    if (sprite[pPlayer->i].extra >= pPlayer->max_player_health)
+                    {
+                        sprite[pPlayer->i].extra = pPlayer->max_player_health;
+                        pPlayer->last_extra = pPlayer->max_player_health;
+                    }
+                }
+                insptr++;
+                continue;
+
+            case CON_STRAFELEFT:
+                insptr++;
+                {
+                    vec3_t const vect = { sintable[(vm.pSprite->ang+1024)&2047]>>10, sintable[(vm.pSprite->ang+512)&2047]>>10, vm.pSprite->zvel };
+                    A_MoveSprite(vm.spriteNum, &vect, CLIPMASK0);
+                }
+                continue;
+
+            case CON_STRAFERIGHT:
+                insptr++;
+                {
+                    vec3_t const vect = { sintable[(vm.pSprite->ang-0)&2047]>>10, sintable[(vm.pSprite->ang-512)&2047]>>10, vm.pSprite->zvel };
+                    A_MoveSprite(vm.spriteNum, &vect, CLIPMASK0);
+                }
+                continue;
+
+            case CON_LARRYBIRD:
+                insptr++;
+                pPlayer->pos.z = sector[sprite[pPlayer->i].sectnum].ceilingz;
+                sprite[pPlayer->i].z = pPlayer->pos.z;
+                continue;
+
+            case CON_DESTROYIT:
+                insptr++;
+                {
+                    int16_t hitag, lotag, spr, jj, k, nextk;
+                    hitag = 0;
+                    for (SPRITES_OF_SECT(vm.pSprite->sectnum,k))
+                    {
+                        if (sprite[k].picnum == RRTILE63)
+                        {
+                            lotag = sprite[k].lotag;
+                            spr = k;
+                            if (sprite[k].hitag)
+                                hitag = sprite[k].hitag;
+                        }
+                    }
+                    for (SPRITES_OF(100, jj))
+                    {
+                        spritetype const *js = &sprite[jj];
+                        if (hitag && hitag == js->hitag)
+                        {
+                            for (SPRITES_OF_SECT(js->sectnum,k))
+                            {
+                                if (sprite[k].picnum == DESTRUCTO)
+                                {
+                                    actor[k].picnum = SHOTSPARK1;
+                                    actor[k].extra = 1;
+                                }
+                            }
+                        }
+                        if (sprite[spr].sectnum != js->sectnum && lotag == js->lotag)
+                        {
+                            int16_t const sectnum = sprite[spr].sectnum;
+                            int16_t const wallstart = sector[sectnum].wallptr;
+                            int16_t const wallend = wallstart + sector[sectnum].wallnum;
+                            int16_t const wallstart2 = sector[js->sectnum].wallptr;
+                            int16_t const wallend2 = wallstart2 + sector[js->sectnum].wallnum;
+                            for (bssize_t wi = wallstart, wj = wallstart2; wi < wallend; wi++, wj++)
+                            {
+                                wall[wi].picnum = wall[wj].picnum;
+                                wall[wi].overpicnum = wall[wj].overpicnum;
+                                wall[wi].shade = wall[wj].shade;
+                                wall[wi].xrepeat = wall[wj].xrepeat;
+                                wall[wi].yrepeat = wall[wj].yrepeat;
+                                wall[wi].xpanning = wall[wj].xpanning;
+                                wall[wi].ypanning = wall[wj].ypanning;
+                                if (RRRA && wall[wi].nextwall != -1)
+                                {
+                                    wall[wi].cstat = 0;
+                                    wall[wall[wi].nextwall].cstat = 0;
+                                }
+                            }
+                            sector[sectnum].floorz = sector[js->sectnum].floorz;
+                            sector[sectnum].ceilingz = sector[js->sectnum].ceilingz;
+                            sector[sectnum].ceilingstat = sector[js->sectnum].ceilingstat;
+                            sector[sectnum].floorstat = sector[js->sectnum].floorstat;
+                            sector[sectnum].ceilingpicnum = sector[js->sectnum].ceilingpicnum;
+                            sector[sectnum].ceilingheinum = sector[js->sectnum].ceilingheinum;
+                            sector[sectnum].ceilingshade = sector[js->sectnum].ceilingshade;
+                            sector[sectnum].ceilingpal = sector[js->sectnum].ceilingpal;
+                            sector[sectnum].ceilingxpanning = sector[js->sectnum].ceilingxpanning;
+                            sector[sectnum].ceilingypanning = sector[js->sectnum].ceilingypanning;
+                            sector[sectnum].floorpicnum = sector[js->sectnum].floorpicnum;
+                            sector[sectnum].floorheinum = sector[js->sectnum].floorheinum;
+                            sector[sectnum].floorshade = sector[js->sectnum].floorshade;
+                            sector[sectnum].floorpal = sector[js->sectnum].floorpal;
+                            sector[sectnum].floorxpanning = sector[js->sectnum].floorxpanning;
+                            sector[sectnum].floorypanning = sector[js->sectnum].floorypanning;
+                            sector[sectnum].visibility = sector[js->sectnum].visibility;
+                            g_sectorExtra[sectnum] = g_sectorExtra[js->sectnum];
+                            sector[sectnum].lotag = sector[js->sectnum].lotag;
+                            sector[sectnum].hitag = sector[js->sectnum].hitag;
+                            sector[sectnum].extra = sector[js->sectnum].extra;
+                        }
+                    }
+                    for (SPRITES_OF_SECT_SAFE(vm.pSprite->sectnum, k, nextk))
+                    {
+                        switch (DYNAMICTILEMAP(sprite[k].picnum))
+                        {
+                            case DESTRUCTO__STATICRR:
+                            case RRTILE63__STATICRR:
+                            case TORNADO__STATICRR:
+                            case APLAYER__STATIC:
+                            case COOT__STATICRR:
+                                break;
+                            default:
+                                A_DeleteSprite(k);
+                                break;
+                        }
+                    }
+                }
+                continue;
+
+            case CON_ISEAT:
+                insptr++;
+
+                {
+                    pPlayer->eat_amt += *insptr;
+                    if (pPlayer->eat_amt > 100)
+                        pPlayer->eat_amt = 100;
+
+                    pPlayer->drink_amt -= *insptr;
+                    if (pPlayer->drink_amt < 0)
+                        pPlayer->drink_amt = 0;
+
+                    int newHealth = sprite[pPlayer->i].extra;
+
+                    if (vm.pSprite->picnum != ATOMICHEALTH)
+                    {
+                        if (newHealth > pPlayer->max_player_health && *insptr > 0)
+                        {
+                            insptr++;
+                            continue;
+                        }
+                        else
+                        {
+                            if (newHealth > 0)
+                                newHealth += *insptr;
+                            if (newHealth > pPlayer->max_player_health && *insptr > 0)
+                                newHealth = pPlayer->max_player_health;
+                        }
+                    }
+                    else
+                    {
+                        if (newHealth > 0)
+                            newHealth += *insptr;
+                        if (newHealth > (pPlayer->max_player_health << 1))
+                            newHealth = (pPlayer->max_player_health << 1);
+                    }
+
+                    if (newHealth < 0)
+                        newHealth = 0;
+
+                    if (ud.god == 0)
+                    {
+                        if (*insptr > 0)
+                        {
+                            if ((newHealth - *insptr) < (pPlayer->max_player_health >> 2) && newHealth >= (pPlayer->max_player_health >> 2))
+                                A_PlaySound(DUKE_GOTHEALTHATLOW, pPlayer->i);
+                            pPlayer->last_extra = newHealth;
+                        }
+
+                        sprite[pPlayer->i].extra = newHealth;
+                    }
+                }
+
+                insptr++;
+                continue;
+
             case CON_ADDPHEALTH:
                 insptr++;
 
                 {
-                    if (pPlayer->newowner >= 0)
+                    if (!RR && pPlayer->newowner >= 0)
                         G_ClearCameraView(pPlayer);
 
                     int newHealth = sprite[pPlayer->i].extra;
@@ -1631,14 +2199,14 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     if ((unsigned)vm.pSprite->sectnum < MAXSECTORS)
                         for (native_t cnt = (*insptr) - 1; cnt >= 0; cnt--)
                         {
-                            int const tileOffset = (vm.pSprite->picnum == BLIMP && debrisTile == SCRAP1) ? 0 : (krand() % 3);
+                            int const tileOffset = ((RR || vm.pSprite->picnum == BLIMP) && debrisTile == SCRAP1) ? 0 : (krand() % 3);
 
                             int const spriteNum = A_InsertSprite(vm.pSprite->sectnum, vm.pSprite->x + (krand() & 255) - 128,
                                                                  vm.pSprite->y + (krand() & 255) - 128, vm.pSprite->z - (8 << 8) - (krand() & 8191),
                                                                  debrisTile + tileOffset, vm.pSprite->shade, 32 + (krand() & 15), 32 + (krand() & 15),
                                                                  krand() & 2047, (krand() & 127) + 32, -(krand() & 2047), vm.spriteNum, 5);
 
-                            sprite[spriteNum].yvel = (vm.pSprite->picnum == BLIMP && debrisTile == SCRAP1) ? g_blimpSpawnItems[cnt % 14] : -1;
+                            sprite[spriteNum].yvel = ((RR || vm.pSprite->picnum == BLIMP) && debrisTile == SCRAP1) ? g_blimpSpawnItems[cnt % 14] : -1;
                             sprite[spriteNum].pal  = vm.pSprite->pal;
                         }
                     insptr++;
@@ -1665,6 +2233,11 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 vm.pSprite->cstat = (int16_t)*insptr++;
                 continue;
 
+            case CON_NEWPIC:
+                insptr++;
+                vm.pSprite->picnum = (int16_t)*insptr++;
+                continue;
+
             case CON_IFMOVE:
                 insptr++;
                 VM_CONDITIONAL(AC_MOVE_ID(vm.pData) == *insptr);
@@ -1675,9 +2248,40 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 vm.flags = VM_ResetPlayer(vm.playerNum, vm.flags);
                 continue;
 
+            case CON_IFCOOP:
+                VM_CONDITIONAL(GTFLAGS(GAMETYPE_COOP) || numplayers > 2);
+                continue;
+
+            case CON_IFONMUD:
+                VM_CONDITIONAL(sector[vm.pSprite->sectnum].floorpicnum == RRTILE3073
+                               && klabs(vm.pSprite->z - sector[vm.pSprite->sectnum].floorz) < ZOFFSET5);
+                continue;
+
             case CON_IFONWATER:
                 VM_CONDITIONAL(sector[vm.pSprite->sectnum].lotag == ST_1_ABOVE_WATER
                                && klabs(vm.pSprite->z - sector[vm.pSprite->sectnum].floorz) < ZOFFSET5);
+                continue;
+
+            case CON_IFMOTOFAST:
+                VM_CONDITIONAL(pPlayer->moto_speed > 60);
+                continue;
+
+            case CON_IFONMOTO:
+                VM_CONDITIONAL(pPlayer->on_motorcycle == 1);
+                continue;
+
+            case CON_IFONBOAT:
+                VM_CONDITIONAL(pPlayer->on_boat == 1);
+                continue;
+
+            case CON_IFSIZEDOWN:
+                vm.pSprite->xrepeat--;
+                vm.pSprite->yrepeat--;
+                VM_CONDITIONAL(vm.pSprite->xrepeat <= 5);
+                continue;
+
+            case CON_IFWIND:
+                VM_CONDITIONAL(g_windTime > 0);
                 continue;
 
             case CON_IFINWATER: VM_CONDITIONAL(sector[vm.pSprite->sectnum].lotag == ST_2_UNDERWATER); continue;
@@ -1729,11 +2333,11 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     || ((moveFlags & pkicking)
                         && (pPlayer->quick_kick > 0
                             || (pPlayer->curr_weapon == KNEE_WEAPON && pPlayer->kickback_pic > 0)))
-                    || ((moveFlags & pshrunk) && sprite[pPlayer->i].xrepeat < 32)
+                    || ((moveFlags & pshrunk) && sprite[pPlayer->i].xrepeat < (RR ? 8 : 32))
                     || ((moveFlags & pjetpack) && pPlayer->jetpack_on)
                     || ((moveFlags & ponsteroids) && pPlayer->inv_amount[GET_STEROIDS] > 0 && pPlayer->inv_amount[GET_STEROIDS] < 400)
                     || ((moveFlags & ponground) && pPlayer->on_ground)
-                    || ((moveFlags & palive) && sprite[pPlayer->i].xrepeat > 32 && sprite[pPlayer->i].extra > 0 && pPlayer->timebeforeexit == 0)
+                    || ((moveFlags & palive) && sprite[pPlayer->i].xrepeat > (RR ? 8 : 32) && sprite[pPlayer->i].extra > 0 && pPlayer->timebeforeexit == 0)
                     || ((moveFlags & pdead) && sprite[pPlayer->i].extra <= 0))
                     nResult = 1;
                 else if ((moveFlags & pfacing))
@@ -1760,9 +2364,26 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 insptr += 3;
                 continue;
 
-            case CON_WACKPLAYER:
+            case CON_SLAPPLAYER:
                 insptr++;
                 P_ForceAngle(pPlayer);
+                pPlayer->vel.x -= sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
+                pPlayer->vel.y -= sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
+                vm.flags |= VM_RETURN;
+                continue;
+
+            case CON_WACKPLAYER:
+                insptr++;
+                if (RR)
+                {
+                    pPlayer->vel.x -= sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
+                    pPlayer->vel.y -= sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
+                    pPlayer->jumping_counter = 767;
+                    pPlayer->jumping_toggle = 1;
+                }
+                else
+                    P_ForceAngle(pPlayer);
+                vm.flags |= VM_RETURN;
                 continue;
 
             case CON_IFGAPZL:
@@ -1873,11 +2494,24 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     case GET_SHIELD:
                         tw = (pPlayer->inv_amount[GET_SHIELD] != pPlayer->max_player_health); break;
                     case GET_ACCESS:
-                        switch (vm.pSprite->pal)
+                        if (RR)
                         {
-                            case 0: tw  = (pPlayer->got_access & 1); break;
-                            case 21: tw = (pPlayer->got_access & 2); break;
-                            case 23: tw = (pPlayer->got_access & 4); break;
+                            switch (vm.pSprite->lotag)
+                            {
+                                case 100: tw = pPlayer->keys[1]; break;
+                                case 101: tw = pPlayer->keys[2]; break;
+                                case 102: tw = pPlayer->keys[3]; break;
+                                case 103: tw = pPlayer->keys[4]; break;
+                            }
+                        }
+                        else
+                        {
+                            switch (vm.pSprite->pal)
+                            {
+                                case 0: tw  = (pPlayer->got_access & 1); break;
+                                case 21: tw = (pPlayer->got_access & 2); break;
+                                case 23: tw = (pPlayer->got_access & 4); break;
+                            }
                         }
                         break;
                     default: tw = 0; CON_ERRPRINTF("invalid inventory item %d\n", (int32_t) * (insptr - 1));
@@ -1888,7 +2522,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 
             case CON_PSTOMP:
                 insptr++;
-                if (pPlayer->knee_incs == 0 && sprite[pPlayer->i].xrepeat >= 40)
+                if (pPlayer->knee_incs == 0 && sprite[pPlayer->i].xrepeat >= (RR ? 9 : 40))
                     if (cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - ZOFFSET6, vm.pSprite->sectnum, pPlayer->pos.x, pPlayer->pos.y,
                                pPlayer->pos.z + ZOFFSET2, sprite[pPlayer->i].sectnum))
                     {
@@ -1966,8 +2600,9 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     case FEM7__STATIC:
                     case FEM8__STATIC:
                     case FEM9__STATIC:
-                    case FEM10__STATIC:
                     case PODFEM1__STATIC:
+                        if (RR) break;
+                    case FEM10__STATIC:
                     case NAKED1__STATIC:
                     case STATUE__STATIC:
                         if (vm.pSprite->yvel)
@@ -2135,16 +2770,16 @@ void A_Execute(int spriteNum, int playerNum, int playerDist)
                 default: break;
             }
         }
-        return;
+        goto safe_delete;
     }
 
     if (A_CheckEnemySprite(vm.pSprite))
     {
         if (vm.pSprite->xrepeat > 60 || (ud.respawn_monsters == 1 && vm.pSprite->extra <= 0))
-            return;
+            goto safe_delete;
     }
     else if (EDUKE32_PREDICT_FALSE(ud.respawn_items == 1 && (vm.pSprite->cstat & 32768)))
-        return;
+        goto safe_delete;
 
     if (A_CheckSpriteFlags(vm.spriteNum, SFLAG_USEACTIVATOR) && sector[vm.pSprite->sectnum].lotag & 16384)
         changespritestat(vm.spriteNum, STAT_ZOMBIEACTOR);
@@ -2152,4 +2787,8 @@ void A_Execute(int spriteNum, int playerNum, int playerDist)
         vm.pActor->timetosleep--;
     else if (vm.pActor->timetosleep == 1)
         changespritestat(vm.spriteNum, STAT_ZOMBIEACTOR);
+
+safe_delete:
+    if (vm.flags & VM_SAFEDELETE)
+        A_DeleteSprite(spriteNum);
 }

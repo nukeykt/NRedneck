@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 static int g_haltSoundHack = 0;
 
+uint8_t g_shadedSector[MAXSECTORS];
+
 int S_FindMusicSFX(int sectNum, int *sndptr)
 {
     for (bssize_t SPRITES_OF_SECT(sectNum, spriteNum))
@@ -2566,32 +2568,32 @@ CHECKINV1:
                     pPlayer->weapon_pos = WEAPON_POS_LOWER;
                 }
                 else if ((uint32_t)weaponNum < MAX_WEAPONS && (pPlayer->gotweapon & (1<<weaponNum)) && (uint32_t)pPlayer->curr_weapon != weaponNum)
-                    switch (weaponNum)
+                    switch (DYNAMICWEAPONMAP(weaponNum))
                     {
-                    case PISTOL_WEAPON:
-                    case SHOTGUN_WEAPON:
-                    case CHAINGUN_WEAPON:
-                    case RPG_WEAPON:
-                    case DEVISTATOR_WEAPON:
-                    case FREEZE_WEAPON:
-                    case GROW_WEAPON:
-                    case SHRINKER_WEAPON:
+                    case PISTOL_WEAPON__STATIC:
+                    case SHOTGUN_WEAPON__STATIC:
+                    case CHAINGUN_WEAPON__STATIC:
+                    case RPG_WEAPON__STATIC:
+                    case DEVISTATOR_WEAPON__STATIC:
+                    case FREEZE_WEAPON__STATIC:
+                    case GROW_WEAPON__STATIC:
+                    case SHRINKER_WEAPON__STATIC:
                         if (pPlayer->ammo_amount[weaponNum] == 0 && pPlayer->show_empty_weapon == 0)
                         {
                             pPlayer->last_full_weapon = pPlayer->curr_weapon;
                             pPlayer->show_empty_weapon = 32;
                         }
                         fallthrough__;
-                    case KNEE_WEAPON:
+                    case KNEE_WEAPON__STATIC:
                         P_AddWeapon(pPlayer, weaponNum);
                         break;
-                    case HANDREMOTE_WEAPON:
+                    case HANDREMOTE_WEAPON__STATIC:
                         pPlayer->curr_weapon = HANDREMOTE_WEAPON;
                         pPlayer->last_weapon = -1;
                         pPlayer->weapon_pos = WEAPON_POS_RAISE;
                         break;
-                    case HANDBOMB_WEAPON:
-                    case TRIPBOMB_WEAPON:
+                    case HANDBOMB_WEAPON__STATIC:
+                    case TRIPBOMB_WEAPON__STATIC:
                         if (pPlayer->ammo_amount[weaponNum] > 0 && (pPlayer->gotweapon & (1<<weaponNum)))
                             P_AddWeapon(pPlayer, weaponNum);
                         break;

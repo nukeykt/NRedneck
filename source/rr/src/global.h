@@ -138,6 +138,8 @@ G_EXTERN intptr_t *g_scriptPtr;
 G_EXTERN map_t g_mapInfo[(MAXVOLUMES + 1) * MAXLEVELS];  // +1 volume for "intro", "briefing" and "loading" music
 G_EXTERN vec2_t g_origins[MAXANIMPOINTS];
 
+G_EXTERN uint8_t g_spriteExtra[MAXSPRITES], g_sectorExtra[MAXSECTORS];
+
 // XXX: I think this pragma pack is meaningless here.
 // MSDN (https://msdn.microsoft.com/en-us/library/2e70t5y1%28VS.80%29.aspx) says:
 // "pack takes effect at the first struct, union, or class declaration after

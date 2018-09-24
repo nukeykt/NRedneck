@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "_control.h"
 #include "function.h"
 #include "inv.h"
+#include "namesdyn.h"
 #define ONLY_USERDEFS
 #include "game.h"
 

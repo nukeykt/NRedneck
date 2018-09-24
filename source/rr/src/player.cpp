@@ -1183,10 +1183,10 @@ static void G_DrawTileScaled(int drawX, int drawY, int tileNum, int drawShade, i
     int drawYOffset = 0;
     int drawXOffset = 192<<16;
 
-    switch (hudweap.cur)
+    switch (DYNAMICWEAPONMAP(hudweap.cur))
     {
-        case DEVISTATOR_WEAPON:
-        case TRIPBOMB_WEAPON:
+        case DEVISTATOR_WEAPON__STATIC:
+        case TRIPBOMB_WEAPON__STATIC:
             drawXOffset = 160<<16;
             break;
         default:
@@ -1531,9 +1531,9 @@ void P_DisplayWeapon(void)
 
         int const weaponPal = P_GetHudPal(pPlayer);
 
-        switch (currentWeapon)
+        switch (DYNAMICWEAPONMAP(currentWeapon))
         {
-        case KNEE_WEAPON:
+        case KNEE_WEAPON__STATIC:
         {
             int const kneePal = P_GetKneePal(pPlayer, weaponPal);
 
@@ -1548,7 +1548,7 @@ void P_DisplayWeapon(void)
             break;
         }
 
-        case TRIPBOMB_WEAPON:
+        case TRIPBOMB_WEAPON__STATIC:
             weaponX += 8;
             weaponYOffset -= 10;
 
@@ -1566,7 +1566,7 @@ void P_DisplayWeapon(void)
                                     weaponPal);
             break;
 
-        case RPG_WEAPON:
+        case RPG_WEAPON__STATIC:
             weaponX -= sintable[(768 + ((*weaponFrame) << 7)) & 2047] >> 11;
             weaponYOffset += sintable[(768 + ((*weaponFrame) << 7)) & 2047] >> 11;
 
@@ -1585,7 +1585,7 @@ void P_DisplayWeapon(void)
                                     weaponBits, weaponPal);
             break;
 
-        case SHOTGUN_WEAPON:
+        case SHOTGUN_WEAPON__STATIC:
             weaponX -= 8;
 
             switch (*weaponFrame)
@@ -1657,7 +1657,7 @@ void P_DisplayWeapon(void)
             }
             break;
 
-        case CHAINGUN_WEAPON:
+        case CHAINGUN_WEAPON__STATIC:
             if (*weaponFrame > 0)
             {
                 weaponYOffset -= sintable[(*weaponFrame)<<7]>>12;
@@ -1706,7 +1706,7 @@ void P_DisplayWeapon(void)
                                     CHAINGUN, weaponShade, weaponBits, weaponPal);
             break;
 
-        case PISTOL_WEAPON:
+        case PISTOL_WEAPON__STATIC:
             if ((*weaponFrame) < 5)
             {
                 static uint8_t pistolFrames[] = { 0, 1, 2 };
@@ -1765,7 +1765,7 @@ void P_DisplayWeapon(void)
 
             break;
 
-        case HANDBOMB_WEAPON:
+        case HANDBOMB_WEAPON__STATIC:
             {
                 static uint8_t pipebombFrames [] = { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
 
@@ -1786,7 +1786,7 @@ void P_DisplayWeapon(void)
             }
             break;
 
-        case HANDREMOTE_WEAPON:
+        case HANDREMOTE_WEAPON__STATIC:
             {
                 static uint8_t remoteFrames[] = { 0, 1, 1, 2, 1, 1, 0, 0, 0, 0, 0 };
 
@@ -1799,7 +1799,7 @@ void P_DisplayWeapon(void)
             }
             break;
 
-        case DEVISTATOR_WEAPON:
+        case DEVISTATOR_WEAPON__STATIC:
             if (*weaponFrame > 0)
             {
                 static uint8_t const devastatorFrames[] = { 0, 4, 12, 24, 12, 4, 0 };
@@ -1835,7 +1835,7 @@ void P_DisplayWeapon(void)
             }
             break;
 
-        case FREEZE_WEAPON:
+        case FREEZE_WEAPON__STATIC:
             if (!(duke3d_globalflags & DUKE3D_NO_WIDESCREEN_PINNING) && DUKE)
                 weaponBits |= 512;
 
@@ -1862,8 +1862,8 @@ void P_DisplayWeapon(void)
                                         FREEZE, weaponShade, weaponBits, weaponPal);
             break;
 
-        case GROW_WEAPON:
-        case SHRINKER_WEAPON:
+        case GROW_WEAPON__STATIC:
+        case SHRINKER_WEAPON__STATIC:
             weaponX += 28;
             weaponY += 18;
 
@@ -2355,10 +2355,10 @@ void P_DropWeapon(int const playerNum)
     if (krand() & 1)
         A_Spawn(pPlayer->i, WeaponPickupSprites[currentWeapon]);
     else
-        switch (currentWeapon)
+        switch (DYNAMICWEAPONMAP(currentWeapon))
         {
-            case RPG_WEAPON:
-            case HANDBOMB_WEAPON: A_Spawn(pPlayer->i, EXPLOSION2); break;
+            case RPG_WEAPON__STATIC:
+            case HANDBOMB_WEAPON__STATIC: A_Spawn(pPlayer->i, EXPLOSION2); break;
         }
 }
 
@@ -2397,14 +2397,14 @@ void P_AddWeapon(DukePlayer_t *pPlayer, int weaponNum)
     pPlayer->kickback_pic = 0;
     pPlayer->curr_weapon = weaponNum;
 
-    switch (weaponNum)
+    switch (DYNAMICWEAPONMAP(weaponNum))
     {
-    case KNEE_WEAPON:
-    case TRIPBOMB_WEAPON:
-    case HANDREMOTE_WEAPON:
-    case HANDBOMB_WEAPON:     break;
-    case SHOTGUN_WEAPON:      A_PlaySound(SHOTGUN_COCK, pPlayer->i); break;
-    case PISTOL_WEAPON:       A_PlaySound(INSERT_CLIP, pPlayer->i); break;
+    case KNEE_WEAPON__STATIC:
+    case TRIPBOMB_WEAPON__STATIC:
+    case HANDREMOTE_WEAPON__STATIC:
+    case HANDBOMB_WEAPON__STATIC:     break;
+    case SHOTGUN_WEAPON__STATIC:      A_PlaySound(SHOTGUN_COCK, pPlayer->i); break;
+    case PISTOL_WEAPON__STATIC:       A_PlaySound(INSERT_CLIP, pPlayer->i); break;
                 default:      A_PlaySound(SELECT_WEAPON, pPlayer->i); break;
     }
 }
@@ -2827,9 +2827,9 @@ static void P_ProcessWeapon(int playerNum)
         {
             int spriteNum;
             
-            switch (pPlayer->curr_weapon)
+            switch (DYNAMICWEAPONMAP(pPlayer->curr_weapon))
             {
-                case HANDBOMB_WEAPON:
+                case HANDBOMB_WEAPON__STATIC:
                     pPlayer->hbomb_hold_delay = 0;
                     if (pPlayer->ammo_amount[pPlayer->curr_weapon] > 0)
                     {
@@ -2837,12 +2837,12 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case HANDREMOTE_WEAPON:
+                case HANDREMOTE_WEAPON__STATIC:
                     pPlayer->hbomb_hold_delay = 0;
                     (*weaponFrame)            = 1;
                     break;
 
-                case PISTOL_WEAPON:
+                case PISTOL_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[PISTOL_WEAPON] > 0)
                     {
                         pPlayer->ammo_amount[PISTOL_WEAPON]--;
@@ -2850,14 +2850,14 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case SHOTGUN_WEAPON:
+                case SHOTGUN_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[SHOTGUN_WEAPON] > 0 && pPlayer->random_club_frame == 0)
                     {
                         (*weaponFrame) = 1;
                     }
                     break;
 
-                case TRIPBOMB_WEAPON:
+                case TRIPBOMB_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[pPlayer->curr_weapon] > 0)
                     {
                         hitdata_t hitData;
@@ -2898,7 +2898,7 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case SHRINKER_WEAPON:
+                case SHRINKER_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[SHRINKER_WEAPON] > 0)
                     {
                         (*weaponFrame) = 1;
@@ -2906,7 +2906,7 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case GROW_WEAPON:
+                case GROW_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[GROW_WEAPON] > 0)
                     {
                         (*weaponFrame) = 1;
@@ -2914,7 +2914,7 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case FREEZE_WEAPON:
+                case FREEZE_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[FREEZE_WEAPON] > 0)
                     {
                         (*weaponFrame) = 1;
@@ -2922,15 +2922,15 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case RPG_WEAPON:
-                case CHAINGUN_WEAPON:
+                case RPG_WEAPON__STATIC:
+                case CHAINGUN_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[pPlayer->curr_weapon] > 0)
                     {
                         (*weaponFrame) = 1;
                     }
                     break;
 
-                case DEVISTATOR_WEAPON:
+                case DEVISTATOR_WEAPON__STATIC:
                     if (pPlayer->ammo_amount[pPlayer->curr_weapon] > 0)
                     {
                         (*weaponFrame)            = 1;
@@ -2939,7 +2939,7 @@ static void P_ProcessWeapon(int playerNum)
                     }
                     break;
 
-                case KNEE_WEAPON:
+                case KNEE_WEAPON__STATIC:
                     if (pPlayer->quick_kick == 0)
                     {
                         (*weaponFrame) = 1;
@@ -2953,9 +2953,9 @@ static void P_ProcessWeapon(int playerNum)
         int spriteNum;
         int flashColor = 0;
 
-        switch (pPlayer->curr_weapon)
+        switch (DYNAMICWEAPONMAP(pPlayer->curr_weapon))
         {
-        case HANDBOMB_WEAPON:
+        case HANDBOMB_WEAPON__STATIC:
             if ((*weaponFrame) == 6 && TEST_SYNC_KEY(playerBits, SK_FIRE))
             {
                 pPlayer->rapid_fire_hold = 1;
@@ -3015,7 +3015,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case HANDREMOTE_WEAPON:
+        case HANDREMOTE_WEAPON__STATIC:
             if (++(*weaponFrame) == 2)
             {
                 pPlayer->hbomb_on = 0;
@@ -3035,7 +3035,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case PISTOL_WEAPON:
+        case PISTOL_WEAPON__STATIC:
             if ((*weaponFrame) == 1)
             {
                 A_Shoot(pPlayer->i, SHOTSPARK1);
@@ -3077,7 +3077,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case SHOTGUN_WEAPON:
+        case SHOTGUN_WEAPON__STATIC:
             if (++(*weaponFrame) == 4)
             {
                 A_Shoot(pPlayer->i, SHOTGUN);
@@ -3122,7 +3122,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case CHAINGUN_WEAPON:
+        case CHAINGUN_WEAPON__STATIC:
             if (++(*weaponFrame) <= 12)
             {
                 if (((*weaponFrame) % 3) == 0)
@@ -3168,7 +3168,7 @@ static void P_ProcessWeapon(int playerNum)
 
             break;
 
-        case GROW_WEAPON:
+        case GROW_WEAPON__STATIC:
             if ((*weaponFrame) > 3)
             {
                 (*weaponFrame) = 0;
@@ -3192,7 +3192,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case SHRINKER_WEAPON:
+        case SHRINKER_WEAPON__STATIC:
             if ((*weaponFrame) > 10)
             {
                 (*weaponFrame) = 0;
@@ -3212,7 +3212,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case DEVISTATOR_WEAPON:
+        case DEVISTATOR_WEAPON__STATIC:
             if ((*weaponFrame) > 0)
             {
                 if (++(*weaponFrame) & 1)
@@ -3231,7 +3231,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case FREEZE_WEAPON:
+        case FREEZE_WEAPON__STATIC:
             if ((*weaponFrame) < 4)
             {
                 if (++(*weaponFrame) == 3)
@@ -3262,7 +3262,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case TRIPBOMB_WEAPON:
+        case TRIPBOMB_WEAPON__STATIC:
             if ((*weaponFrame) < 4)
             {
                 pPlayer->pos.z = pPlayer->opos.z;
@@ -3284,7 +3284,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case KNEE_WEAPON:
+        case KNEE_WEAPON__STATIC:
             if (++(*weaponFrame) == 7)
             {
                 A_Shoot(pPlayer->i, KNEE);
@@ -3307,7 +3307,7 @@ static void P_ProcessWeapon(int playerNum)
             }
             break;
 
-        case RPG_WEAPON:
+        case RPG_WEAPON__STATIC:
             if (++(*weaponFrame) == 4)
             {
                 pPlayer->ammo_amount[RPG_WEAPON]--;
