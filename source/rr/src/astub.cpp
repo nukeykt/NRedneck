@@ -8325,23 +8325,16 @@ static void G_CheckCommandLine(int32_t argc, char const * const * argv)
                 i++;
                 continue;
             }
-            if (!Bstrcasecmp(c+1,"nam"))
+            if (!Bstrcasecmp(c+1,"rr"))
             {
-                g_gameType = GAMEFLAG_NAM;
+                g_gameType = GAMEFLAG_RR;
                 COPYARG(i);
                 i++;
                 continue;
             }
-            if (!Bstrcasecmp(c+1,"napalm"))
+            if (!Bstrcasecmp(c+1,"rrra"))
             {
-                g_gameType = GAMEFLAG_NAM|GAMEFLAG_NAPALM;
-                COPYARG(i);
-                i++;
-                continue;
-            }
-            if (!Bstrcasecmp(c+1,"ww2gi"))
-            {
-                g_gameType = GAMEFLAG_WW2GI;
+                g_gameType = GAMEFLAG_RR|GAMEFLAG_RRRA;
                 COPYARG(i);
                 i++;
                 continue;

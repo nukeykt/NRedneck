@@ -129,9 +129,6 @@ void G_GetCrosshairColor(void)
 
 void G_SetCrosshairColor(int32_t r, int32_t g, int32_t b)
 {
-    if (IONMAIDEN)
-        return;
-
     int32_t i, ii;
 
     if (g_crosshairSum == r+(g<<8)+(b<<16)) return;
@@ -1178,20 +1175,8 @@ void G_DisplayRest(int32_t smoothratio)
             uint32_t crosshair_scale = divscale16(ud.crosshairscale, 100);
 
             auto const oyxaspect = yxaspect;
-            if (IONMAIDEN)
-            {
-                crosshairpos.x = scale(crosshairpos.x - (320<<15), ydim << 2, xdim * 3) + (320<<15);
-                crosshairpos.y = scale(crosshairpos.y - (200<<15), (ydim << 2) * 6, (xdim * 3) * 5) + (200<<15);
-                crosshair_scale = scale(crosshair_scale, ydim << 2, xdim * 3) >> 1;
-                crosshair_pal = 0;
-                crosshair_o |= 1024;
-                renderSetAspect(viewingrange, 65536);
-            }
 
             rotatesprite_win(crosshairpos.x, crosshairpos.y, crosshair_scale, 0, a, 0, crosshair_pal, crosshair_o);
-
-            if (IONMAIDEN)
-                renderSetAspect(viewingrange, oyxaspect);
         }
     }
 
@@ -1209,20 +1194,8 @@ void G_DisplayRest(int32_t smoothratio)
             uint32_t pointer_scale = 65536;
 
             auto const oyxaspect = yxaspect;
-            if (IONMAIDEN)
-            {
-                pointerpos.x = scale(pointerpos.x - (320<<15), ydim << 2, xdim * 3) + (320<<15);
-                pointerpos.y = scale(pointerpos.y - (200<<15), (ydim << 2) * 6, (xdim * 3) * 5) + (200<<15);
-                pointer_scale = scale(pointer_scale, ydim << 2, xdim * 3) >> 1;
-                pointer_pal = 0;
-                pointer_o |= 1024;
-                renderSetAspect(viewingrange, 65536);
-            }
 
             rotatesprite_win(pointerpos.x, pointerpos.y, pointer_scale, 0, a, 0, pointer_pal, pointer_o);
-
-            if (IONMAIDEN)
-                renderSetAspect(viewingrange, oyxaspect);
         }
     }
 #endif
@@ -1431,7 +1404,7 @@ void G_DisplayExtraScreens(void)
     S_StopMusic();
     FX_StopAllSounds();
 
-    if (!DUKEBETA && (!VOLUMEALL || flags & LOGO_SHAREWARESCREENS))
+    if (!VOLUMEALL || flags & LOGO_SHAREWARESCREENS)
     {
 #ifdef __ANDROID__
         inExtraScreens = 1;
@@ -1535,68 +1508,65 @@ void G_DisplayLogo(void)
         if (logoflags & LOGO_PLAYMUSIC)
             S_PlaySpecialMusicOrNothing(MUS_INTRO);
 
-        if (!NAM)
+        //g_player[myconnectindex].ps->palette = drealms;
+        //G_FadePalette(0,0,0,252);
+
+        if (logoflags & LOGO_3DRSCREEN)
         {
-            //g_player[myconnectindex].ps->palette = drealms;
-            //G_FadePalette(0,0,0,252);
-
-            if (logoflags & LOGO_3DRSCREEN)
+            if (!I_CheckAllInput() && g_noLogoAnim == 0)
             {
-                if (!I_CheckAllInput() && g_noLogoAnim == 0)
+                int32_t i;
+                Net_GetPackets();
+
+                i = kopen4loadfrommod("3dr.ivf", 0);
+
+                if (i == -1)
+                    i = kopen4loadfrommod("3dr.anm", 0);
+
+                if (i != -1)
                 {
-                    int32_t i;
-                    Net_GetPackets();
+                    kclose(i);
+                    Anim_Play("3dr.anm");
+                    G_FadePalette(0, 0, 0, 252);
+                    I_ClearAllInput();
+                }
+                else
+                {
+                    videoClearScreen(0);
 
-                    i = kopen4loadfrommod("3dr.ivf", 0);
+                    P_SetGamePalette(g_player[myconnectindex].ps, DREALMSPAL, 8 + 2 + 1);    // JBF 20040308
+                    fadepal(0, 0, 0, 0, 252, 28);
+                    renderFlushPerms();
+                    rotatesprite_fs(160 << 16, 100 << 16, 65536L, 0, DREALMS, 0, 0, 2 + 8 + 64 + BGSTRETCH);
+                    videoNextPage();
+                    fadepaltile(0, 0, 0, 252, 0, -28, DREALMS);
+                    totalclock = 0;
 
-                    if (i == -1)
-                        i = kopen4loadfrommod("3dr.anm", 0);
-
-                    if (i != -1)
+                    while (totalclock < (120 * 7) && !I_CheckAllInput())
                     {
-                        kclose(i);
-                        Anim_Play("3dr.anm");
-                        G_FadePalette(0, 0, 0, 252);
-                        I_ClearAllInput();
-                    }
-                    else
-                    {
-                        videoClearScreen(0);
-
-                        P_SetGamePalette(g_player[myconnectindex].ps, DREALMSPAL, 8 + 2 + 1);    // JBF 20040308
-                        fadepal(0, 0, 0, 0, 252, 28);
-                        renderFlushPerms();
-                        rotatesprite_fs(160 << 16, 100 << 16, 65536L, 0, DREALMS, 0, 0, 2 + 8 + 64 + BGSTRETCH);
-                        videoNextPage();
-                        fadepaltile(0, 0, 0, 252, 0, -28, DREALMS);
-                        totalclock = 0;
-
-                        while (totalclock < (120 * 7) && !I_CheckAllInput())
+                        if (G_FPSLimit())
                         {
-                            if (G_FPSLimit())
-                            {
-                                videoClearScreen(0);
-                                rotatesprite_fs(160 << 16, 100 << 16, 65536L, 0, DREALMS, 0, 0, 2 + 8 + 64 + BGSTRETCH);
-                                G_HandleAsync();
+                            videoClearScreen(0);
+                            rotatesprite_fs(160 << 16, 100 << 16, 65536L, 0, DREALMS, 0, 0, 2 + 8 + 64 + BGSTRETCH);
+                            G_HandleAsync();
 
-                                if (g_restorePalette)
-                                {
-                                    P_SetGamePalette(g_player[myconnectindex].ps, g_player[myconnectindex].ps->palette, 0);
-                                    g_restorePalette = 0;
-                                }
+                            if (g_restorePalette)
+                            {
+                                P_SetGamePalette(g_player[myconnectindex].ps, g_player[myconnectindex].ps->palette, 0);
+                                g_restorePalette = 0;
                             }
                         }
-
-                        fadepaltile(0, 0, 0, 0, 252, 28, DREALMS);
                     }
-                }
 
-                videoClearScreen(0L);
-                videoNextPage();
+                    fadepaltile(0, 0, 0, 0, 252, 28, DREALMS);
+                }
             }
 
-            I_ClearAllInput();
+            videoClearScreen(0L);
+            videoNextPage();
         }
+
+        I_ClearAllInput();
 
         videoClearScreen(0L);
         videoNextPage();
@@ -2120,7 +2090,7 @@ static int32_t G_PrintTime_ClockPad(void)
     {
         for (ii=g_mapInfo[G_LastMapInfoIndex()].partime/(REALGAMETICSPERSEC*60), ij=1; ii>9; ii/=10, ij++) { }
         clockpad = max(clockpad, ij);
-        if (!NAM_WW2GI && g_mapInfo[G_LastMapInfoIndex()].designertime)
+        if (g_mapInfo[G_LastMapInfoIndex()].designertime)
         {
             for (ii=g_mapInfo[G_LastMapInfoIndex()].designertime/(REALGAMETICSPERSEC*60), ij=1; ii>9; ii/=10, ij++) { }
             clockpad = max(clockpad, ij);
@@ -2354,7 +2324,7 @@ void G_BonusScreen(int32_t bonusonly)
                             gametext(10, yy+9, "Par Time:");
                             yy+=10;
                         }
-                        if (!NAM_WW2GI && !DUKEBETA && g_mapInfo[G_LastMapInfoIndex()].designertime)
+                        if (g_mapInfo[G_LastMapInfoIndex()].designertime)
                         {
                             // EDuke 2.0 / NAM source suggests "Green Beret's Time:"
                             gametext(10, yy+9, "3D Realms' Time:");
@@ -2399,7 +2369,7 @@ void G_BonusScreen(int32_t bonusonly)
                                 gametext_number((320>>2)+71, yy+9, tempbuf);
                                 yy+=10;
                             }
-                            if (!NAM_WW2GI && !DUKEBETA && g_mapInfo[G_LastMapInfoIndex()].designertime)
+                            if (g_mapInfo[G_LastMapInfoIndex()].designertime)
                             {
                                 G_PrintDesignerTime();
                                 gametext_number((320>>2)+71, yy+9, tempbuf);

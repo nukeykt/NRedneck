@@ -38,9 +38,9 @@ const char *g_gameNamePtr = NULL;
 // grp/con handling
 
 static const char *defaultconfilename                = "GAME.CON";
-static const char *defaultgamegrp[GAMECOUNT]         = { "DUKE3D.GRP", "NAM.GRP", "NAPALM.GRP", "WW2GI.GRP" };
-static const char *defaultdeffilename[GAMECOUNT]     = { "duke3d.def", "nam.def", "napalm.def", "ww2gi.def" };
-static const char *defaultgameconfilename[GAMECOUNT] = { "EDUKE.CON", "NAM.CON", "NAPALM.CON", "WW2GI.CON" };
+static const char *defaultgamegrp[GAMECOUNT]         = { "DUKE3D.GRP", "REDNECK.GRP", "REDNECK.GRP" };
+static const char *defaultdeffilename[GAMECOUNT]     = { "duke3d.def", "rr.def", "rrra.def" };
+static const char *defaultgameconfilename[GAMECOUNT] = { "GAME.CON", "GAME.CON", "GAME.CON" };
 
 // g_grpNamePtr can ONLY point to a malloc'd block (length BMAX_PATH)
 char *g_grpNamePtr = NULL;
@@ -65,12 +65,8 @@ const char *G_DefaultGrpFile(void)
 {
     if (DUKE)
         return defaultgamegrp[GAME_DUKE];
-    else if (NAPALM)
-        return defaultgamegrp[GAME_NAPALM];
-    else if (WW2GI)
-        return defaultgamegrp[GAME_WW2GI];
-    else if (NAM)
-        return defaultgamegrp[GAME_NAM];
+    else if (RR)
+        return defaultgamegrp[GAME_RR];
 
     return defaultgamegrp[0];
 }
@@ -78,27 +74,16 @@ const char *G_DefaultDefFile(void)
 {
     if (DUKE)
         return defaultdeffilename[GAME_DUKE];
-    else if (WW2GI)
-        return defaultdeffilename[GAME_WW2GI];
-    else if (NAPALM)
-    {
-        if (!testkopen(defaultdeffilename[GAME_NAPALM],0) && testkopen(defaultdeffilename[GAME_NAM],0))
-            return defaultdeffilename[GAME_NAM]; // NAM/NAPALM Sharing
-        else
-            return defaultdeffilename[GAME_NAPALM];
-    }
-    else if (NAM)
-    {
-        if (!testkopen(defaultdeffilename[GAME_NAM],0) && testkopen(defaultdeffilename[GAME_NAPALM],0))
-            return defaultdeffilename[GAME_NAPALM]; // NAM/NAPALM Sharing
-        else
-            return defaultdeffilename[GAME_NAM];
-    }
+    else if (RRRA)
+        return defaultdeffilename[GAME_RRRA];
+    else if (RR)
+        return defaultdeffilename[GAME_RR];
 
     return defaultdeffilename[0];
 }
 const char *G_DefaultConFile(void)
 {
+#if 0
     if (DUKE && testkopen(defaultgameconfilename[GAME_DUKE],0))
         return defaultgameconfilename[GAME_DUKE];
     else if (WW2GI && testkopen(defaultgameconfilename[GAME_WW2GI],0))
@@ -123,6 +108,7 @@ const char *G_DefaultConFile(void)
         else
             return defaultgameconfilename[GAME_NAM];
     }
+#endif
     return defaultconfilename;
 }
 
@@ -877,6 +863,21 @@ void G_AddSearchPaths(void)
         addsearchpath_user(buf, SEARCHPATH_REMOVE);
     }
 
+    // Redneck Rampage (GOG.com)
+    bufsize = sizeof(buf);
+    if (G_ReadRegistryValue("SOFTWARE\\GOG.com\\GOGREDNECKRAMPAGE", "PATH", buf, &bufsize))
+    {
+        addsearchpath_user(buf, SEARCHPATH_RR);
+    }
+
+    // Redneck Rampage Rides Again (GOG.com)
+    bufsize = sizeof(buf);
+    if (G_ReadRegistryValue("SOFTWARE\\GOG.com\\GOGCREDNECKRIDESAGAIN", "PATH", buf, &bufsize))
+    {
+        addsearchpath_user(buf, SEARCHPATH_RRRA);
+    }
+
+#if 0
     // NAM (Steam)
     bufsize = sizeof(buf);
     if (G_ReadRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 329650", "InstallLocation", buf, &bufsize))
@@ -900,17 +901,18 @@ void G_AddSearchPaths(void)
     }
 #endif
 #endif
+#endif
 }
 
 void G_CleanupSearchPaths(void)
 {
     removesearchpaths_withuser(SEARCHPATH_REMOVE);
 
-    if (!NAM)
-        removesearchpaths_withuser(SEARCHPATH_NAM);
+    if (!RRRA)
+        removesearchpaths_withuser(SEARCHPATH_RRRA);
 
-    if (!WW2GI)
-        removesearchpaths_withuser(SEARCHPATH_WW2GI);
+    if (!RR)
+        removesearchpaths_withuser(SEARCHPATH_RR);
 }
 
 //////////

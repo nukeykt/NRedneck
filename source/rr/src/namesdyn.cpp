@@ -35,6 +35,7 @@ struct dynitem
     const char *str;
     int32_t *dynvalptr;
     const int16_t staticval;
+    const int16_t staticval_rr;
 };
 
 static struct dynitem g_dynTileList[] =
@@ -1230,6 +1231,7 @@ int32_t SIGN1 = SIGN1__STATIC;
 int32_t SIGN2 = SIGN2__STATIC;
 int32_t JURYGUY = JURYGUY__STATIC;
 
+#if 0
 static hashtable_t h_names = {512, NULL};
 
 void G_ProcessDynamicTileMapping(const char *szLabel, int32_t lValue)
@@ -1265,6 +1267,7 @@ void freehashnames(void)
 {
     hash_free(&h_names);
 }
+#endif
 
 // This is run after all CON define's have been processed to set up the
 // dynamic->static tile mapping.

@@ -118,6 +118,7 @@ char const * const g_NAMMattCheatQuote = "Matt Saettler.  matts@saettler.com";
 
 void G_SetupCheats(void)
 {
+#if 0
     // KEEPINSYNC: NAM_WW2GI_CHEATS
     if (WW2GI)
     {
@@ -188,6 +189,7 @@ void G_SetupCheats(void)
         Bstrcpy(g_gametypeNames[0], "GruntMatch (Spawn)");
         Bstrcpy(g_gametypeNames[2], "GruntMatch (No Spawn)");
     }
+#endif
 }
 
 static void doinvcheat(DukePlayer_t * const pPlayer, int32_t invidx, int32_t defaultnum)
@@ -602,15 +604,7 @@ void G_DoCheats(void)
                     return;
 
                 case CHEAT_TODD:
-                    if (NAM)
-                    {
-                        Bstrcpy(apStrings[QUOTE_RESERVED4], g_NAMMattCheatQuote);
-                        P_DoQuote(QUOTE_RESERVED4, pPlayer);
-                    }
-                    else
-                    {
-                        P_DoQuote(QUOTE_CHEAT_TODD, pPlayer);
-                    }
+                    P_DoQuote(QUOTE_CHEAT_TODD, pPlayer);
 
                     end_cheat(pPlayer);
                     return;

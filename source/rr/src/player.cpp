@@ -627,7 +627,7 @@ int A_Shoot(int const spriteNum, int const projecTile)
 
             if (playerNum >= 0)
                 P_PreFireHitscan(spriteNum, playerNum, projecTile, &startPos, &Zvel, &shootAng,
-                    projecTile == SHOTSPARK1__STATIC && !WW2GI, 1);
+                    projecTile == SHOTSPARK1__STATIC, 1);
             else
                 A_PreFireHitscan(pSprite, &startPos, &Zvel, &shootAng, 1);
 
@@ -1316,9 +1316,6 @@ static int P_DisplayKnee(int kneeShade)
 
 static int P_DisplayKnuckles(int knuckleShade)
 {
-    if (WW2GI)
-        return 0;
-
     const DukePlayer_t *const pPlayer = g_player[screenpeek].ps;
 
     if (pPlayer->knuckle_incs == 0)
@@ -2147,11 +2144,11 @@ void P_GetInput(int playerNum)
 
     localInput.fvel = mulscale9(staticInput.fvel, sintable[(q16ang + 2560) & 2047]) +
                       mulscale9(staticInput.svel, sintable[(q16ang + 2048) & 2047]) +
-                      (IONMAIDEN ? 0 : pPlayer->fric.x);
+                      pPlayer->fric.x;
 
     localInput.svel = mulscale9(staticInput.fvel, sintable[(q16ang + 2048) & 2047]) +
                       mulscale9(staticInput.svel, sintable[(q16ang + 1536) & 2047]) +
-                      (IONMAIDEN ? 0 : pPlayer->fric.y);
+                      pPlayer->fric.y;
 
     localInput.q16avel = staticInput.q16avel;
     localInput.q16horz = staticInput.q16horz;
@@ -2323,18 +2320,15 @@ static int32_t P_DoCounters(int playerNum)
     {
         if (++pPlayer->knuckle_incs == 10)
         {
-            if (!WW2GI)
-            {
-                if (totalclock > 1024)
-                    if (playerNum == screenpeek || GTFLAGS(GAMETYPE_COOPSOUND))
-                    {
-                        if (rand()&1)
-                            A_PlaySound(DUKE_CRACK,pPlayer->i);
-                        else A_PlaySound(DUKE_CRACK2,pPlayer->i);
-                    }
+            if (totalclock > 1024)
+                if (playerNum == screenpeek || GTFLAGS(GAMETYPE_COOPSOUND))
+                {
+                    if (rand()&1)
+                        A_PlaySound(DUKE_CRACK,pPlayer->i);
+                    else A_PlaySound(DUKE_CRACK2,pPlayer->i);
+                }
 
-                A_PlaySound(DUKE_CRACK_FIRST,pPlayer->i);
-            }
+            A_PlaySound(DUKE_CRACK_FIRST,pPlayer->i);
         }
         else if (pPlayer->knuckle_incs == 22 || TEST_SYNC_KEY(g_player[playerNum].inputBits->bits, SK_FIRE))
             pPlayer->knuckle_incs=0;

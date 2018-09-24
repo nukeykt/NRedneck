@@ -767,13 +767,10 @@ void G_DrawStatusBar(int32_t snum)
 
                 G_DrawInvNum(284-30-o, yofssh, 200-6, (uint8_t) i, 0, orient&~16);
 
-                if (!WW2GI)
-                {
-                    if (j > 0)
-                        minitext(288-30-o, 180, "On", 0, orient);
-                    else if ((uint32_t) j != 0x80000000)
-                        minitext(284-30-o, 180, "Off", 2, orient);
-                }
+                if (j > 0)
+                    minitext(288-30-o, 180, "On", 0, orient);
+                else if ((uint32_t) j != 0x80000000)
+                    minitext(284-30-o, 180, "Off", 2, orient);
 
                 if (p->inven_icon >= ICON_SCUBA)
                     minitext(284-35-o, 180, "Auto", 2, orient);
@@ -835,8 +832,6 @@ void G_DrawStatusBar(int32_t snum)
             sbar.ammo_amount[i] = p->ammo_amount[i];
             if (i < 9)
                 u |= ((2<<i)+1024);
-            else if (WW2GI && i == 11)
-                u |= 1024 + 128;
             else
                 u |= 65536L+1024;
         }
@@ -1003,7 +998,7 @@ void G_DrawStatusBar(int32_t snum)
                 if (p->inven_icon >= ICON_SCUBA) minitext(284-35-o, SBY+14, "Auto", 2, 10+16+permbit + ROTATESPRITE_MAX);
             }
 
-            if (u&(2048+4096) && !WW2GI)
+            if (u&(2048+4096))
             {
                 j = G_GetInvOn(p);
 

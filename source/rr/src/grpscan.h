@@ -55,6 +55,8 @@ extern "C" {
 #define NAPALM_CRC  (int32_t)0x3DE1589A
 #define WW2GI_CRC   (int32_t)0x907B82BF
 #define PLATOONL_CRC (int32_t)0xD1ED8C0C
+#define RR_CRC      (int32_t)0x19D9BC79
+#define RRRA_CRC    (int32_t)0x958018C6
 
 enum addon_t {
     ADDON_NONE,

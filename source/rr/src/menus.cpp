@@ -147,12 +147,10 @@ static void Menu_DrawCursorCommon(int32_t x, int32_t y, int32_t z, int32_t picnu
 }
 static void Menu_DrawCursorLeft(int32_t x, int32_t y, int32_t z)
 {
-    if (IONMAIDEN) return;
     Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+((totalclock>>3)%7));
 }
 static void Menu_DrawCursorRight(int32_t x, int32_t y, int32_t z)
 {
-    if (IONMAIDEN) return;
     Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+6-((6+(totalclock>>3))%7));
 }
 static void Menu_DrawCursorTextTile(int32_t x, int32_t y, int32_t h, int32_t picnum, vec2s_t const & siz, int32_t ydim_upper = 0, int32_t ydim_lower = ydim-1)
@@ -164,7 +162,7 @@ static void Menu_DrawCursorText(int32_t x, int32_t y, int32_t h, int32_t ydim_up
 {
     vec2s_t const & siz = tilesiz[SPINNINGNUKEICON];
 
-    if (IONMAIDEN || siz.x == 0)
+    if (siz.x == 0)
     {
         Menu_DrawCursorTextTile(x, y, h, SMALLFNTCURSOR, tilesiz[SMALLFNTCURSOR], ydim_upper, ydim_lower);
         return;
@@ -1707,8 +1705,6 @@ void Menu_Init(void)
         }
     ++k;
     MEOS_NETOPTIONS_GAMETYPE.numOptions = k;
-    if (NAM_WW2GI)
-        ME_NETOPTIONS_MONSTERS.name = "Enemies";
 
     // prepare cheats
     for (i = 0; i < NUMCHEATFUNCS; ++i)
@@ -1811,6 +1807,7 @@ void Menu_Init(void)
         }
     }
 
+#if 0
     // prepare sound setup
     if (WW2GI)
         ME_SOUND_DUKETALK.name = "GI talk:";
@@ -1839,6 +1836,7 @@ void Menu_Init(void)
 
         SELECTDIR_z = 16384;
     }
+#endif
 
     // prepare shareware
     if (VOLUMEONE)
@@ -2053,17 +2051,15 @@ static void Menu_Pre(MenuID_t cm)
         const int32_t menucheatsdisabled = numplayers != 1 || !(g_player[myconnectindex].ps->gm & MODE_GAME);
 
         // refresh display names of quote cheats
-        if (!DUKEBETA)
-        {
             ME_CheatCodes[CHEATFUNC_QUOTEBETA].name = apStrings[QUOTE_CHEAT_BETA];
-            ME_CheatCodes[CHEATFUNC_QUOTETODD].name = NAM ? g_NAMMattCheatQuote : apStrings[QUOTE_CHEAT_TODD];
+            ME_CheatCodes[CHEATFUNC_QUOTETODD].name = apStrings[QUOTE_CHEAT_TODD];
             ME_CheatCodes[CHEATFUNC_QUOTEALLEN].name = apStrings[QUOTE_CHEAT_ALLEN];
-        }
 
         for (i = 0; i < NUMCHEATFUNCS; i++)
         {
             uint32_t cheatmask = cl_cheatmask & (1<<i);
 
+#if 0
             // KEEPINSYNC: NAM_WW2GI_CHEATS
             if (NAM_WW2GI)
             {
@@ -2088,6 +2084,7 @@ static void Menu_Pre(MenuID_t cm)
                     break;
                 }
             }
+#endif
 
             MenuEntry_t & entry = ME_CheatCodes[i];
 
@@ -2124,9 +2121,6 @@ static void Menu_PreDrawBackground(MenuID_t cm, const vec2_t origin)
 
     case MENU_LOAD:
     case MENU_SAVE:
-        if (IONMAIDEN)
-            break;
-        fallthrough__;
     case MENU_CREDITS4:
     case MENU_CREDITS5:
         Menu_DrawBackground(origin);
@@ -3682,8 +3676,7 @@ static void Menu_TextFormSubmit(char *input)
         if (cheatID >= 0)
             cl_cheatmask |= CheatFunctionFlags[cheatID];
 
-        if ((NAM_WW2GI && (cl_cheatmask & (1<<CHEATFUNC_QUOTETODD))) ||
-            ((cl_cheatmask & (1<<CHEATFUNC_QUOTEBETA)) && (cl_cheatmask & (1<<CHEATFUNC_QUOTETODD)) && (cl_cheatmask & (1<<CHEATFUNC_QUOTEALLEN))))
+        if (((cl_cheatmask & (1<<CHEATFUNC_QUOTEBETA)) && (cl_cheatmask & (1<<CHEATFUNC_QUOTETODD)) && (cl_cheatmask & (1<<CHEATFUNC_QUOTEALLEN))))
         {
             S_PlaySound(DUKE_GETWEAPON6);
             cl_cheatmask = ~0;
@@ -3852,14 +3845,6 @@ int32_t Menu_Anim_SinInLeft(MenuAnimation_t *animdata)
 
 void Menu_AnimateChange(int32_t cm, MenuAnimationType_t animtype)
 {
-    if (IONMAIDEN)
-    {
-        m_animation.start  = 0;
-        m_animation.length = 0;
-        Menu_Change(cm);
-        return;
-    }
-
     switch (animtype)
     {
         case MA_Advance:
@@ -3980,19 +3965,12 @@ static void Menu_AboutToStartDisplaying(Menu_t * m)
     switch (m->menuID)
     {
     case MENU_MAIN:
-        if (IONMAIDEN)
-            ME_MAIN_LOADGAME.name = s_Continue;
         break;
 
     case MENU_MAIN_INGAME:
-        if (IONMAIDEN)
-            ME_MAIN_LOADGAME.name = s_LoadGame;
         break;
 
     case MENU_LOAD:
-        if (IONMAIDEN)
-            M_LOAD.title = (g_player[myconnectindex].ps->gm & MODE_GAME) ? s_LoadGame : s_Continue;
-
         Menu_LoadReadHeaders();
 
         if (g_quickload && g_quickload->isValid())
@@ -4153,24 +4131,6 @@ int Menu_Change(MenuID_t cm)
     }
     else
         return 1;
-
-    if (IONMAIDEN)
-    {
-        Menu_t * parent = m_currentMenu, * result = NULL;
-
-        while (parent != NULL && parent->menuID != MENU_OPTIONS && parent->menuID != MENU_MAIN && parent->menuID != MENU_MAIN_INGAME)
-        {
-            result = parent = Menu_FindFiltered(parent->parentID);
-        }
-
-        m_parentMenu = result;
-
-        if (result)
-        {
-            Menu_MaybeSetSelectionToChild(result, m_currentMenu->menuID);
-            Menu_AboutToStartDisplaying(result);
-        }
-    }
 
     Menu_MaybeSetSelectionToChild(m_currentMenu, beginMenu->menuID);
     Menu_AboutToStartDisplaying(m_currentMenu);
@@ -4387,9 +4347,6 @@ static void Menu_GetFmt(const MenuFont_t *font, uint8_t const status, int32_t *s
     // sum shade values
     if (status & MT_Disabled)
         s += font->shade_disabled;
-
-    if (IONMAIDEN && status & MT_Selected)
-        *z += (*z >> 4);
 }
 
 static vec2_t Menu_Text(int32_t x, int32_t y, const MenuFont_t *font, const char *t, uint8_t status, int32_t ydim_upper, int32_t ydim_lower)
@@ -6821,7 +6778,7 @@ void M_DisplayMenus(void)
 
     // need EVENT_DISPLAYMENUBACKGROUND here
 
-    if (!IONMAIDEN && ((g_player[myconnectindex].ps->gm&MODE_GAME) || ud.recstat==2) && backgroundOK)
+    if (((g_player[myconnectindex].ps->gm&MODE_GAME) || ud.recstat==2) && backgroundOK)
         videoFadeToBlack(1);
 
     if (Menu_UpdateScreenOK(g_currentMenu))
@@ -6845,10 +6802,6 @@ void M_DisplayMenus(void)
     {
         Menu_Run(m_parentMenu, origin);
     }
-
-    // hack; need EVENT_DISPLAYMENUBACKGROUND above
-    if (IONMAIDEN && ((g_player[myconnectindex].ps->gm&MODE_GAME) || ud.recstat==2 || m_parentMenu != NULL) && backgroundOK)
-        videoFadeToBlack(1);
 
     // Display the menu, with a transition animation if applicable.
     if (totalclock < m_animation.start + m_animation.length)
@@ -6910,26 +6863,9 @@ void M_DisplayMenus(void)
             uint32_t o = 2;
 
             auto const oyxaspect = yxaspect;
-            int32_t alpha;
-            if (IONMAIDEN)
-            {
-                renderSetAspect(viewingrange, 65536);
-                cursorpos.x = scale(cursorpos.x - (320<<15), ydim << 2, xdim * 3) + (320<<15);
-                cursorpos.y = scale(cursorpos.y - (200<<15), (ydim << 2) * 6, (xdim * 3) * 5) + (200<<15);
-                z = scale(32768, ydim << 2, xdim * 3);
-                p = 0;
-                o |= 1024;
-                alpha = MOUSEALPHA;
-            }
-            else
-            {
-                alpha = CURSORALPHA;
-            }
+            int32_t alpha = CURSORALPHA;
 
             rotatesprite_fs_alpha(cursorpos.x, cursorpos.y, z, 0, a, 0, p, o, alpha);
-
-            if (IONMAIDEN)
-                renderSetAspect(viewingrange, oyxaspect);
         }
     }
     else
