@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "android.h"
 #endif
 
+int32_t PHEIGHT = PHEIGHT_DUKE;
+
 int32_t lastvisinc;
 hudweapon_t hudweap;
 
@@ -2372,13 +2374,50 @@ void P_AddAmmo(DukePlayer_t * const pPlayer, int const weaponNum, int const addA
 
 void P_AddWeapon(DukePlayer_t *pPlayer, int weaponNum)
 {
+    int8_t curr_weapon = pPlayer->curr_weapon;
+    
+    if (pPlayer->on_motorcycle || pPlayer->on_boat)
+    {
+        pPlayer->gotweapon |= (1<<weaponNum);
+
+        if (weaponNum == SHRINKER_WEAPON)
+        {
+            pPlayer->gotweapon |= (1<<GROW_WEAPON);
+            pPlayer->ammo_amount[GROW_WEAPON] = 1;
+        }
+        else if (weaponNum == RPG_WEAPON)
+            pPlayer->gotweapon |= (1<<CHICKEN_WEAPON);
+        else if (weaponNum == SLINGBLADE_WEAPON)
+            pPlayer->ammo_amount[SLINGBLADE_WEAPON] = 1;
+        return;
+    }
+
     if ((pPlayer->gotweapon & (1<<weaponNum)) == 0)
     {
         pPlayer->gotweapon |= (1<<weaponNum);
 
         if (weaponNum == SHRINKER_WEAPON)
+        {
             pPlayer->gotweapon |= (1<<GROW_WEAPON);
+            if (RR)
+                pPlayer->ammo_amount[GROW_WEAPON] = 1;
+        }
+        if (RRRA)
+        {
+            if (weaponNum == RPG_WEAPON)
+                pPlayer->gotweapon |= (1<<CHICKEN_WEAPON);
+            else if (weaponNum == SLINGBLADE_WEAPON)
+                pPlayer->ammo_amount[SLINGBLADE_WEAPON] = 50;
+        }
+
+        if (!RR || weaponNum != HANDBOMB_WEAPON)
+            curr_weapon = weaponNum;
     }
+    else
+        curr_weapon = weaponNum;
+
+    if (RR && weaponNum == HANDBOMB_WEAPON)
+        pPlayer->last_weapon = -1;
 
     pPlayer->random_club_frame = 0;
 
@@ -2395,17 +2434,18 @@ void P_AddWeapon(DukePlayer_t *pPlayer, int weaponNum)
     }
 
     pPlayer->kickback_pic = 0;
-    pPlayer->curr_weapon = weaponNum;
+    pPlayer->curr_weapon = curr_weapon;
 
     switch (DYNAMICWEAPONMAP(weaponNum))
     {
+    case SLINGBLADE_WEAPON__STATIC:
     case KNEE_WEAPON__STATIC:
     case TRIPBOMB_WEAPON__STATIC:
     case HANDREMOTE_WEAPON__STATIC:
     case HANDBOMB_WEAPON__STATIC:     break;
     case SHOTGUN_WEAPON__STATIC:      A_PlaySound(SHOTGUN_COCK, pPlayer->i); break;
     case PISTOL_WEAPON__STATIC:       A_PlaySound(INSERT_CLIP, pPlayer->i); break;
-                default:      A_PlaySound(SELECT_WEAPON, pPlayer->i); break;
+                default:      A_PlaySound(RR ? EJECT_CLIP : SELECT_WEAPON, pPlayer->i); break;
     }
 }
 

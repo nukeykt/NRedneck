@@ -1688,6 +1688,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define RRTILE3668__STATICRR -3668
 #define RRTILE3671__STATICRR -3671
 #define RRTILE3673__STATICRR -3673
+#define RRTILE3677__STATICRR -3677
 #define RRTILE3684__STATICRR -3684
 #define RRTILE3708__STATICRR -3708
 #define RRTILE3714__STATICRR -3714
@@ -3105,6 +3106,7 @@ extern int32_t RRTILE3653;
 extern int32_t RRTILE3668;
 extern int32_t RRTILE3671;
 extern int32_t RRTILE3673;
+extern int32_t RRTILE3677;
 extern int32_t RRTILE3684;
 extern int32_t RRTILE3708;
 extern int32_t RRTILE3714;

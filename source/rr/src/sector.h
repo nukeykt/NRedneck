@@ -133,6 +133,10 @@ int P_ActivateSwitch(int playerNum, int nObject, int nSwitchType);
 void P_CheckSectors(int snum);
 void Sect_DamageCeiling(int const spriteNum, int const sectNum);
 int SetAnimation(int sectNum,int32_t *animPtr,int goalVal,int animVel);
+void G_DoTorch(void);
+void G_DoJailDoor(void);
+void G_MoveMineCart(void);
+void G_Thunder(void);
 
 #define FORCEFIELD_CSTAT (64+16+4+1)
 

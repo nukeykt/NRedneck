@@ -5463,7 +5463,7 @@ static void G_PostLoadPalette(void)
 // Has to be after setting the dynamic names (e.g. SHARK).
 static void A_InitEnemyFlags(void)
 {
-    if (RR)
+    if (RRRA)
     {
         int DukeEnemies[] = {
             SHARK, RECON, DRONE,
@@ -5473,8 +5473,12 @@ static void A_InitEnemyFlags(void)
             LIZMAN, LIZMANSPITTING, LIZMANFEEDING, LIZMANJUMP, ORGANTIC,
             BOSS1, BOSS2, BOSS3, BOSS4, RAT, ROTATEGUN };
 
-        int SolidEnemies[] = { TANK, BOSS1, BOSS2, BOSS3, BOSS4, RECON, ROTATEGUN };
+        int SolidEnemies[] = { HULK, MAMA, BILLYPLAY, COOTPLAY, MAMACLOUD };
         int NoWaterDipEnemies[] = { DRONE };
+        int NoCanSeeCheck[] = {
+            COOT, COOTSTAYPUT, VIXEN, BIKERB, BIKERBV2, CHEER, CHEERB,
+            CHEERSTAYPUT, MINIONBOAT, HULKBOAT, CHEERBOAT, RABBIT, COOTPLAY,
+            BILLYPLAY, MAKEOUT, MAMA };
 
         for (bssize_t i = ARRAY_SIZE(DukeEnemies) - 1; i >= 0; i--)
             SETFLAG(DukeEnemies[i], SFLAG_HARDCODED_BADGUY);
@@ -5485,7 +5489,34 @@ static void A_InitEnemyFlags(void)
         for (bssize_t i = ARRAY_SIZE(NoWaterDipEnemies) - 1; i >= 0; i--)
             SETFLAG(NoWaterDipEnemies[i], SFLAG_NOWATERDIP);
 
-        return;
+        for (bssize_t i = ARRAY_SIZE(NoCanSeeCheck) - 1; i >= 0; i--)
+            SETFLAG(NoCanSeeCheck[i], SFLAG_NOCANSEECHECK);
+    }
+    else if (RR)
+    {
+        int DukeEnemies[] = {
+            SHARK, RECON, DRONE,
+            LIZTROOPONTOILET, LIZTROOPJUSTSIT, LIZTROOPSTAYPUT, LIZTROOPSHOOT,
+            LIZTROOPJETPACK, LIZTROOPDUCKING, LIZTROOPRUNNING, LIZTROOP,
+            OCTABRAIN, COMMANDER, COMMANDERSTAYPUT, PIGCOP, EGG, PIGCOPSTAYPUT, PIGCOPDIVE,
+            LIZMAN, LIZMANSPITTING, LIZMANFEEDING, LIZMANJUMP, ORGANTIC,
+            BOSS1, BOSS2, BOSS3, BOSS4, RAT, ROTATEGUN };
+
+        int SolidEnemies[] = { HULK, SBMOVE };
+        int NoWaterDipEnemies[] = { DRONE };
+        int NoCanSeeCheck[] = { VIXEN };
+
+        for (bssize_t i = ARRAY_SIZE(DukeEnemies) - 1; i >= 0; i--)
+            SETFLAG(DukeEnemies[i], SFLAG_HARDCODED_BADGUY);
+
+        for (bssize_t i = ARRAY_SIZE(SolidEnemies) - 1; i >= 0; i--)
+            SETFLAG(SolidEnemies[i], SFLAG_NODAMAGEPUSH);
+
+        for (bssize_t i = ARRAY_SIZE(NoWaterDipEnemies) - 1; i >= 0; i--)
+            SETFLAG(NoWaterDipEnemies[i], SFLAG_NOWATERDIP);
+
+        for (bssize_t i = ARRAY_SIZE(NoCanSeeCheck) - 1; i >= 0; i--)
+            SETFLAG(NoCanSeeCheck[i], SFLAG_NOCANSEECHECK);
     }
     else
     {

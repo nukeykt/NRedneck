@@ -40,7 +40,9 @@ extern int32_t g_mostConcurrentPlayers;
 #define HORIZ_MIN                   -99
 #define HORIZ_MAX                   299
 #define AUTO_AIM_ANGLE              48
-#define PHEIGHT                     (38<<8)
+#define PHEIGHT_DUKE                (38<<8)
+#define PHEIGHT_RR                  (40<<8);
+extern int32_t PHEIGHT;
 
 #define TRIPBOMB_TRIPWIRE       0x00000001
 #define TRIPBOMB_TIMER          0x00000002
@@ -51,6 +53,8 @@ extern int32_t g_mostConcurrentPlayers;
 #define WEAPON_POS_LOWER            -9
 #define WEAPON_POS_RAISE            10
 #define WEAPON_POS_START             6
+
+#define MAX_WEAPON_RECS             256
 
 enum weaponflags_t {
     WEAPON_SPAWNTYPE1           = 0x00000000, // just spawn
@@ -162,7 +166,7 @@ typedef struct {
     int16_t dummyplayersprite, extra_extra8;
     int16_t actorsqu, timebeforeexit, customexitsound, last_pissed_time;
 
-    int16_t weaprecs[MAX_WEAPONS], weapon_sway, crack_time, bobcounter;
+    int16_t weaprecs[MAX_WEAPON_RECS], weapon_sway, crack_time, bobcounter;
 
     int16_t orotscrnang, rotscrnang, dead_flag;   // JBF 20031220: added orotscrnang
     int16_t holoduke_on, pycount;
@@ -196,11 +200,13 @@ typedef struct {
 
     int8_t last_used_weapon;
 
+    uint8_t make_noise;
+    int32_t noise_x, noise_y, noise_radius;
     uint8_t keys[5];
     int16_t drink_amt, eat_amt;
     int16_t level_end_timer;
     int16_t moto_speed;
-    uint8_t on_motorcycle, on_boat;
+    uint8_t on_motorcycle, on_boat, moto_underwater;
 
     int8_t padding_[3];
 } DukePlayer_t;

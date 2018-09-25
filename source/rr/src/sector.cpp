@@ -3087,3 +3087,406 @@ void P_CheckSectors(int playerNum)
     }
 }
 
+void G_DoTorch(void)
+{
+    int i, j;
+    int startWall, endWall;
+    int randNum = krand()&8;
+    for (i = 0; i < g_torchCnt; i++)
+    {
+        int shade = g_torchSectorShade[i] - randNum;
+        switch (g_torchType[i])
+        {
+        case 0:
+            sector[g_torchSector[i]].floorshade = shade;
+            sector[g_torchSector[i]].ceilingshade = shade;
+        case 1:
+        case 4:
+            sector[g_torchSector[i]].ceilingshade = shade;
+            break;
+        case 2:
+            sector[g_torchSector[i]].floorshade = shade;
+            break;
+        }
+        startWall = sector[g_torchSector[i]].wallptr;
+        endWall = startWall + sector[g_torchSector[i]].wallnum - 1;
+        for (j = startWall; j <= endWall; j++)
+        {
+            if (wall[j].lotag != 1)
+            {
+                switch (g_torchType[i])
+                {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    wall[j].shade = shade;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void G_DoJailDoor(void)
+{
+    int i, j;
+    int32_t speed;
+    int startWall, endWall;
+    for (i = 0; i < g_jailDoorCnt; i++)
+    {
+        speed = g_jailDoorSpeed[i];
+        if (speed < 2)
+            speed = 2;
+
+        if (g_jailDoorOpen[i] == 1)
+        {
+            g_jailDoorDrag[i] -= speed;
+            if (g_jailDoorDrag[i] <= 0)
+            {
+                g_jailDoorDrag[i] = 0;
+                g_jailDoorOpen[i] = 2;
+                switch (g_jailDoorDir[i])
+                {
+                case 10:
+                    g_jailDoorDir[i] = 30;
+                    break;
+                case 20:
+                    g_jailDoorDir[i] = 40;
+                    break;
+                case 30:
+                    g_jailDoorDir[i] = 10;
+                    break;
+                case 40:
+                    g_jailDoorDir[i] = 20;
+                    break;
+                }
+            }
+            else
+            {
+                startWall = sector[g_jailDoorSect[i]].wallptr;
+                endWall = startWall + sector[g_jailDoorSect[i]].wallnum - 1;
+                for (j = startWall; j <= endWall; j++)
+                {
+                    int32_t x, y;
+                    x = wall[j].x;
+                    y = wall[j].y;
+                    switch (g_jailDoorDir[i])
+                    {
+                    case 10:
+                        y += speed;
+                        break;
+                    case 20:
+                        x -= speed;
+                        break;
+                    case 30:
+                        y -= speed;
+                        break;
+                    case 40:
+                        x += speed;
+                        break;
+                    }
+                    dragpoint(j, x, y, 0);
+                }
+            }
+        }
+        if (g_jailDoorOpen[i] == 3)
+        {
+            g_jailDoorDrag[i] -= speed;
+            if (g_jailDoorDrag[i] <= 0)
+            {
+                g_jailDoorDrag[i] = 0;
+                g_jailDoorOpen[i] = 0;
+                switch (g_jailDoorDir[i])
+                {
+                case 10:
+                    g_jailDoorDir[i] = 30;
+                    break;
+                case 20:
+                    g_jailDoorDir[i] = 40;
+                    break;
+                case 30:
+                    g_jailDoorDir[i] = 10;
+                    break;
+                case 40:
+                    g_jailDoorDir[i] = 20;
+                    break;
+                }
+            }
+            else
+            {
+                startWall = sector[g_jailDoorSect[i]].wallptr;
+                endWall = startWall + sector[g_jailDoorSect[i]].wallnum - 1;
+                for (j = startWall; j <= endWall; j++)
+                {
+                    int32_t x, y;
+                    x = wall[j].x;
+                    y = wall[j].y;
+                    switch (g_jailDoorDir[i])
+                    {
+                    case 10:
+                        y += speed;
+                        break;
+                    case 20:
+                        x -= speed;
+                        break;
+                    case 30:
+                        y -= speed;
+                        break;
+                    case 40:
+                        x += speed;
+                        break;
+                    }
+                    dragpoint(j, x, y, 0);
+                }
+            }
+        }
+    }
+}
+
+void G_MoveMineCart(void)
+{
+    int i, j, nextj;
+    int startWall, endWall;
+    int32_t speed;
+    int32_t max_x, min_x, max_y, min_y, cx, cy;
+    for (i = 0; i < g_mineCartCnt; i++)
+    {
+        speed = g_mineCartSpeed[i];
+        if (speed < 2)
+            speed = 2;
+
+        if (g_mineCartOpen[i] == 1)
+        {
+            g_mineCartDrag[i] -= speed;
+            if (g_mineCartDrag[i] <= 0)
+            {
+                g_mineCartDrag[i] = g_mineCartDist[i];
+                g_mineCartOpen[i] = 2;
+                switch (g_mineCartDir[i])
+                {
+                case 10:
+                    g_mineCartDir[i] = 30;
+                    break;
+                case 20:
+                    g_mineCartDir[i] = 40;
+                    break;
+                case 30:
+                    g_mineCartDir[i] = 10;
+                    break;
+                case 40:
+                    g_mineCartDir[i] = 20;
+                    break;
+                }
+            }
+            else
+            {
+                startWall = sector[g_mineCartSect[i]].wallptr;
+                endWall = startWall + sector[g_mineCartSect[i]].wallnum - 1;
+                for (j = startWall; j <= endWall; j++)
+                {
+                    int32_t x, y;
+                    x = wall[j].x;
+                    y = wall[j].y;
+                    switch (g_mineCartDir[i])
+                    {
+                    case 10:
+                        y += speed;
+                        break;
+                    case 20:
+                        x -= speed;
+                        break;
+                    case 30:
+                        y -= speed;
+                        break;
+                    case 40:
+                        x += speed;
+                        break;
+                    }
+                    dragpoint(j, x, y, 0);
+                }
+            }
+        }
+        if (g_mineCartOpen[i] == 2)
+        {
+            g_mineCartDrag[i] -= speed;
+            if (g_mineCartDrag[i] <= 0)
+            {
+                g_mineCartDrag[i] = g_mineCartDist[i];
+                g_mineCartOpen[i] = 1;
+                switch (g_mineCartDir[i])
+                {
+                case 10:
+                    g_mineCartDir[i] = 30;
+                    break;
+                case 20:
+                    g_mineCartDir[i] = 40;
+                    break;
+                case 30:
+                    g_mineCartDir[i] = 10;
+                    break;
+                case 40:
+                    g_mineCartDir[i] = 20;
+                    break;
+                }
+            }
+            else
+            {
+                startWall = sector[g_mineCartSect[i]].wallptr;
+                endWall = startWall + sector[g_mineCartSect[i]].wallnum - 1;
+                for (j = startWall; j <= endWall; j++)
+                {
+                    int32_t x, y;
+                    x = wall[j].x;
+                    y = wall[j].y;
+                    switch (g_mineCartDir[i])
+                    {
+                    case 10:
+                        y += speed;
+                        break;
+                    case 20:
+                        x -= speed;
+                        break;
+                    case 30:
+                        y -= speed;
+                        break;
+                    case 40:
+                        x += speed;
+                        break;
+                    }
+                    dragpoint(j, x, y, 0);
+                }
+            }
+        }
+        startWall = sector[g_mineCartChildSect[i]].wallptr;
+        endWall = startWall + sector[g_mineCartChildSect[i]].wallnum - 1;
+        max_x = max_y = -2<<16;
+        min_x = min_y = 2<<16;
+        for (j = startWall; j <= endWall; j++)
+        {
+            if (max_x < wall[j].x)
+                max_x = wall[j].x;
+            if (max_y < wall[j].y)
+                max_y = wall[j].y;
+            if (min_x > wall[j].x)
+                min_x = wall[j].x;
+            if (min_y > wall[j].y)
+                min_y = wall[j].y;
+        }
+        cx = (max_x + min_x) >> 1;
+        cy = (max_y + min_y) >> 1;
+        j = headspritesect[g_mineCartChildSect[i]];
+        vec3_t pos;
+        pos.x = cx;
+        pos.y = cy;
+        while (j != -1)
+        {
+            nextj = nextspritesect[j];
+            pos.z = sprite[j].z;
+            if (A_CheckEnemySprite(&sprite[j]))
+                setsprite(j,&pos);
+            j = nextj;
+        }
+    }
+}
+
+
+void G_Thunder(void)
+{
+    static int32_t brightness;
+    int i, j;
+    int startWall, endWall;
+    uint8_t shade;
+    i = 0;
+    if (!g_thunderFlash)
+    {
+        if ((gotpic[RRTILE2577>>3]&(1<<(RRTILE2577&7))))
+        {
+            gotpic[RRTILE2577>>3] &= ~(1<<(RRTILE2577&7));
+            if (waloff[RRTILE2577] != 0)
+            {
+                g_visibility = 256;
+                if (krand() > 65000)
+                {
+                    g_thunderTime = 256;
+                    g_thunderFlash = 1;
+                    S_PlaySound(351+(rand()%3));
+                }
+            }
+        }
+        else
+        {
+            brightness = ud.brightness>>2;
+            g_visibility = g_player[screenpeek].ps->visibility;
+        }
+    }
+    else
+    {
+        g_thunderTime -= 4;
+        if (g_thunderTime < 0)
+        {
+            brightness = ud.brightness>>2;
+            g_thunderFlash = 0;
+            videoSetPalette(brightness,g_player[screenpeek].ps->palette,32);
+            g_visibility = g_player[screenpeek].ps->visibility;
+        }
+    }
+    if (!g_winderFlash)
+    {
+        if ((gotpic[RRTILE2562>>3]&(1<<(RRTILE2562&7))))
+        {
+            gotpic[RRTILE2562>>3] &= ~(1<<(RRTILE2562&7));
+            if (waloff[RRTILE2562] != 0)
+            {
+                if (krand() > 65000)
+                {
+                    g_winderTime = 256;
+                    g_winderFlash = 1;
+                    S_PlaySound(351+(rand()%3));
+                }
+            }
+        }
+    }
+    else
+    {
+        g_winderFlash -= 4;
+        if (g_winderTime < 0)
+        {
+            g_winderFlash = 0;
+            for (i = 0; i < g_lightninCnt; i++)
+            {
+                sector[g_lightninSector[i]].floorshade = g_lightninSectorShade[i];
+                sector[g_lightninSector[i]].ceilingshade = g_lightninSectorShade[i];
+                startWall = sector[g_lightninSector[i]].wallptr;
+                endWall = startWall + sector[g_lightninSector[i]].wallnum - 1;
+                for (j = startWall; j <= endWall; j++)
+                    wall[j].shade = g_lightninSectorShade[i];
+            }
+        }
+    }
+    if (g_thunderFlash == 1)
+    {
+        brightness += krand()&4;
+        g_visibility = 2048;
+        if (brightness > 8)
+            brightness = 0;
+        videoSetPalette(brightness,g_player[screenpeek].ps->palette,32);
+    }
+    if (g_winderFlash == 1)
+    {
+        if (i < 0)
+            i = 0;
+        else if (i >= MAXTORCHSECTORS)
+            i = MAXTORCHSECTORS - 1;
+        for (i = 0; i < g_lightninCnt; i++)
+        {
+            sector[g_lightninSector[i]].floorshade = g_lightninSectorShade[i] - shade;
+            sector[g_lightninSector[i]].ceilingshade = g_lightninSectorShade[i] - shade;
+            startWall = sector[g_lightninSector[i]].wallptr;
+            endWall = startWall + sector[g_lightninSector[i]].wallnum - 1;
+            for (j = startWall; j <= endWall; j++)
+                wall[j].shade = g_lightninSectorShade[i] - shade;
+        }
+    }
+}
+

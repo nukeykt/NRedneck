@@ -146,6 +146,9 @@ static void VM_DummySprite(void)
 
 static int32_t VM_CheckSquished(void)
 {
+    if (RR)
+        return 0;
+
     usectortype const * const pSector = (usectortype *)&sector[vm.pSprite->sectnum];
 
     if (pSector->lotag == ST_23_SWINGING_DOOR ||
@@ -1582,7 +1585,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                         VM_CONDITIONAL(j < pPlayer->weapreccnt && vm.pSprite->owner == vm.spriteNum);
                         continue;
                     }
-                    else if (pPlayer->weapreccnt < MAX_WEAPONS)
+                    else if (pPlayer->weapreccnt < MAX_WEAPON_RECS)
                     {
                         pPlayer->weaprecs[pPlayer->weapreccnt++] = vm.pSprite->picnum;
                         VM_CONDITIONAL(vm.pSprite->owner == vm.spriteNum);
@@ -1835,7 +1838,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 
             case CON_MAIL:
                 insptr++;
-                A_SpawnMultiple(vm.spriteNum, MAIL, *insptr++);
+                A_SpawnMultiple(vm.spriteNum, RR ? MONEY : MAIL, *insptr++);
                 continue;
 
             case CON_SLEEPTIME:
@@ -1845,7 +1848,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 
             case CON_PAPER:
                 insptr++;
-                A_SpawnMultiple(vm.spriteNum, PAPER, *insptr++);
+                A_SpawnMultiple(vm.spriteNum, RR ? MONEY : PAPER, *insptr++);
                 continue;
 
             case CON_ADDKILLS:

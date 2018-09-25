@@ -1031,6 +1031,7 @@ static struct dynitem g_dynTileList[] =
     { "RRTILE3668", DVPTR(RRTILE3668), 0, RRTILE3668__STATICRR },
     { "RRTILE3671", DVPTR(RRTILE3671), 0, RRTILE3671__STATICRR },
     { "RRTILE3673", DVPTR(RRTILE3673), 0, RRTILE3673__STATICRR },
+    { "RRTILE3677", DVPTR(RRTILE3677), 0, RRTILE3677__STATICRR },
     { "RRTILE3684", DVPTR(RRTILE3684), 0, RRTILE3684__STATICRR },
     { "RRTILE3708", DVPTR(RRTILE3708), 0, RRTILE3708__STATICRR },
     { "RRTILE3714", DVPTR(RRTILE3714), 0, RRTILE3714__STATICRR },
@@ -2442,6 +2443,7 @@ int32_t RRTILE3653 = 0;
 int32_t RRTILE3668 = 0;
 int32_t RRTILE3671 = 0;
 int32_t RRTILE3673 = 0;
+int32_t RRTILE3677 = 0;
 int32_t RRTILE3684 = 0;
 int32_t RRTILE3708 = 0;
 int32_t RRTILE3714 = 0;
@@ -2955,6 +2957,8 @@ void G_InitDynamicTiles(void)
         }
         for (i = 0; g_dynWeaponList[i].staticval >= 0; i++)
             *(g_dynWeaponList[i].dynvalptr) = g_dynWeaponList[i].staticval_rr;
+
+        PHEIGHT = PHEIGHT_RR;
     }
 
     for (i=0; g_dynTileList[i].staticval >= 0; i++)

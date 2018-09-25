@@ -214,6 +214,7 @@ enum sflags_t
     SFLAG_WAKEUPBADGUYS    = 0x02000000,
     SFLAG_DAMAGEEVENT      = 0x04000000,
     SFLAG_KILLCOUNT        = 0x08000000,
+    SFLAG_NOCANSEECHECK    = 0x10000000,
 };
 
 // Custom projectiles "workslike" flags.

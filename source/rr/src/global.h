@@ -23,6 +23,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef global_h_
 #define global_h_
 
+#define MAXMINECARTS 16
+#define MAXJAILDOORS 32
+#define MAXLIGHTNINSECTORS 64
+#define MAXTORCHSECTORS 64
+#define MAXGEOSECTORS 64
+
 #ifdef global_c_
     #define G_EXTERN
 #else
@@ -132,6 +138,59 @@ G_EXTERN int32_t *labeltype;
 G_EXTERN int32_t lockclock;
 G_EXTERN int32_t ototalclock;
 
+G_EXTERN int32_t g_wupass;
+G_EXTERN int32_t g_chickenPlant;
+G_EXTERN int32_t g_thunderOn;
+G_EXTERN int32_t g_ufoSpawn;
+G_EXTERN int32_t g_ufoCnt;
+G_EXTERN int32_t g_hulkSpawn;
+G_EXTERN int32_t g_vixenLevel;
+G_EXTERN int32_t g_lastLevel;
+
+G_EXTERN int32_t g_mineCartDir[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartSpeed[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartChildSect[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartSound[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartDist[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartDrag[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartOpen[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartSect[MAXMINECARTS];
+G_EXTERN int32_t g_mineCartCnt;
+
+G_EXTERN int32_t g_jailDoorSound[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorDrag[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorSpeed[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorSecHitag[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorDist[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorDir[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorOpen[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorSect[MAXJAILDOORS];
+G_EXTERN int32_t g_jailDoorCnt;
+
+G_EXTERN int32_t g_lightninSector[MAXLIGHTNINSECTORS];
+G_EXTERN int32_t g_lightninSectorShade[MAXLIGHTNINSECTORS];
+G_EXTERN int32_t g_lightninCnt;
+
+G_EXTERN int32_t g_torchSector[MAXTORCHSECTORS];
+G_EXTERN int32_t g_torchSectorShade[MAXTORCHSECTORS];
+G_EXTERN int32_t g_torchType[MAXTORCHSECTORS];
+G_EXTERN int32_t g_torchCnt;
+
+G_EXTERN int32_t g_geoSectorWarp[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSectorWarp2[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSector[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSectorX[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSectorY[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSectorX2[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSectorY2[MAXGEOSECTORS];
+G_EXTERN int32_t g_geoSectorCnt;
+
+G_EXTERN int32_t g_thunderFlash;
+G_EXTERN int32_t g_thunderTime;
+G_EXTERN int32_t g_winderFlash;
+G_EXTERN int32_t g_winderTime;
+G_EXTERN int32_t g_brightness;
+
 G_EXTERN intptr_t *apScript;
 G_EXTERN intptr_t *g_scriptPtr;
 
@@ -139,6 +198,7 @@ G_EXTERN map_t g_mapInfo[(MAXVOLUMES + 1) * MAXLEVELS];  // +1 volume for "intro
 G_EXTERN vec2_t g_origins[MAXANIMPOINTS];
 
 G_EXTERN uint8_t g_spriteExtra[MAXSPRITES], g_sectorExtra[MAXSECTORS];
+G_EXTERN uint8_t g_changeEnemySize, g_slotWin, g_ufoSpawnMinion, g_pistonSound;
 
 // XXX: I think this pragma pack is meaningless here.
 // MSDN (https://msdn.microsoft.com/en-us/library/2e70t5y1%28VS.80%29.aspx) says:
