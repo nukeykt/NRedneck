@@ -333,6 +333,7 @@ void A_SpawnCeilingGlass(int spriteNum,int sectNum,int glassCnt);
 void A_SpawnGlass(int spriteNum,int glassCnt);
 void A_SpawnRandomGlass(int spriteNum,int wallNum,int glassCnt);
 void A_SpawnWallGlass(int i,int wallnum,int n);
+void A_SpawnWallPopcorn(int i,int wallnum,int n);
 void G_AddUserQuote(const char *daquote);
 void G_BackToMenu(void);
 void G_DumpDebugInfo(void);
@@ -342,6 +343,7 @@ const char* G_PrintParTime(void);
 const char* G_PrintDesignerTime(void);
 const char* G_PrintBestTime(void);
 void G_BonusScreen(int32_t bonusonly);
+void G_BonusScreenRRRA(int32_t bonusonly);
 //void G_CheatGetInv(void);
 void G_DisplayRest(int32_t smoothratio);
 void G_DoSpriteAnimations(int32_t ourx, int32_t oury, int32_t oura, int32_t smoothratio);
@@ -365,6 +367,10 @@ void G_UpdatePlayerFromMenu(void);
 void M32RunScript(const char *s);
 void P_DoQuote(int32_t q,DukePlayer_t *p);
 void P_SetGamePalette(DukePlayer_t *player, uint32_t palid, int32_t set);
+void G_OnMotorcycle(DukePlayer_t *pPlayer, int spriteNum);
+void G_OffMotorcycle(DukePlayer_t *pPlayer);
+void G_OnBoat(DukePlayer_t *pPlayer, int spriteNum);
+void G_OffBoat(DukePlayer_t *pPlayer);
 
 #define NEG_ALPHA_TO_BLEND(alpha, blend, orientation) do { \
     if (alpha < 0) { blend = -alpha; alpha = 0; orientation |= RS_TRANS1; } \

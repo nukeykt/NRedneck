@@ -255,6 +255,7 @@ extern int32_t      g_noEnemies;
 extern int32_t      otherp;
 extern int32_t      ticrandomseed;
 extern projectile_t SpriteProjectile[MAXSPRITES];
+extern int g_canSeePlayer;
 
 
 int  A_CheckNoSE7Water(uspritetype const *const pSprite, int sectNum, int sectLotag, int32_t *pOther);
@@ -270,6 +271,7 @@ void A_MoveSector(int i);
 void A_PlayAlertSound(int spriteNum);
 void A_RadiusDamage(int spriteNum, int blastRadius, int dmg1, int dmg2, int dmg3, int dmg4);
 void A_SpawnMultiple(int spriteNum, int tileNum, int spawnCnt);
+void A_ResetLanePics(void);
 
 int  G_SetInterpolation(int32_t *const posptr);
 void G_AddGameLight(int lightRadius, int spriteNum, int zOffset, int lightRange, int lightColor, int lightPrio);

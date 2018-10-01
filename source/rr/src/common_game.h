@@ -89,6 +89,7 @@ typedef enum basepal_ {
     TITLEPAL,
     ENDINGPAL,  // 5
     ANIMPAL,
+    DRUGPAL,
     BASEPALCOUNT
 } basepal_t;
 

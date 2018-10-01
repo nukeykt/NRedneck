@@ -843,6 +843,7 @@ static struct dynitem g_dynTileList[] =
     { "RRTILE1953", DVPTR(RRTILE1953), 0, RRTILE1953__STATICRR },
     { "RRTILE1961", DVPTR(RRTILE1961), 0, RRTILE1961__STATICRR },
     { "RRTILE1964", DVPTR(RRTILE1964), 0, RRTILE1964__STATICRR },
+    { "RRTILE1973", DVPTR(RRTILE1973), 0, RRTILE1973__STATICRR },
     { "RRTILE1985", DVPTR(RRTILE1985), 0, RRTILE1985__STATICRR },
     { "RRTILE1986", DVPTR(RRTILE1986), 0, RRTILE1986__STATICRR },
     { "RRTILE1987", DVPTR(RRTILE1987), 0, RRTILE1987__STATICRR },
@@ -1200,6 +1201,8 @@ static struct dynitem g_dynTileList[] =
     { "RRTILE7806", DVPTR(RRTILE7806), 0, RRTILE7806__STATICRR },
     { "RRTILE7820", DVPTR(RRTILE7820), 0, RRTILE7820__STATICRR },
     { "RRTILE7859", DVPTR(RRTILE7859), 0, RRTILE7859__STATICRR },
+    { "RRTILE7870", DVPTR(RRTILE7870), 0, RRTILE7870__STATICRR },
+    { "RRTILE7873", DVPTR(RRTILE7873), 0, RRTILE7873__STATICRR },
     { "RRTILE7875", DVPTR(RRTILE7875), 0, RRTILE7875__STATICRR },
     { "RRTILE7876", DVPTR(RRTILE7876), 0, RRTILE7876__STATICRR },
     { "RRTILE7879", DVPTR(RRTILE7879), 0, RRTILE7879__STATICRR },
@@ -2255,6 +2258,7 @@ int32_t RRTILE1952 = 0;
 int32_t RRTILE1953 = 0;
 int32_t RRTILE1961 = 0;
 int32_t RRTILE1964 = 0;
+int32_t RRTILE1973 = 0;
 int32_t RRTILE1985 = 0;
 int32_t RRTILE1986 = 0;
 int32_t RRTILE1987 = 0;
@@ -2612,6 +2616,8 @@ int32_t RRTILE7768 = 0;
 int32_t RRTILE7806 = 0;
 int32_t RRTILE7820 = 0;
 int32_t RRTILE7859 = 0;
+int32_t RRTILE7870 = 0;
+int32_t RRTILE7873 = 0;
 int32_t RRTILE7875 = 0;
 int32_t RRTILE7876 = 0;
 int32_t RRTILE7879 = 0;
@@ -2986,18 +2992,36 @@ void G_InitDynamicTiles(void)
     g_blimpSpawnItems[13] = FREEZESPRITE;
     g_blimpSpawnItems[14] = FREEZEAMMO;
 
-    WeaponPickupSprites[0] = KNEE;
-    WeaponPickupSprites[1] = FIRSTGUNSPRITE;
-    WeaponPickupSprites[2] = SHOTGUNSPRITE;
-    WeaponPickupSprites[3] = CHAINGUNSPRITE;
-    WeaponPickupSprites[4] = RPGSPRITE;
-    WeaponPickupSprites[5] = HEAVYHBOMB;
-    WeaponPickupSprites[6] = SHRINKERSPRITE;
-    WeaponPickupSprites[7] = DEVISTATORSPRITE;
-    WeaponPickupSprites[8] = TRIPBOMBSPRITE;
-    WeaponPickupSprites[9] = FREEZESPRITE;
-    WeaponPickupSprites[10] = HEAVYHBOMB;
-    WeaponPickupSprites[11] = SHRINKERSPRITE;
+    if (RR)
+    {
+        WeaponPickupSprites[0] = KNEE;
+        WeaponPickupSprites[1] = FIRSTGUNSPRITE;
+        WeaponPickupSprites[2] = SHOTGUNSPRITE;
+        WeaponPickupSprites[3] = CHAINGUNSPRITE;
+        WeaponPickupSprites[4] = RPGSPRITE;
+        WeaponPickupSprites[5] = HEAVYHBOMB;
+        WeaponPickupSprites[6] = SHRINKERSPRITE;
+        WeaponPickupSprites[7] = DEVISTATORSPRITE;
+        WeaponPickupSprites[8] = TRIPBOMBSPRITE;
+        WeaponPickupSprites[9] = BOWLINGBALLSPRITE;
+        WeaponPickupSprites[10] = FREEZEBLAST;
+        WeaponPickupSprites[11] = HEAVYHBOMB;
+    }
+    else
+    {
+        WeaponPickupSprites[0] = KNEE;
+        WeaponPickupSprites[1] = FIRSTGUNSPRITE;
+        WeaponPickupSprites[2] = SHOTGUNSPRITE;
+        WeaponPickupSprites[3] = CHAINGUNSPRITE;
+        WeaponPickupSprites[4] = RPGSPRITE;
+        WeaponPickupSprites[5] = HEAVYHBOMB;
+        WeaponPickupSprites[6] = SHRINKERSPRITE;
+        WeaponPickupSprites[7] = DEVISTATORSPRITE;
+        WeaponPickupSprites[8] = TRIPBOMBSPRITE;
+        WeaponPickupSprites[9] = FREEZESPRITE;
+        WeaponPickupSprites[10] = HEAVYHBOMB;
+        WeaponPickupSprites[11] = SHRINKERSPRITE;
+    }
 
     // ouch... the big background image takes up a fuckload of memory and takes a second to load!
 #ifdef EDUKE32_GLES

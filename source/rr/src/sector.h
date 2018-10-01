@@ -108,6 +108,7 @@ typedef struct {
 
 void G_ActivateBySector(int sect,int j);
 int S_FindMusicSFX(int sectNum, int *sndptr);
+void A_CallSound2(int soundNum, int playerNum);
 int A_CallSound(int sectNum,int spriteNum);
 int A_CheckHitSprite(int spriteNum,int16_t *hitSprite);
 void A_DamageObject(int spriteNum,int const dmgSrc);
@@ -115,6 +116,7 @@ void A_DamageWall(int spr,int dawallnum,const vec3_t *pos,int atwith);
 int __fastcall A_FindPlayer(const spritetype *pSprite,int32_t *dist);
 void G_AlignWarpElevators(void);
 int CheckDoorTile(int tileNum);
+int CheckBlockDoorTile(int tileNum);
 void G_AnimateCamSprite(int smoothRatio);
 void G_AnimateWalls(void);
 int G_ActivateWarpElevators(int s,int d);
@@ -133,6 +135,7 @@ int P_ActivateSwitch(int playerNum, int nObject, int nSwitchType);
 void P_CheckSectors(int snum);
 void Sect_DamageCeiling(int const spriteNum, int const sectNum);
 int SetAnimation(int sectNum,int32_t *animPtr,int goalVal,int animVel);
+void G_DoFurniture(int wallNum, int sectNum, int playerNum);
 void G_DoTorch(void);
 void G_DoJailDoor(void);
 void G_MoveMineCart(void);

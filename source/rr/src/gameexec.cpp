@@ -72,9 +72,6 @@ int32_t g_structVarIDs   = -1;
 uint32_t g_actorCalls[MAXTILES];
 double g_actorTotalMs[MAXTILES], g_actorMinMs[MAXTILES], g_actorMaxMs[MAXTILES];
 
-int32_t g_windTime, g_windDir;
-int16_t g_fakeBubbaCnt, g_mamaSpawnCnt, g_banjoSong;
-
 GAMEEXEC_STATIC void VM_Execute(native_t loop);
 
 # include "gamestructures.cpp"

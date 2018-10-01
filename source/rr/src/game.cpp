@@ -232,6 +232,124 @@ int32_t A_CheckInventorySprite(spritetype *s)
     }
 }
 
+void G_OnMotorcycle(DukePlayer_t *pPlayer, int spriteNum)
+{
+    if (!pPlayer->on_motorcycle && !(sector[pPlayer->cursectnum].lotag == 2))
+    {
+        if (spriteNum)
+        {
+            pPlayer->pos.x = sprite[spriteNum].x;
+            pPlayer->pos.y = sprite[spriteNum].y;
+            pPlayer->q16ang = F16(sprite[spriteNum].ang);
+            pPlayer->ammo_amount[MOTORCYCLE_WEAPON] = sprite[spriteNum].owner;
+            A_DeleteSprite(spriteNum);
+        }
+        pPlayer->over_shoulder_on = 0;
+        pPlayer->on_motorcycle = 1;
+        pPlayer->last_full_weapon = pPlayer->curr_weapon;
+        pPlayer->curr_weapon = MOTORCYCLE_WEAPON;
+        pPlayer->gotweapon |= (1 << MOTORCYCLE_WEAPON);
+        pPlayer->vel.x = 0;
+        pPlayer->vel.y = 0;
+        pPlayer->q16horiz = F16(100);
+    }
+    if (!A_CheckSoundPlaying(pPlayer->i,186))
+        A_PlaySound(186, pPlayer->i);
+}
+
+void G_OffMotorcycle(DukePlayer_t *pPlayer)
+{
+    int j;
+    if (pPlayer->on_motorcycle)
+    {
+        if (A_CheckSoundPlaying(pPlayer->i,188) > 0)
+            S_StopEnvSound(188,pPlayer->i);
+        if (A_CheckSoundPlaying(pPlayer->i,187) > 0)
+            S_StopEnvSound(187,pPlayer->i);
+        if (A_CheckSoundPlaying(pPlayer->i,186) > 0)
+            S_StopEnvSound(186,pPlayer->i);
+        if (A_CheckSoundPlaying(pPlayer->i,214) > 0)
+            S_StopEnvSound(214,pPlayer->i);
+        if (A_CheckSoundPlaying(pPlayer->i,42) == 0)
+            A_PlaySound(42, pPlayer->i);
+        pPlayer->on_motorcycle = 0;
+        pPlayer->gotweapon &= ~(1<<MOTORCYCLE_WEAPON);
+        pPlayer->curr_weapon = pPlayer->last_full_weapon;
+        P_CheckWeapon(pPlayer);
+        pPlayer->q16horiz = F16(100);
+        pPlayer->moto_do_bump = 0;
+        pPlayer->moto_speed = 0;
+        pPlayer->tilt_status = 0;
+        pPlayer->moto_drink = 0;
+        pPlayer->moto_bump_target = 0;
+        pPlayer->moto_bump = 0;
+        pPlayer->moto_turb = 0;
+        pPlayer->vel.x = 0;
+        pPlayer->vel.y = 0;
+        pPlayer->vel.x -= sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
+        pPlayer->vel.y -= sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
+        pPlayer->moto_underwater = 0;
+        j = A_Spawn(pPlayer->i, EMPTYBIKE);
+        sprite[j].ang = fix16_to_int(pPlayer->q16ang);
+        sprite[j].xvel += sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
+        sprite[j].yvel += sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
+        sprite[j].owner = pPlayer->ammo_amount[MOTORCYCLE_WEAPON];
+    }
+}
+
+void G_OnBoat(DukePlayer_t *pPlayer, int spriteNum)
+{
+    if (!pPlayer->on_boat)
+    {
+        if (spriteNum)
+        {
+            pPlayer->pos.x = sprite[spriteNum].x;
+            pPlayer->pos.y = sprite[spriteNum].y;
+            pPlayer->q16ang = F16(sprite[spriteNum].ang);
+            pPlayer->ammo_amount[BOAT_WEAPON] = sprite[spriteNum].owner;
+            deletesprite(spriteNum);
+        }
+        pPlayer->over_shoulder_on = 0;
+        pPlayer->on_boat = 1;
+        pPlayer->last_full_weapon = pPlayer->curr_weapon;
+        pPlayer->curr_weapon = BOAT_WEAPON;
+        pPlayer->gotweapon |= (1<<BOAT_WEAPON);
+        pPlayer->vel.x = 0;
+        pPlayer->vel.y = 0;
+        pPlayer->q16horiz = F16(100);
+    }
+}
+
+void G_OffBoat(DukePlayer_t *pPlayer)
+{
+    int j;
+    if (pPlayer->on_boat)
+    {
+        pPlayer->on_boat = 0;
+        pPlayer->gotweapon &= ~(1<<BOAT_WEAPON);
+        pPlayer->curr_weapon = pPlayer->last_full_weapon;
+        P_CheckWeapon(pPlayer);
+        pPlayer->q16horiz = F16(100);
+        pPlayer->moto_do_bump = 0;
+        pPlayer->moto_speed = 0;
+        pPlayer->tilt_status = 0;
+        pPlayer->moto_drink = 0;
+        pPlayer->moto_bump_target = 0;
+        pPlayer->moto_bump = 0;
+        pPlayer->moto_turb = 0;
+        pPlayer->vel.x = 0;
+        pPlayer->vel.y = 0;
+        pPlayer->vel.x -= sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
+        pPlayer->vel.y -= sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
+        pPlayer->moto_underwater = 0;
+        j = A_Spawn(pPlayer->i, EMPTYBOAT);
+        sprite[j].ang = fix16_to_int(pPlayer->q16ang);
+        sprite[j].xvel += sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
+        sprite[j].yvel += sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
+        sprite[j].owner = pPlayer->ammo_amount[BOAT_WEAPON];
+    }
+}
+
 extern int32_t g_doQuickSave;
 
 void G_GameExit(const char *msg)
@@ -3235,6 +3353,37 @@ int A_Spawn(int spriteNum, int tileNum)
             changespritestat(newSprite, STAT_STANDABLE);
             A_SetSprite(newSprite,CLIPMASK0);
             break;
+
+        case EMPTYBIKE__STATICRR:
+            if ((!g_netServer && ud.multimode < 2) && pSprite->pal == 1)
+            {
+                pSprite->xrepeat = pSprite->yrepeat = 0;
+                break;
+            }
+            pSprite->pal = 0;
+            pSprite->xrepeat = 18;
+            pSprite->yrepeat = 18;
+            pSprite->clipdist = mulscale7(pSprite->xrepeat, tilesiz[pSprite->picnum].x);
+            pSprite->owner = 100;
+            pSprite->cstat = 257;
+            pSprite->lotag = 1;
+            changespritestat(newSprite, 1);
+            break;
+        case EMPTYBOAT__STATICRR:
+            if ((!g_netServer && ud.multimode < 2) && pSprite->pal == 1)
+            {
+                pSprite->xrepeat = pSprite->yrepeat = 0;
+                break;
+            }
+            pSprite->pal = 0;
+            pSprite->xrepeat = 32;
+            pSprite->yrepeat = 32;
+            pSprite->clipdist = mulscale7(pSprite->xrepeat, tilesiz[pSprite->picnum].x);
+            pSprite->owner = 20;
+            pSprite->cstat = 257;
+            pSprite->lotag = 1;
+            changespritestat(newSprite, 1);
+            break;
         }
 
 SPAWN_END:
@@ -5449,8 +5598,8 @@ static void G_PostLoadPalette(void)
             Bmemset(&basepaltable[SLIMEPAL][255*3], 0, 3);
     }
 
-    if (!(duke3d_globalflags & DUKE3D_NO_HARDCODED_FOGPALS))
-        paletteSetupDefaultFog();
+    //if (!(duke3d_globalflags & DUKE3D_NO_HARDCODED_FOGPALS))
+    //    paletteSetupDefaultFog();
 
     if (!(duke3d_globalflags & DUKE3D_NO_PALETTE_CHANGES))
         paletteFixTranslucencyMask();
@@ -6456,7 +6605,12 @@ MAIN_LOOP_RESTART:
             if (g_networkMode != NET_DEDICATED_SERVER)
             {
                 CONTROL_ProcessBinds();
-                P_GetInput(myconnectindex);
+                if (RRRA && g_player[myconnectindex].ps->on_motorcycle)
+                    P_GetInputMotorcycle(myconnectindex);
+                else if (RRRA && g_player[myconnectindex].ps->on_boat)
+                    P_GetInputBoat(myconnectindex);
+                else
+                    P_GetInput(myconnectindex);
             }
 
             Bmemcpy(&inputfifo[0][myconnectindex], &localInput, sizeof(input_t));
@@ -6774,6 +6928,49 @@ void A_SpawnWallGlass(int spriteNum, int wallNum, int glassCnt)
                 z = SZ(spriteNum) - ZOFFSET5 + (krand() & ((64 << 8) - 1));
 
             A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, GLASSPIECES + (j % 3), -32, 36, 36, SA(spriteNum) - 1024, 32 + (krand() & 63),
+                           -(krand() & 1023), spriteNum, 5);
+        }
+    }
+}
+
+void A_SpawnWallPopcorn(int spriteNum, int wallNum, int glassCnt)
+{
+    if (wallNum < 0)
+    {
+        for (bssize_t j = glassCnt - 1; j >= 0; --j)
+        {
+            int const a = SA(spriteNum) - 256 + (krand() & 511) + 1024;
+            A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum), POPCORN, -32, 36, 36, a,
+                           32 + (krand() & 63), 1024 - (krand() & 1023), spriteNum, 5);
+        }
+        return;
+    }
+
+    vec2_t v1 = { wall[wallNum].x, wall[wallNum].y };
+    vec2_t v  = { wall[wall[wallNum].point2].x - v1.x, wall[wall[wallNum].point2].y - v1.y };
+
+    v1.x -= ksgn(v.y);
+    v1.y += ksgn(v.x);
+
+    v.x = tabledivide32_noinline(v.x, glassCnt+1);
+    v.y = tabledivide32_noinline(v.y, glassCnt+1);
+
+    int16_t sect = -1;
+
+    for (bsize_t j = glassCnt; j > 0; --j)
+    {
+        v1.x += v.x;
+        v1.y += v.y;
+
+        updatesector(v1.x,v1.y,&sect);
+        if (sect >= 0)
+        {
+            int z = sector[sect].floorz - (krand() & (klabs(sector[sect].ceilingz - sector[sect].floorz)));
+
+            if (z < -ZOFFSET5 || z > ZOFFSET5)
+                z = SZ(spriteNum) - ZOFFSET5 + (krand() & ((64 << 8) - 1));
+
+            A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, POPCORN, -32, 36, 36, SA(spriteNum) - 1024, 32 + (krand() & 63),
                            -(krand() & 1023), spriteNum, 5);
         }
     }

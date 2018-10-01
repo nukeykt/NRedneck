@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 int16_t g_ambientLotag[64];
 int16_t g_ambientHitag[64];
+int32_t g_ambientCnt;
 
 static int32_t g_whichPalForPlayer = 9;
 
@@ -81,6 +82,10 @@ static void G_CacheSpriteNum(int32_t i)
         tloadtile(BROKEFIREHYDRENT,1);
         for (j = TOILETWATER; j < (TOILETWATER+4); j++) tloadtile(j,1);
         break;
+    case RRTILE2121__STATICRR:
+    case RRTILE2122__STATICRR:
+        tloadtile(BROKEFIREHYDRENT, 1);
+        break;
     case TOILET__STATIC:
         tloadtile(TOILETBROKE,1);
         for (j = TOILETWATER; j < (TOILETWATER+4); j++) tloadtile(j,1);
@@ -89,13 +94,128 @@ static void G_CacheSpriteNum(int32_t i)
         tloadtile(STALLBROKE,1);
         for (j = TOILETWATER; j < (TOILETWATER+4); j++) tloadtile(j,1);
         break;
+    case FORCERIPPLE__STATIC:
+        if (!RR) break;
+        maxc = 9;
+        break;
     case RUBBERCAN__STATIC:
         maxc = 2;
         break;
     case TOILETWATER__STATIC:
         maxc = 4;
         break;
+    case BUBBASTAND__STATICRR:
+        for (j = BUBBASCRATCH; j < (BUBBASCRATCH+47); j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case SBSWIPE__STATICRR:
+        if (!RRRA) break;
+        for (j = BUBBASCRATCH; j <= (SBSWIPE+47); j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case COOT__STATICRR:
+        for(j = COOT; j <= (COOT+217); j++) tloadtile(j,1);
+        for(j = COOTJIBA; j < COOTJIBC+4; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case LTH__STATICRR:
+        maxc = 105;
+        for (j = LTH; j < (LTH + maxc); j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case BILLYRAY__STATICRR:
+        maxc = 144;
+        for (j = BILLYWALK; j < (BILLYWALK + maxc); j++) tloadtile(j,1);
+        for (j = BILLYJIBA; j <= BILLYJIBB + 4; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case COW__STATICRR:
+        maxc = 56;
+        for (j = PN(i); j < (PN(i) + maxc); j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case DOGRUN__STATICRR:
+        for (j = DOGATTACK; j <= DOGATTACK + 35; j++) tloadtile(j,1);
+        for (j = DOGRUN; j <= DOGRUN + 80; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case RABBIT__STATICRR:
+        if (!RRRA) break;
+        for (j = RABBIT; j <= RABBIT + 54; j++) tloadtile(j,1);
+        for (j = RABBIT + 56; j <= RABBIT + 56 + 49; j++) tloadtile(j,1);
+        for (j = RABBIT + 56; j <= RABBIT + 56 + 49; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case BIKERB__STATICRR:
+    case BIKERBV2__STATICRR:
+        if (!RRRA) break;
+        for (j = BIKERB; j <= BIKERB + 104; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case BIKER__STATICRR:
+        if (!RRRA) break;
+        for (j = BIKER; j <= BIKER + 116; j++) tloadtile(j,1);
+        for (j = BIKER + 150; j <= BIKER + 150 + 104; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case CHEER__STATICRR:
+        if (!RRRA) break;
+        for (j = CHEER; j <= CHEER + 44; j++) tloadtile(j,1);
+        for (j = CHEER + 47; j <= CHEER + 47 + 211; j++) tloadtile(j,1);
+        for (j = CHEER + 262; j <= CHEER + 262 + 72; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case CHEERB__STATICRR:
+        if (!RRRA) break;
+        for (j = CHEERB; j <= CHEERB + 83; j++) tloadtile(j,1);
+        for (j = CHEERB + 157; j <= CHEERB + 157 + 83; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case MAMA__STATICRR:
+        if (!RRRA) break;
+        for (j = MAMA; j <= MAMA + 78; j++) tloadtile(j,1);
+        for (j = MAMA + 80; j <= MAMA + 80 + 7; j++) tloadtile(j,1);
+        for (j = MAMA + 90; j <= MAMA + 90 + 94; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case CHEERBOAT__STATICRR:
+        if (!RRRA) break;
+        if (waloff[CHEERBOAT] == 0) tloadtile(CHEERBOAT,1);
+        maxc = 0;
+        break;
+    case HULKBOAT__STATICRR:
+        if (!RRRA) break;
+        if (waloff[HULKBOAT] == 0) tloadtile(HULKBOAT,1);
+        maxc = 0;
+        break;
+    case MINIONBOAT__STATICRR:
+        if (!RRRA) break;
+        if (waloff[MINIONBOAT] == 0) tloadtile(MINIONBOAT,1);
+        maxc = 0;
+        break;
+    case BILLYPLAY__STATICRR:
+        if (!RRRA) break;
+        for (j = BILLYPLAY; j <= BILLYPLAY + 2; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case COOTPLAY__STATICRR:
+        if (!RRRA) break;
+        for (j = COOTPLAY; j <= COOTPLAY + 4; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case PIG__STATICRR:
+    case PIGSTAYPUT__STATICRR:
+        maxc = 68;
+        break;
+    case TORNADO__STATICRR:
+        maxc = 7;
+        break;
+    case HEN__STATICRR:
+    case HENSTAND__STATICRR:
+        maxc = 34;
+        break;
     case FEMPIC1__STATIC:
+        if (RR) break;
         maxc = 44;
         break;
     case LIZTROOP__STATIC:
@@ -104,43 +224,52 @@ static void G_CacheSpriteNum(int32_t i)
     case LIZTROOPJETPACK__STATIC:
     case LIZTROOPONTOILET__STATIC:
     case LIZTROOPDUCKING__STATIC:
+        if (RR) break;
         for (j = LIZTROOP; j < (LIZTROOP+72); j++) tloadtile(j,1);
         for (j=HEADJIB1; j<LEGJIB1+3; j++) tloadtile(j,1);
         maxc = 0;
         break;
     case WOODENHORSE__STATIC:
+        if (RR) break;
         maxc = 5;
         for (j = HORSEONSIDE; j < (HORSEONSIDE+4); j++) tloadtile(j,1);
         break;
     case NEWBEAST__STATIC:
     case NEWBEASTSTAYPUT__STATIC:
+        if (RR) break;
         maxc = 90;
         break;
     case BOSS1__STATIC:
     case BOSS2__STATIC:
     case BOSS3__STATIC:
+        if (RR) break;
         maxc = 30;
         break;
     case OCTABRAIN__STATIC:
     case OCTABRAINSTAYPUT__STATIC:
     case COMMANDER__STATIC:
     case COMMANDERSTAYPUT__STATIC:
+        if (RR) break;
         maxc = 38;
         break;
     case RECON__STATIC:
+        if (RR) break;
         maxc = 13;
         break;
     case PIGCOP__STATIC:
     case PIGCOPDIVE__STATIC:
+        if (RR) break;
         maxc = 61;
         break;
     case SHARK__STATIC:
+        if (RR) break;
         maxc = 30;
         break;
     case LIZMAN__STATIC:
     case LIZMANSPITTING__STATIC:
     case LIZMANFEEDING__STATIC:
     case LIZMANJUMP__STATIC:
+        if (RR) break;
         for (j=LIZMANHEAD1; j<LIZMANLEG1+3; j++) tloadtile(j,1);
         maxc = 80;
         break;
@@ -149,14 +278,20 @@ static void G_CacheSpriteNum(int32_t i)
         if ((g_netServer || ud.multimode > 1))
         {
             maxc = 5;
-            for (j = 1420; j < 1420+106; j++) tloadtile(j,1);
+            if (RR)
+            {
+                for (j = APLAYER; j < APLAYER+220; j++) tloadtile(j,1);
+                for (j = DUKEGUN; j < DUKELEG+4; j++) tloadtile(j,1);
+            }
+            else
+                for (j = 1420; j < 1420+106; j++) tloadtile(j,1);
         }
         break;
     case ATOMICHEALTH__STATIC:
         maxc = 14;
         break;
     case DRONE__STATIC:
-        maxc = 10;
+        maxc = RR ? 6 : 10;
         break;
     case EXPLODINGBARREL__STATIC:
     case SEENINE__STATIC:
@@ -169,31 +304,64 @@ static void G_CacheSpriteNum(int32_t i)
         break;
         // caching of HUD sprites for weapons that may be in the level
     case CHAINGUNSPRITE__STATIC:
+        if (RR) break;
         for (j=CHAINGUN; j<=CHAINGUN+7; j++) tloadtile(j,1);
         break;
     case RPGSPRITE__STATIC:
+        if (RR) break;
         for (j=RPGGUN; j<=RPGGUN+2; j++) tloadtile(j,1);
         break;
     case FREEZESPRITE__STATIC:
+        if (RR) break;
         for (j=FREEZE; j<=FREEZE+5; j++) tloadtile(j,1);
         break;
     case GROWSPRITEICON__STATIC:
     case SHRINKERSPRITE__STATIC:
+        if (RR) break;
         for (j=SHRINKER-2; j<=SHRINKER+5; j++) tloadtile(j,1);
         break;
     case HBOMBAMMO__STATIC:
     case HEAVYHBOMB__STATIC:
+        if (RR) break;
         for (j=HANDREMOTE; j<=HANDREMOTE+5; j++) tloadtile(j,1);
         break;
     case TRIPBOMBSPRITE__STATIC:
+        if (RR) break;
         for (j=HANDHOLDINGLASER; j<=HANDHOLDINGLASER+4; j++) tloadtile(j,1);
         break;
     case SHOTGUNSPRITE__STATIC:
+        if (RR) break;
         tloadtile(SHOTGUNSHELL,1);
         for (j=SHOTGUN; j<=SHOTGUN+6; j++) tloadtile(j,1);
         break;
     case DEVISTATORSPRITE__STATIC:
+        if (RR) break;
         for (j=DEVISTATOR; j<=DEVISTATOR+1; j++) tloadtile(j,1);
+        break;
+    case VIXEN__STATICRR:
+        maxc = 214;
+        for (j = PN(i); j < PN(i) + maxc; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case SBMOVE__STATICRR:
+        if (RRRA) break;
+        maxc = 54;
+        for (j = PN(i); j < PN(i) + maxc; j++) tloadtile(j,1);
+        maxc = 100;
+        for (j = SBMOVE; j < SBMOVE + maxc; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case HULK__STATICRR:
+        maxc = 40;
+        for (j = PN(i) - 41; j < PN(i) + maxc - 41; j++) tloadtile(j,1);
+        for (j = HULKJIBA; j <= HULKJIBC + 4; j++) tloadtile(j,1);
+        maxc = 0;
+        break;
+    case MINION__STATICRR:
+        maxc = 141;
+        for (j = PN(i); j < PN(i) + maxc; j++) tloadtile(j,1);
+        for (j = MINJIBA; j <= MINJIBC + 4; j++) tloadtile(j,1);
+        maxc = 0;
         break;
 
     }
@@ -205,15 +373,15 @@ static void G_PrecacheSprites(void)
 {
     int32_t i,j;
 
-    for (i=0; i<MAXTILES; i++)
-    {
-        if (g_tile[i].flags & SFLAG_PROJECTILE)
-            tloadtile(i,1);
-
-        if (A_CheckSpriteTileFlags(i, SFLAG_CACHE))
-            for (j = i; j <= g_tile[i].cacherange; j++)
-                tloadtile(j,1);
-    }
+    //for (i=0; i<MAXTILES; i++)
+    //{
+    //    if (g_tile[i].flags & SFLAG_PROJECTILE)
+    //        tloadtile(i,1);
+    //
+    //    if (A_CheckSpriteTileFlags(i, SFLAG_CACHE))
+    //        for (j = i; j <= g_tile[i].cacherange; j++)
+    //            tloadtile(j,1);
+    //}
     tloadtile(BOTTOMSTATUSBAR,1);
     if ((g_netServer || ud.multimode > 1))
         tloadtile(FRAGBAR,1);
@@ -227,12 +395,8 @@ static void G_PrecacheSprites(void)
     for (i=FOOTPRINTS; i<FOOTPRINTS+3; i++) tloadtile(i,1);
 
     for (i = BURNING; i < BURNING+14; i++) tloadtile(i,1);
-    for (i = BURNING2; i < BURNING2+14; i++) tloadtile(i,1);
 
-    for (i = CRACKKNUCKLES; i < CRACKKNUCKLES+4; i++) tloadtile(i,1);
-
-    for (i = FIRSTGUN; i < FIRSTGUN+3 ; i++) tloadtile(i,1);
-    for (i = FIRSTGUNRELOAD; i < FIRSTGUNRELOAD+8 ; i++) tloadtile(i,1);
+    for (i = FIRSTGUN; i < FIRSTGUN+(RR ? 10 : 3) ; i++) tloadtile(i,1);
 
     for (i = EXPLOSION2; i < EXPLOSION2+21 ; i++) tloadtile(i,1);
 
@@ -240,7 +404,6 @@ static void G_PrecacheSprites(void)
 
     tloadtile(BULLETHOLE,1);
     tloadtile(BLOODPOOL,1);
-    for (i = TRANSPORTERBEAM; i < (TRANSPORTERBEAM+6); i++) tloadtile(i,1);
 
     for (i = SMALLSMOKE; i < (SMALLSMOKE+4); i++) tloadtile(i,1);
     for (i = SHOTSPARK1; i < (SHOTSPARK1+4); i++) tloadtile(i,1);
@@ -249,21 +412,61 @@ static void G_PrecacheSprites(void)
     for (i = JIBS1; i < (JIBS5+5); i++) tloadtile(i,1);
     for (i = JIBS6; i < (JIBS6+8); i++) tloadtile(i,1);
 
-    for (i = SCRAP1; i < (SCRAP1+29); i++) tloadtile(i,1);
+    for (i = SCRAP1; i < (SCRAP1+(RR? 19 : 29)); i++) tloadtile(i,1);
 
-    tloadtile(FIRELASER,1);
-    for (i=TRANSPORTERSTAR; i<TRANSPORTERSTAR+6; i++) tloadtile(i,1);
-    for (i=FORCERIPPLE; i<(FORCERIPPLE+9); i++) tloadtile(i,1);
+    if (!RR)
+    {
+        for (i = BURNING2; i < BURNING2+14; i++) tloadtile(i,1);
+        for (i = CRACKKNUCKLES; i < CRACKKNUCKLES+4; i++) tloadtile(i,1);
+        for (i = FIRSTGUNRELOAD; i < FIRSTGUNRELOAD+8 ; i++) tloadtile(i,1);
+        for (i = TRANSPORTERBEAM; i < (TRANSPORTERBEAM+6); i++) tloadtile(i,1);
+        tloadtile(FIRELASER,1);
+        for (i=TRANSPORTERSTAR; i<TRANSPORTERSTAR+6; i++) tloadtile(i,1);
+        for (i=FORCERIPPLE; i<(FORCERIPPLE+9); i++) tloadtile(i,1);
 
-    for (i=MENUSCREEN; i<DUKECAR; i++) tloadtile(i,1);
+        for (i=MENUSCREEN; i<DUKECAR; i++) tloadtile(i,1);
 
-    for (i=RPG; i<RPG+7; i++) tloadtile(i,1);
-    for (i=FREEZEBLAST; i<FREEZEBLAST+3; i++) tloadtile(i,1);
-    for (i=SHRINKSPARK; i<SHRINKSPARK+4; i++) tloadtile(i,1);
-    for (i=GROWSPARK; i<GROWSPARK+4; i++) tloadtile(i,1);
-    for (i=SHRINKEREXPLOSION; i<SHRINKEREXPLOSION+4; i++) tloadtile(i,1);
-    for (i=MORTER; i<MORTER+4; i++) tloadtile(i,1);
-    for (i=0; i<=60; i++) tloadtile(i,1);
+        for (i=RPG; i<RPG+7; i++) tloadtile(i,1);
+        for (i=FREEZEBLAST; i<FREEZEBLAST+3; i++) tloadtile(i,1);
+        for (i=SHRINKSPARK; i<SHRINKSPARK+4; i++) tloadtile(i,1);
+        for (i=GROWSPARK; i<GROWSPARK+4; i++) tloadtile(i,1);
+        for (i=SHRINKEREXPLOSION; i<SHRINKEREXPLOSION+4; i++) tloadtile(i,1);
+        for (i=MORTER; i<MORTER+4; i++) tloadtile(i,1);
+        for (i=0; i<=60; i++) tloadtile(i,1);
+    }
+    else
+    {
+        if (RRRA)
+        {
+            if (ud.volume_number == 0 && ud.volume_number == 4)
+                tloadtile(RRTILE2577, 1);
+        }
+        else
+        {
+            if (ud.volume_number == 1 && ud.level_number == 2)
+            {
+                tloadtile(RRTILE3190, 1);
+                tloadtile(RRTILE3191, 1);
+                tloadtile(RRTILE3192, 1);
+                tloadtile(RRTILE3144, 1);
+                tloadtile(RRTILE3139, 1);
+                tloadtile(RRTILE3132, 1);
+                tloadtile(RRTILE3120, 1);
+                tloadtile(RRTILE3121, 1);
+                tloadtile(RRTILE3122, 1);
+                tloadtile(RRTILE3123, 1);
+                tloadtile(RRTILE3124, 1);
+            }
+        }
+        if (g_lastLevel)
+        {
+            tloadtile(UFO1, 1);
+            tloadtile(UFO2, 1);
+            tloadtile(UFO3, 1);
+            tloadtile(UFO4, 1);
+            tloadtile(UFO5, 1);
+        }
+    }
 }
 
 static void G_DoLoadScreen(const char *statustext, int32_t percent)
@@ -272,8 +475,6 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
 
     if (ud.recstat != 2)
     {
-        j = LOADSCREEN;
-
         //g_player[myconnectindex].ps->palette = palette;
         P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 1);    // JBF 20040308
 
@@ -285,29 +486,30 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
             videoClearScreen(0L);
         }
 
-        if ((uint32_t)j < 2*MAXTILES)
-        {
-            videoClearScreen(0);
+        videoClearScreen(0);
 
-            rotatesprite_fs(320<<15,200<<15,65536L,0, j > MAXTILES-1?j-MAXTILES:j,0,0,
-                            2+8+64+BGSTRETCH);
-        }
-        else
-        {
-            videoNextPage();
-            return;
-        }
+        rotatesprite_fs(320<<15,200<<15,65536L,0,LOADSCREEN,0,0,2+8+64+BGSTRETCH);
+
+        int const textY = RRRA ? 140 : 90;
 
         if (boardfilename[0] != 0 && ud.level_number == 7 && ud.volume_number == 0)
         {
-            menutext_center(90,"Loading User Map");
-            gametext_center_shade_pal(90+10, boardfilename, 14, 2);
+            menutext_center(textY, RR ? "ENTERIN' USER MAP" : "Loading User Map");
+            if (RR)
+                menutext_center(textY+20, boardfilename);
+            else
+                gametext_center_shade_pal(textY+10, boardfilename, 14, 2);
+        }
+        else if (RR && g_lastLevel)
+        {
+            menutext_center(textY,"ENTERIN'");
+            menutext_center(textY+16+8,"CLOSE ENCOUNTERS");
         }
         else
         {
-            menutext_center(90,"Loading");
+            menutext_center(textY, RR ? "ENTERIN'" : "Loading");
             if (g_mapInfo[(ud.volume_number*MAXLEVELS) + ud.level_number].name != NULL)
-                menutext_center(90+16+8,g_mapInfo[(ud.volume_number*MAXLEVELS) + ud.level_number].name);
+                menutext_center(textY+16+8,g_mapInfo[(ud.volume_number*MAXLEVELS) + ud.level_number].name);
         }
 
 #ifndef EDUKE32_TOUCH_DEVICES
@@ -342,20 +544,9 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
         }
         /*Gv_SetVar(g_iReturnVarID,LOADSCREEN, -1, -1);*/
 
-        j = LOADSCREEN;
+        rotatesprite_fs(320<<15,200<<15,65536L, 0,LOADSCREEN,0,0,2+8+64+BGSTRETCH);
 
-        if ((uint32_t)j < 2*MAXTILES)
-        {
-            rotatesprite_fs(320<<15,200<<15,65536L, 0,j > MAXTILES-1?j-MAXTILES:j,0,0,
-                            2+8+64+BGSTRETCH);
-        }
-        else
-        {
-            videoNextPage();
-            return;
-        }
-
-        menutext_center(105,"Loading...");
+        menutext_center(RRRA?155:105,RR?"LOADIN'":"Loading...");
         if (statustext) gametext_center_number(180, statustext);
         videoNextPage();
     }
@@ -625,9 +816,9 @@ void P_ResetPlayer(int playerNum)
 
     pSprite->cstat    = 257;
     pSprite->shade    = -12;
-    pSprite->clipdist = 64;
-    pSprite->xrepeat  = 42;
-    pSprite->yrepeat  = 36;
+    pSprite->clipdist = RR ? 32 : 64;
+    pSprite->xrepeat  = RR ? 24 : 42;
+    pSprite->yrepeat  = RR ? 17 : 36;
     pSprite->owner    = pPlayer->i;
     pSprite->xoffset  = 0;
     pSprite->pal      = pPlayer->palookup;
@@ -648,7 +839,7 @@ void P_ResetPlayer(int playerNum)
     pPlayer->fta                    = 0;
     pPlayer->ftq                    = 0;
     pPlayer->vel.x = pPlayer->vel.y = 0;
-    pPlayer->rotscrnang             = 0;
+    if (!RR) pPlayer->rotscrnang             = 0;
     pPlayer->runspeed               = g_playerFriction;
     pPlayer->falling_counter        = 0;
 
@@ -667,7 +858,7 @@ void P_ResetPlayer(int playerNum)
     P_ResetInventory(playerNum);
     P_ResetWeapons(playerNum);
 
-    pPlayer->reloading     = 0;
+    //pPlayer->reloading     = 0;
     pPlayer->movement_lock = 0;
 }
 
@@ -704,9 +895,11 @@ void P_ResetStatus(int playerNum)
     pPlayer->crack_time        = 0;
     pPlayer->hbomb_hold_delay  = 0;
     pPlayer->transporter_hold  = 0;
-    pPlayer->clipdist          = 164;
+    //pPlayer->clipdist          = 164;
     pPlayer->wantweaponfire    = -1;
     pPlayer->hurt_delay        = 0;
+    if (RRRA)
+        pPlayer->hurt_delay2   = 0;
     pPlayer->footprintcount    = 0;
     pPlayer->footprintpal      = 0;
     pPlayer->footprintshade    = 0;
@@ -727,7 +920,7 @@ void P_ResetStatus(int playerNum)
     pus                        = 1;
     pPlayer->on_warping_sector = 0;
     pPlayer->spritebridge      = 0;
-    pPlayer->sbs               = 0;
+    //pPlayer->sbs               = 0;
     pPlayer->palette           = BASEPAL;
 
     if (pPlayer->inv_amount[GET_STEROIDS] < 400)
@@ -755,7 +948,7 @@ void P_ResetStatus(int playerNum)
     pPlayer->cheat_phase       = 0;
     pPlayer->on_crane          = -1;
 
-    pPlayer->kickback_pic = (pPlayer->curr_weapon == PISTOL_WEAPON) ? 5 : 0;
+    pPlayer->kickback_pic = (pPlayer->curr_weapon == PISTOL_WEAPON) ? (RR ? 22 : 5) : 0;
 
     pPlayer->weapon_pos         = WEAPON_POS_START;
     pPlayer->walking_snd_toggle = 0;
@@ -764,11 +957,96 @@ void P_ResetStatus(int playerNum)
     pPlayer->fist_incs          = 0;
     pPlayer->knee_incs          = 0;
     pPlayer->jetpack_on         = 0;
-    pPlayer->reloading          = 0;
+    //pPlayer->reloading          = 0;
     pPlayer->movement_lock      = 0;
     pPlayer->frag_ps            = playerNum;
 
     P_UpdateScreenPal(pPlayer);
+
+    if (RR)
+    {
+        pPlayer->stairs = 0;
+        pPlayer->noise_x = 0;
+        pPlayer->noise_y = 0;
+        pPlayer->make_noise = 0;
+        pPlayer->noise_radius = 0;
+        if ((g_netServer || ud.multimode > 1) && (g_gametypeFlags[ud.coop] & GAMETYPE_ACCESSATSTART))
+        {
+            pPlayer->keys[0] = 1;
+            pPlayer->keys[1] = 1;
+            pPlayer->keys[2] = 1;
+            pPlayer->keys[3] = 1;
+            pPlayer->keys[4] = 1;
+        }
+        else
+        {
+            pPlayer->keys[0] = 0;
+            pPlayer->keys[1] = 0;
+            pPlayer->keys[2] = 0;
+            pPlayer->keys[3] = 0;
+            pPlayer->keys[4] = 0;
+        }
+
+        g_wupass = 0;
+        pPlayer->drink_ang = pPlayer->eat_ang = 1647;
+        pPlayer->drink_amt = pPlayer->eat_amt = 0;
+        pPlayer->drink_timer = pPlayer->eat_timer = 4096;
+        pPlayer->shotgun_state[0] = pPlayer->shotgun_state[1] = 0;
+        pPlayer->hbomb_time = 0;
+        pPlayer->hbomb_offset = 0;
+        pPlayer->recoil = 0;
+        pPlayer->yehaa_timer = 0;
+        if (RRRA)
+        {
+            g_chickenWeaponTimer = 0;
+            if (pPlayer->on_motorcycle)
+            {
+                pPlayer->on_motorcycle = 0;
+                pPlayer->gotweapon &= (1 << MOTORCYCLE_WEAPON);
+                pPlayer->curr_weapon = SLINGBLADE_WEAPON;
+            }
+            pPlayer->lotag800kill = 0;
+            pPlayer->moto_do_bump = 0;
+            pPlayer->moto_on_ground = 1;
+            pPlayer->moto_underwater = 0;
+            pPlayer->moto_speed = 0;
+            pPlayer->tilt_status = 0;
+            pPlayer->moto_drink = 0;
+            pPlayer->moto_bump_target = 0;
+            pPlayer->moto_bump = 0;
+            pPlayer->moto_bump_fast = 0;
+            pPlayer->moto_turb = 0;
+            pPlayer->moto_on_mud = 0;
+            pPlayer->moto_on_oil = 0;
+            if (pPlayer->on_boat)
+            {
+                pPlayer->on_boat = 0;
+                pPlayer->gotweapon &= (1 << BOAT_WEAPON);
+                pPlayer->curr_weapon = SLINGBLADE_WEAPON;
+            }
+            pPlayer->not_on_water = 0;
+            pPlayer->sea_sick = 0;
+            pPlayer->nocheat = 0;
+            pPlayer->drug_mode = 0;
+            pPlayer->drug_stat[0] = 0;
+            pPlayer->drug_stat[1] = 0;
+            pPlayer->drug_stat[2] = 0;
+            pPlayer->drug_stat[3] = 0;
+        }
+        A_ResetLanePics();
+        if (!g_netServer && numplayers < 2)
+        {
+            g_ufoSpawn = min(RRRA ? 3 : (ud.m_player_skill*4+1), 32);
+            g_ufoCnt = 0;
+            g_hulkSpawn = ud.m_player_skill + 1;
+        }
+        else
+        {
+            g_ufoSpawn = 32;
+            g_ufoCnt = 0;
+            g_hulkSpawn = 2;
+        }
+    }
 }
 
 void P_ResetWeapons(int playerNum)
@@ -783,6 +1061,17 @@ void P_ResetWeapons(int playerNum)
     pPlayer->kickback_pic               = 5;
     pPlayer->gotweapon                  = ((1 << PISTOL_WEAPON) | (1 << KNEE_WEAPON) | (1 << HANDREMOTE_WEAPON));
     pPlayer->ammo_amount[PISTOL_WEAPON] = min(pPlayer->max_ammo_amount[PISTOL_WEAPON], 48);
+    if (RRRA)
+    {
+        g_chickenWeaponTimer = 0;
+        pPlayer->gotweapon |= (1 << SLINGBLADE_WEAPON);
+        pPlayer->ammo_amount[KNEE_WEAPON] = 1;
+        pPlayer->ammo_amount[SLINGBLADE_WEAPON] = 1;
+        pPlayer->on_motorcycle = 0;
+        pPlayer->moto_underwater = 0;
+        pPlayer->on_boat = 0;
+        pPlayer->lotag800kill = 0;
+    }
     pPlayer->last_weapon                = -1;
     pPlayer->show_empty_weapon          = 0;
     pPlayer->last_pissed_time           = 0;
@@ -802,6 +1091,48 @@ void P_ResetInventory(int playerNum)
     pPlayer->holoduke_on            = -1;
     pPlayer->inven_icon             = ICON_NONE;
     pPlayer->inv_amount[GET_SHIELD] = g_startArmorAmount;
+
+    if (RR)
+    {
+        if ((g_netServer || ud.multimode > 1) && (g_gametypeFlags[ud.coop] & GAMETYPE_ACCESSATSTART))
+        {
+            pPlayer->keys[0] = 1;
+            pPlayer->keys[1] = 1;
+            pPlayer->keys[2] = 1;
+            pPlayer->keys[3] = 1;
+            pPlayer->keys[4] = 1;
+        }
+        else
+        {
+            pPlayer->keys[0] = 0;
+            pPlayer->keys[1] = 0;
+            pPlayer->keys[2] = 0;
+            pPlayer->keys[3] = 0;
+            pPlayer->keys[4] = 0;
+        }
+
+        pPlayer->drink_ang = pPlayer->eat_ang = 1647;
+        pPlayer->drink_amt = pPlayer->eat_amt = 0;
+        pPlayer->drink_timer = pPlayer->eat_timer = 4096;
+        pPlayer->shotgun_state[0] = pPlayer->shotgun_state[1] = 0;
+        pPlayer->hbomb_time = 0;
+        pPlayer->hbomb_offset = 0;
+        pPlayer->recoil = 0;
+        pPlayer->yehaa_timer = 0;
+        A_ResetLanePics();
+        if (!g_netServer && numplayers < 2)
+        {
+            g_ufoSpawn = min(ud.m_player_skill*4+1, 32);
+            g_ufoCnt = 0;
+            g_hulkSpawn = ud.m_player_skill + 1;
+        }
+        else
+        {
+            g_ufoSpawn = 32;
+            g_ufoCnt = 0;
+            g_hulkSpawn = 2;
+        }
+    }
 }
 
 static void resetprestat(int playerNum, int gameMode)
@@ -823,7 +1154,7 @@ static void resetprestat(int playerNum, int gameMode)
 
     P_ResetTintFade(pPlayer);
 
-    pPlayer->kickback_pic = (pPlayer->curr_weapon == PISTOL_WEAPON) ? 5 : 0;
+    pPlayer->kickback_pic = 5;
 
     pPlayer->last_weapon           = -1;
     pPlayer->weapreccnt            = 0;
@@ -839,7 +1170,7 @@ static void resetprestat(int playerNum, int gameMode)
     g_cyclerCnt        = 0;
     g_animateCnt       = 0;
     parallaxtype       = 0;
-    randomseed         = 1996;
+    randomseed         = 17;
     ud.pause_on        = 0;
     ud.camerasprite    = -1;
     ud.eog             = 0;
@@ -847,6 +1178,16 @@ static void resetprestat(int playerNum, int gameMode)
     g_curViewscreen    = -1;
     g_earthquakeTime   = 0;
     g_interpolationCnt = 0;
+
+    if (RRRA)
+    {
+        g_windTime = 0;
+        g_windDir = 0;
+        g_fakeBubbaCnt = 0;
+        g_RAendLevel = 0;
+        g_bellTime = 0;
+        g_bellSprite = 0;
+    }
 
     if (((gameMode & MODE_EOL) != MODE_EOL && numplayers < 2 && !g_netServer)
         || (!(g_gametypeFlags[ud.coop] & GAMETYPE_PRESERVEINVENTORYDEATH) && numplayers > 1))
@@ -862,6 +1203,53 @@ static void resetprestat(int playerNum, int gameMode)
 
     pPlayer->timebeforeexit  = 0;
     pPlayer->customexitsound = 0;
+
+    if (RR)
+    {
+        pPlayer->stairs = 0;
+        pPlayer->noise_x = 131072;
+        pPlayer->noise_y = 131072;
+        pPlayer->make_noise = 0;
+        pPlayer->noise_radius = 0;
+        if ((g_netServer || ud.multimode > 1) && (g_gametypeFlags[ud.coop] & GAMETYPE_ACCESSATSTART))
+        {
+            pPlayer->keys[0] = 1;
+            pPlayer->keys[1] = 1;
+            pPlayer->keys[2] = 1;
+            pPlayer->keys[3] = 1;
+            pPlayer->keys[4] = 1;
+        }
+        else
+        {
+            pPlayer->keys[0] = 0;
+            pPlayer->keys[1] = 0;
+            pPlayer->keys[2] = 0;
+            pPlayer->keys[3] = 0;
+            pPlayer->keys[4] = 0;
+        }
+
+        pPlayer->drink_ang = pPlayer->eat_ang = 1647;
+        pPlayer->drink_amt = pPlayer->eat_amt = 0;
+        pPlayer->drink_timer = pPlayer->eat_timer = 4096;
+        pPlayer->shotgun_state[0] = pPlayer->shotgun_state[1] = 0;
+        pPlayer->hbomb_time = 0;
+        pPlayer->hbomb_offset = 0;
+        pPlayer->recoil = 0;
+        pPlayer->yehaa_timer = 0;
+        A_ResetLanePics();
+        if (!g_netServer && numplayers < 2)
+        {
+            g_ufoSpawn = min(ud.m_player_skill*4+1, 32);
+            g_ufoCnt = 0;
+            g_hulkSpawn = ud.m_player_skill + 1;
+        }
+        else
+        {
+            g_ufoSpawn = 32;
+            g_ufoCnt = 0;
+            g_hulkSpawn = 2;
+        }
+    }
 }
 
 // Tweak sprites contained in moving sectors with these SE lotags.
@@ -929,24 +1317,180 @@ static inline int G_CheckExitSprite(int spriteNum) { return ((uint16_t)sprite[sp
 static void prelevel(char g)
 {
     uint8_t *tagbitmap = (uint8_t *)Xcalloc(65536>>3, 1);
+    //DukePlayer_t *ps = g_player[screenpeek].ps;
 
+    if (RRRA)
+    {
+        G_SetFog(0);
+        g_fogType = 0;
+        g_ufoSpawnMinion = 0;
+        g_pistonSound = 0;
+        g_slotWin = 0;
+        g_changeEnemySize = 0;
+        g_player[myconnectindex].ps->level_end_timer = 0;
+        g_mamaSpawnCnt = 15;
+        g_banjoSong = 0;
+        g_RAendLevel = 0;
+        for (bssize_t TRAVERSE_CONNECT(playerNum))
+        {
+            DukePlayer_t *ps = g_player[playerNum].ps;
+            ps->sea_sick_stat = 0;
+            if (ud.level_number == 4 && ud.volume_number == 1)
+                ps->inv_amount[GET_STEROIDS] = 0;
+        }
+        if (ud.level_number == 3 && ud.volume_number == 0)
+            g_mamaSpawnCnt = 5;
+        else if (ud.level_number == 2 && ud.volume_number == 1)
+            g_mamaSpawnCnt = 10;
+        else if (ud.level_number == 6 && ud.volume_number == 1)
+            g_mamaSpawnCnt = 15;
+    }
+
+    Bmemset(g_spriteExtra, 0, sizeof(g_spriteExtra));
+    Bmemset(g_sectorExtra, 0, sizeof(g_sectorExtra));
+    Bmemset(g_shadedSector, 0, sizeof(g_shadedSector));
+    Bmemset(g_geoSectorWarp, -1, sizeof(g_geoSectorWarp));
+    Bmemset(g_geoSectorWarp2, -1, sizeof(g_geoSectorWarp2));
+    Bmemset(g_ambientHitag, -1, sizeof(g_ambientHitag));
+    Bmemset(g_ambientLotag, -1, sizeof(g_ambientLotag));
     Bmemset(show2dsector, 0, sizeof(show2dsector));
 #ifdef LEGACY_ROR
     Bmemset(ror_protectedsectors, 0, MAXSECTORS);
 #endif
     resetprestat(0,g);
-    g_cloudCnt = 0;
+    if (RR)
+    {
+        g_lightninCnt = 0;
+        g_torchCnt = 0;
+        g_geoSectorCnt = 0;
+        g_jailDoorCnt = 0;
+        g_mineCartCnt = 0;
+        g_ambientCnt = 0;
+        g_thunderOn = 0;
+        g_chickenPlant = 0;
+        if (RRRA)
+        {
+            g_windTime = 0;
+            g_windDir = 0;
+            g_fakeBubbaCnt = 0;
+            g_RAendLevel = 0;
+            g_mamaSpawnCnt = 15; // ???
+            g_bellTime = 0;
+            g_bellSprite = 0;
 
-    G_SetupGlobalPsky();
+            for (bssize_t spriteNum = 0; spriteNum < MAXSPRITES; spriteNum++)
+            {
+                if (sprite[spriteNum].pal == 100)
+                {
+                    if (g_netServer || numplayers > 1)
+                        A_DeleteSprite(spriteNum);
+                    else
+                        sprite[spriteNum].pal = 0;
+                }
+                else if (sprite[spriteNum].pal == 101)
+                {
+                    sprite[spriteNum].extra = 0;
+                    sprite[spriteNum].hitag = 0;
+                    sprite[spriteNum].pal = 0;
+                    changespritestat(spriteNum, 118);
+                }
+            }
+        }
+    }
+    g_cloudCnt = 0;
 
     int missedCloudSectors = 0;
 
     for (bssize_t i=0; i<numsectors; i++)
     {
+        if (RR && sector[i].ceilingpicnum == RRTILE2577)
+            g_thunderOn = 1;
         sector[i].extra = 256;
 
         switch (sector[i].lotag)
         {
+        case 41:
+        {
+            if (!RR) break;
+            int32_t p1, p2, p3;
+            int k = headspritesect[i];
+            while (k != -1)
+            {
+                int const nexti = nextspritesect[k];
+                if (sprite[k].picnum == RRTILE11)
+                {
+                    p1 = sprite[k].lotag << 4;
+                    p2 = sprite[k].hitag;
+                    A_DeleteSprite(k);
+                }
+                if (sprite[k].picnum == RRTILE38)
+                {
+                    p3 = sprite[k].lotag;
+                    A_DeleteSprite(k);
+                }
+                k = nexti;
+            }
+            for (bssize_t j = 0; j<numsectors; j++)
+            {
+                if (sector[i].hitag == sector[j].hitag && i != j)
+                {
+                    if (g_jailDoorCnt >= 32)
+                        G_GameExit("\nToo many jaildoor sectors");
+                    g_jailDoorDist[g_jailDoorCnt] = p1;
+                    g_jailDoorSpeed[g_jailDoorCnt] = p2;
+                    g_jailDoorSecHitag[g_jailDoorCnt] = sector[i].hitag;
+                    g_jailDoorSect[g_jailDoorCnt] = j;
+                    g_jailDoorDrag[g_jailDoorCnt] = 0;
+                    g_jailDoorOpen[g_jailDoorCnt] = 0;
+                    g_jailDoorDir[g_jailDoorCnt] = sector[j].lotag;
+                    g_jailDoorSound[g_jailDoorCnt] = p3;
+                    g_jailDoorCnt++;
+                }
+            }
+            break;
+        }
+        case 42:
+        {
+            if (!RR) break;
+            int32_t p1, p2, p3;
+            int k = headspritesect[i];
+            while (k != -1)
+            {
+                int const nexti = nextspritesect[k];
+                if (sprite[k].picnum == RRTILE64)
+                {
+                    p1 = sprite[k].lotag << 4;
+                    p2 = sprite[k].hitag;
+                    for (bssize_t kk = 0; kk < MAXSPRITES; kk++)
+                    {
+                        if (sprite[kk].picnum == RRTILE66)
+                            if (sprite[kk].lotag == sprite[k].sectnum)
+                            {
+                                g_mineCartChildSect[g_mineCartCnt] = sprite[kk].sectnum;
+                                A_DeleteSprite(kk);
+                            }
+                    }
+                    A_DeleteSprite(k);
+                }
+                if (sprite[k].picnum == RRTILE65)
+                {
+                    p3 = sprite[k].lotag;
+                    A_DeleteSprite(k);
+                }
+                k = nexti;
+            }
+            if (g_mineCartCnt >= 16)
+                G_GameExit("\nToo many minecart sectors");
+            g_mineCartDist[g_mineCartCnt] = p1;
+            g_mineCartSpeed[g_mineCartCnt] = p2;
+            g_mineCartSect[g_mineCartCnt] = i;
+            g_mineCartDir[g_mineCartCnt] = sector[i].hitag;
+            g_mineCartDrag[g_mineCartCnt] = p1;
+            g_mineCartOpen[g_mineCartCnt] = 1;
+            g_mineCartSound[g_mineCartCnt] = p3;
+            g_mineCartCnt++;
+            break;
+        }
         case ST_20_CEILING_DOOR:
         case ST_22_SPLITTING_DOOR:
             if (sector[i].floorz > sector[i].ceilingz)
@@ -963,12 +1507,31 @@ static void prelevel(char g)
                         tloadtile(sector[i].ceilingpicnum + j, 0);
             }
 
-            if (sector[i].ceilingpicnum == CLOUDYSKIES)
+            if (!RR && sector[i].ceilingpicnum == CLOUDYSKIES)
             {
                 if (g_cloudCnt < ARRAY_SSIZE(g_cloudSect))
                     g_cloudSect[g_cloudCnt++] = i;
                 else
                     missedCloudSectors++;
+            }
+            if (RRRA && sector[i].ceilingpicnum != LA && sector[i].ceilingpicnum != MOONSKY1 && sector[i].ceilingpicnum != BIGORBIT1)
+            {
+                int const picnum = sector[i].ceilingpicnum;
+                if (tilesiz[picnum].x == 512)
+                {
+                    psky_t *sky = tileSetupSky(picnum);
+                    sky->horizfrac = 32768;
+                    sky->lognumtiles = 1;
+                    sky->tileofs[0] = 0;
+                    sky->tileofs[1] = 1;
+                }
+                else if (tilesiz[picnum].x == 1024)
+                {
+                    psky_t *sky = tileSetupSky(picnum);
+                    sky->horizfrac = 32768;
+                    sky->lognumtiles = 0;
+                    sky->tileofs[0] = 0;
+                }
             }
 
             if (g_player[0].ps->one_parallax_sectnum == -1)
@@ -1003,6 +1566,9 @@ static void prelevel(char g)
         }
         else switch (DYNAMICTILEMAP(PN(i)))
             {
+            case NUKEBUTTON__STATIC:
+                if (RR) g_chickenPlant = 1;
+                break;
             case GPSPEED__STATIC:
                 // DELETE_AFTER_LOADACTOR. Must not change statnum.
                 sector[SECT(i)].extra = SLT(i);
@@ -1026,6 +1592,48 @@ static void prelevel(char g)
                 A_DeleteSprite(i);
                 break;
 
+            case RRTILE18__STATICRR:
+                if (!RR) break;
+                if (g_torchCnt >= 64)
+                    G_GameExit("\nToo many torch effects");
+                g_torchSector[g_torchCnt] = SECT(i);
+                g_torchSectorShade[g_torchCnt] = sector[SECT(i)].floorshade;
+                g_torchType[g_torchCnt] = SLT(i);
+                g_torchCnt++;
+                A_DeleteSprite(i);
+                break;
+
+            case RRTILE35__STATICRR:
+                if (g_lightninCnt >= 64)
+                    G_GameExit("\nToo many lightnin effects");
+                g_lightninSector[g_lightninCnt] = SECT(i);
+                g_lightninSectorShade[g_lightninCnt] = sector[SECT(i)].floorshade;
+                g_lightninCnt++;
+                A_DeleteSprite(i);
+                break;
+
+            case RRTILE68__STATICRR:
+                g_shadedSector[SECT(i)] = 1;
+                A_DeleteSprite(i);
+                break;
+
+            case RRTILE67__STATICRR:
+                sprite[i].cstat |= 32768;
+                break;
+
+            case SOUNDFX__STATICRR:
+                if (g_ambientCnt >= 64)
+                    G_GameExit("\nToo many ambient effects");
+                else
+                {
+                    g_ambientHitag[g_ambientCnt] = SHT(i);
+                    g_ambientLotag[g_ambientCnt] = SLT(i);
+                    sprite[i].ang = g_ambientCnt++;
+                    sprite[i].lotag = 0;
+                    sprite[i].hitag = 0;
+                }
+                break;
+
             //case SECTOREFFECTOR__STATIC:
             //case ACTIVATOR__STATIC:
             //case TOUCHPLATE__STATIC:
@@ -1038,6 +1646,40 @@ static void prelevel(char g)
             //    break;
             }
     }
+    if (RR)
+    {
+        for (bssize_t i = 0; i < MAXSPRITES; i++)
+        {
+            if (sprite[i].picnum == RRTILE19)
+            {
+                if (sprite[i].hitag == 0)
+                {
+                    if (g_geoSectorCnt >= MAXGEOSECTORS)
+                        G_GameExit("\nToo many geometry effects");
+                    g_geoSector[g_geoSectorCnt] = sprite[i].sectnum;
+                    for (bssize_t j = 0; j < MAXSPRITES; j++)
+                    {
+                        if (sprite[i].lotag == sprite[j].lotag && i != j && sprite[j].picnum == RRTILE19)
+                        {
+                            if (sprite[j].hitag == 1)
+                            {
+                                g_geoSectorWarp[g_geoSectorCnt] = sprite[j].sectnum;
+                                g_geoSectorX[g_geoSectorCnt] = sprite[i].x - sprite[j].x;
+                                g_geoSectorY[g_geoSectorCnt] = sprite[i].y - sprite[j].y;
+                            }
+                            if (sprite[j].hitag == 2)
+                            {
+                                g_geoSectorWarp2[g_geoSectorCnt] = sprite[j].sectnum;
+                                g_geoSectorX2[g_geoSectorCnt] = sprite[i].x - sprite[j].x;
+                                g_geoSectorY2[g_geoSectorCnt] = sprite[i].y - sprite[j].y;
+                            }
+                        }
+                    }
+                    g_geoSectorCnt++;
+                }
+            }
+        }
+    }
 
     for (size_t i = 0; i < MAXSPRITES; i++)
     {
@@ -1049,6 +1691,13 @@ static void prelevel(char g)
     {
         if (sprite[i].statnum < MAXSTATUS && PN(i) == SECTOREFFECTOR && SLT(i) == SE_14_SUBWAY_CAR)
             A_Spawn(-1, i);
+        if (sprite[i].picnum == RRTILE19)
+            A_DeleteSprite(i);
+        if (sprite[i].picnum == RRTILE34)
+        {
+            g_sectorExtra[sprite[i].sectnum] = sprite[i].lotag;
+            A_DeleteSprite(i);
+        }
     }
 
     //G_SetupRotfixedSprites();
@@ -1075,6 +1724,8 @@ static void prelevel(char g)
             case POWERSWITCH1__STATIC:
             case LOCKSWITCH1__STATIC:
             case POWERSWITCH2__STATIC:
+            case RRTILE8464__STATICRR:
+                if (!RRRA && PN(i)-1+ii == RRTILE8464) break;
                 // the lower code only for the 'on' state (*)
                 if (ii==0)
                 {
@@ -1140,6 +1791,7 @@ static void prelevel(char g)
             switch (DYNAMICTILEMAP(switchPic))
             {
                 case FANSHADOW__STATIC:
+                    if (RR) break;
                 case FANSPRITE__STATIC:
                     wall->cstat |= 65;
                     animwall[g_animWallCnt].wallnum = i;
@@ -1147,6 +1799,7 @@ static void prelevel(char g)
                     break;
 
                 case W_FORCEFIELD__STATIC:
+                    if (RR) break;
                     if (pWall->overpicnum == W_FORCEFIELD__STATIC)
                         for (bsize_t j = 0; j < 3; j++) tloadtile(W_FORCEFIELD + j, 0);
                     if (pWall->shade > 31)
@@ -1175,12 +1828,37 @@ static void prelevel(char g)
                     tloadtile(pWall->picnum + j, 0);
                 break;
 
+            case RRTILE1814__STATICRR:
+            case RRTILE1817__STATICRR:
+                tloadtile(pWall->picnum, 0);
+                break;
+            case RRTILE1939__STATICRR:
+            case RRTILE1986__STATICRR:
+            case RRTILE1987__STATICRR:
+            case RRTILE1988__STATICRR:
+            case RRTILE2004__STATICRR:
+            case RRTILE2005__STATICRR:
+            case RRTILE2123__STATICRR:
+            case RRTILE2124__STATICRR:
+            case RRTILE2125__STATICRR:
+            case RRTILE2126__STATICRR:
+            case RRTILE2636__STATICRR:
+            case RRTILE2637__STATICRR:
+            case RRTILE2878__STATICRR:
+            case RRTILE2879__STATICRR:
+            case RRTILE2898__STATICRR:
+            case RRTILE2899__STATICRR:
+                tloadtile(pWall->picnum, 0);
+                break;
+
+
             case TECHLIGHT2__STATIC:
             case TECHLIGHT4__STATIC: tloadtile(pWall->picnum, 0); break;
             case W_TECHWALL1__STATIC:
             case W_TECHWALL2__STATIC:
             case W_TECHWALL3__STATIC:
             case W_TECHWALL4__STATIC:
+                if (RR) break;
                 animwall[g_animWallCnt].wallnum = i;
                 //                animwall[g_numAnimWalls].tag = -1;
                 g_animWallCnt++;
@@ -1199,6 +1877,7 @@ static void prelevel(char g)
             case FEMPIC1__STATIC:
             case FEMPIC2__STATIC:
             case FEMPIC3__STATIC:
+                if (RR) break;
                 pWall->extra                 = pWall->picnum;
                 animwall[g_animWallCnt].tag = -1;
 
@@ -1227,6 +1906,7 @@ static void prelevel(char g)
             case SCREENBREAK17__STATIC:
             case SCREENBREAK18__STATIC:
             case SCREENBREAK19__STATIC:
+                if (RR) break;
                 animwall[g_animWallCnt].wallnum = i;
                 animwall[g_animWallCnt].tag     = pWall->picnum;
                 g_animWallCnt++;
@@ -1244,11 +1924,21 @@ static void prelevel(char g)
         {
             wall[j].picnum     = MIRROR;
             wall[j].overpicnum = MIRROR;
-
-            if (wall[g_mirrorWall[i]].pal == 4)
-                wall[j].pal = 4;
         }
     }
+
+    if (RR && !g_thunderOn)
+    {
+        videoSetPalette(ud.brightness >> 2,BASEPAL,0);
+        g_visibility = g_player[screenpeek].ps->visibility;
+    }
+    if (RR)
+    {
+        tilesiz[0].x = 0;
+        tilesiz[0].y = 0;
+    }
+
+    G_SetupGlobalPsky();
 }
 
 
@@ -1270,7 +1960,15 @@ void G_NewGame(int volumeNum, int levelNum, int skillNum)
 
     if (ud.m_recstat != 2 && ud.last_level >= 0 &&
         (g_netServer || ud.multimode > 1) && (ud.coop&GAMETYPE_SCORESHEET))
-        G_BonusScreen(1);
+    {
+        if (!RRRA || g_mostConcurrentPlayers > 1 || g_netServer || numplayers > 1)
+            G_BonusScreen(1);
+        else
+            G_BonusScreenRRRA(1);
+    }
+
+    if (RRRA && g_turdLevel && !g_lastLevel)
+        G_BonusScreen(0);
 
     g_showShareware = GAMETICSPERSEC*34;
 
@@ -1289,7 +1987,7 @@ void G_NewGame(int volumeNum, int levelNum, int skillNum)
     int const UserMap = Menu_HaveUserMap();
 
     // we don't want the intro to play after the multiplayer setup screen
-    if ((!g_netServer && ud.multimode < 2) && UserMap == 0 &&
+    if (!RR && (!g_netServer && ud.multimode < 2) && UserMap == 0 &&
         levelNum == 0 && volumeNum == 3 && ud.lockout == 0 && (G_GetLogoFlags() & LOGO_NOE4CUTSCENE)==0)
     {
         S_PlaySpecialMusicOrNothing(MUS_BRIEFING);
@@ -1342,8 +2040,12 @@ end_vol4a:
                 pPlayer->gotweapon |= (1 << weaponNum);
                 pPlayer->ammo_amount[weaponNum] = min(pPlayer->max_ammo_amount[weaponNum], 48);
             }
-            else if (weaponNum == KNEE_WEAPON || weaponNum == HANDREMOTE_WEAPON)
+            else if (weaponNum == KNEE_WEAPON || (!RR && weaponNum == HANDREMOTE_WEAPON) || (RRRA && weaponNum == SLINGBLADE_WEAPON))
+            {
                 pPlayer->gotweapon |= (1 << weaponNum);
+                if (RRRA)
+                    pPlayer->ammo_amount[KNEE_WEAPON] = 1;
+            }
         }
         pPlayer->last_weapon = -1;
     }
@@ -1431,8 +2133,10 @@ static void resetpspritevars(char gameMode)
         {
             s->owner = i;
             s->shade = 0;
-            s->xrepeat = 42;
-            s->yrepeat = 36;
+            s->xrepeat = RR ? 24 : 42;
+            s->yrepeat = RR ? 17 : 36;
+            //s->xrepeat = 42;
+            //s->yrepeat = 36;
             if (!g_fakeMultiMode)
                 s->cstat = j < numplayers ? 1+256 : 32768;
             else
@@ -1717,7 +2421,14 @@ int G_EnterLevel(int gameMode)
 
     if (g_mapInfo[mii].name == NULL || g_mapInfo[mii].filename == NULL)
     {
-        if (Menu_HaveUserMap())
+        if (RR && g_lastLevel)
+        {
+            if (g_mapInfo[mii].filename == NULL)
+                g_mapInfo[mii].filename = (char *)Xcalloc(BMAX_PATH, sizeof(uint8_t));
+            if (g_mapInfo[mii].name == NULL)
+                g_mapInfo[mii].name = Xstrdup("CLOSE ENCOUNTERS");
+        }
+        else if (Menu_HaveUserMap())
         {
             if (g_mapInfo[mii].filename == NULL)
                 g_mapInfo[mii].filename = (char *)Xcalloc(BMAX_PATH, sizeof(uint8_t));
@@ -1760,7 +2471,18 @@ int G_EnterLevel(int gameMode)
     DukePlayer_t *const pPlayer = g_player[0].ps;
     int16_t lbang;
 
-    if (!VOLUMEONE && Menu_HaveUserMap())
+    if (RR && g_lastLevel)
+    {
+        if (engineLoadBoard("endgame.map", 0, &pPlayer->pos, &lbang, &pPlayer->cursectnum) < 0)
+        {
+            OSD_Printf(OSD_ERROR "Map \"endgame.map\" not found or invalid map version!\n");
+            return 1;
+        }
+
+        G_LoadMapHack(levelName, "endgame.map");
+        G_SetupFilenameBasedMusic(levelName, "endgame.map", ud.m_level_number);
+    }
+    else if (!VOLUMEONE && Menu_HaveUserMap())
     {
         if (engineLoadBoard(boardfilename, 0, &pPlayer->pos, &lbang, &pPlayer->cursectnum) < 0)
         {
@@ -1781,6 +2503,13 @@ int G_EnterLevel(int gameMode)
         G_LoadMapHack(levelName, g_mapInfo[mii].filename);
     }
 
+    if (RR && !RRRA && ud.volume_number == 1 && ud.level_number == 1)
+    {
+        for (bssize_t i = PISTOL_WEAPON; i < MAX_WEAPONS; i++)
+            g_player[0].ps->ammo_amount[i] = 0;
+        g_player[0].ps->gotweapon &= ~(1<<KNEE_WEAPON);
+    }
+
     pPlayer->q16ang = fix16_from_int(lbang);
 
     g_precacheCount = 0;
@@ -1790,6 +2519,16 @@ int G_EnterLevel(int gameMode)
     //clearbufbyte(Actor,sizeof(Actor),0l); // JBF 20040531: yes? no?
 
     prelevel(gameMode);
+
+    if (RRRA && ud.level_number == 2 && ud.volume_number == 0)
+    {
+        for (bssize_t i = PISTOL_WEAPON; i < MAX_WEAPONS; i++)
+            g_player[0].ps->ammo_amount[i] = 0;
+        g_player[0].ps->gotweapon &= ~(1<<KNEE_WEAPON);
+        g_player[0].ps->gotweapon |= (1<<SLINGBLADE_WEAPON);
+        g_player[0].ps->ammo_amount[SLINGBLADE_WEAPON] = 1;
+        g_player[0].ps->curr_weapon = SLINGBLADE_WEAPON;
+    }
 
     G_AlignWarpElevators();
     resetpspritevars(gameMode);
@@ -1915,4 +2654,37 @@ void G_FreeMapState(int levelNum)
         return;
 
     ALIGNED_FREE_AND_NULL(pMapInfo->savedstate);
+}
+
+void G_SetFog(int fogtype)
+{
+    static int makeTables = 0;
+    static char *lut0,*lut30,*lut33,*lut23,*lut8;
+    if (!makeTables)
+    {
+        makeTables = 1;
+        lut0 = palookup[0];
+        lut30 = palookup[30];
+        lut33 = palookup[33];
+        lut23 = palookup[23];
+        lut8 = palookup[8];
+        paletteMakeLookupTable(50, NULL, 12, 12, 12, 1);
+        paletteMakeLookupTable(51, NULL, 12, 12, 12, 1);
+    }
+    if (fogtype == 0)
+    {
+        palookup[0] = lut0;
+        palookup[30] = lut30;
+        palookup[33] = lut33;
+        palookup[23] = lut23;
+        palookup[8] = lut8;
+    }
+    else if (fogtype == 2)
+    {
+        palookup[0] = palookup[50];
+        palookup[30] = palookup[51];
+        palookup[33] = palookup[51];
+        palookup[23] = palookup[51];
+        palookup[8] = palookup[54];
+    }
 }

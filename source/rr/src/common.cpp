@@ -1041,7 +1041,53 @@ void G_LoadLookups(void)
         paletteSetColorTable(basepalnum, paldata);
     }
 
+    Bmemcpy(paldata, palette+1, 767);
+    paldata[767] = palette[767];
+    paletteSetColorTable(DRUGPAL, paldata);
+
     kclose(fp);
+
+    if (RR)
+    {
+        char table[256];
+        for (bssize_t i = 0; i < 256; i++)
+            table[i] = i;
+        for (bssize_t i = 0; i < 32; i++)
+            table[i] = i+32;
+
+        paletteMakeLookupTable(7, table, 0, 0, 0, 1);
+
+        for (bssize_t i = 0; i < 256; i++)
+            table[i] = i;
+        paletteMakeLookupTable(30, table, 0, 0, 0, 1);
+        paletteMakeLookupTable(31, table, 0, 0, 0, 1);
+        paletteMakeLookupTable(32, table, 0, 0, 0, 1);
+        paletteMakeLookupTable(33, table, 0, 0, 0, 1);
+        if (RRRA)
+            paletteMakeLookupTable(105, table, 0, 0, 0, 1);
+
+        j = 63;
+        for (bssize_t i = 64; i < 80; i++)
+        {
+            j--;
+            table[i] = j;
+            table[i+16] = j-24;
+        }
+        table[80] = 80;
+        table[81] = 81;
+        for (bssize_t i = 0; i < 32; i++)
+            table[i] = i+32;
+        paletteMakeLookupTable(34, table, 0, 0, 0, 1);
+        for (bssize_t i = 0; i < 256; i++)
+            table[i] = i;
+        for (bssize_t i = 0; i < 16; i++)
+            table[i] = i+129;
+        for (bssize_t i = 16; i < 32; i++)
+            table[i] = i+192;
+        paletteMakeLookupTable(35, table, 0, 0, 0, 1);
+        if (RRRA)
+            paletteMakeLookupTable(54, palookup[8], 32, 32, 32, 1);
+    }
 }
 
 //////////

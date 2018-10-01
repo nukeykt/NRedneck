@@ -3880,7 +3880,7 @@ ACTOR_STATIC void A_ResetPins(int16_t sect)
     }
 }
 
-ACTOR_STATIC void A_ResetLanePics(void)
+void A_ResetLanePics(void)
 {
     for (int tag = 1; tag <= 4; tag++)
     {
@@ -6091,6 +6091,8 @@ DETONATEB:
             int     playerNum = A_FindPlayer(pSprite, &playerDist);
             A_Execute(spriteNum, playerNum, playerDist);
         }
+        if (deleteAfterExecute)
+            A_DeleteSprite(spriteNum);
 next_sprite:
         spriteNum = nextSprite;
     }
@@ -7810,7 +7812,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
                     }
                     for (SPRITES_OF(STAT_PLAYER, k))
                     {
-                        if (sprite[k].owner >= 0 && clipinsidebox((vec2_t *)&sprite[k], j, pPlayer->clipdist))
+                        if (sprite[k].owner >= 0 && clipinsidebox((vec2_t *)&sprite[k], j, 144))
                         {
                             pData[5] = 8;  // Delay
                             pData[2] -= l;

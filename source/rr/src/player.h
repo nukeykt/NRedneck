@@ -117,7 +117,7 @@ typedef struct {
     int16_t got_access, last_extra, inv_amount[GET_MAX], curr_weapon, holoduke_on;
     int16_t last_weapon, weapon_pos, kickback_pic;
     int16_t ammo_amount[MAX_WEAPONS], frag[MAXPLAYERS];
-    uint16_t gotweapon;
+    uint32_t gotweapon;
     char inven_icon, jetpack_on, heat_on;
 } DukeStatus_t;
 
@@ -150,7 +150,8 @@ typedef struct {
 
     uint32_t interface_toggle_flag;
     uint16_t max_actors_killed, actors_killed;
-    uint16_t gotweapon, zoom;
+    uint32_t gotweapon;
+    uint16_t zoom;
 
     int16_t loogiex[64], loogiey[64], sbs, sound_pitch;
 
@@ -170,7 +171,7 @@ typedef struct {
 
     int16_t orotscrnang, rotscrnang, dead_flag;   // JBF 20031220: added orotscrnang
     int16_t holoduke_on, pycount;
-    int16_t transporter_hold, clipdist;
+    int16_t transporter_hold/*, clipdist*/;
 
     uint8_t max_secret_rooms, secret_rooms;
     // XXX: 255 values for frag(gedself) seems too small.
@@ -200,15 +201,28 @@ typedef struct {
 
     int8_t last_used_weapon;
 
+    int16_t recoil;
+    int32_t stairs;
+    int32_t hbomb_offset;
+    int16_t hbomb_time;
+    uint8_t shotgun_state[2];
     uint8_t make_noise;
     int32_t noise_x, noise_y, noise_radius;
     uint8_t keys[5];
-    int16_t drink_amt, eat_amt;
+    int16_t yehaa_timer;
+    int16_t drink_amt, eat_amt, drink_ang, eat_ang;
+    int32_t drink_timer, eat_timer;
     int16_t level_end_timer;
-    int16_t moto_speed;
-    uint8_t on_motorcycle, on_boat, moto_underwater;
+    int16_t moto_speed, tilt_status, moto_drink;
+    uint8_t on_motorcycle, on_boat, moto_underwater, not_on_water, moto_on_ground;
+    uint8_t moto_do_bump, moto_bump_fast, moto_on_oil, moto_on_mud;
+    int16_t moto_bump, moto_bump_target, moto_turb;
+    int16_t drug_stat[4];
+    uint8_t drug_mode, lotag800kill, sea_sick_stat;
+    int32_t sea_sick;
+    uint8_t hurt_delay2, nocheat;
 
-    int8_t padding_[3];
+    int8_t padding_[2];
 } DukePlayer_t;
 
 // KEEPINSYNC lunatic/_defs_game.lua
@@ -305,6 +319,8 @@ static inline void P_PalFrom(DukePlayer_t *pPlayer, uint8_t f, uint8_t r, uint8_
 void    P_AddKills(DukePlayer_t * const pPlayer, uint16_t kills);
 int32_t A_GetHitscanRange(int spriteNum);
 void    P_GetInput(int playerNum);
+void    P_GetInputMotorcycle(int playerNum);
+void    P_GetInputBoat(int playerNum);
 void P_AddAmmo(DukePlayer_t * const pPlayer, int const weaponNum, int const addAmount);
 void    P_AddWeapon(DukePlayer_t *pPlayer, int weaponNum);
 void    P_CheckWeapon(DukePlayer_t *pPlayer);
@@ -328,6 +344,8 @@ int     P_GetKneePal(const DukePlayer_t *pPlayer, int const hudPal);
 extern "C" {
 #endif
 int     P_GetOverheadPal(const DukePlayer_t *pPlayer);
+void P_MadeNoise(int playerNum);
+int P_HasKey(int sectNum, int playerNum);
 
 int Proj_GetDamage(projectile_t const *pProj);
 

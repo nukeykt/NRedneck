@@ -146,6 +146,7 @@ G_EXTERN int32_t g_ufoCnt;
 G_EXTERN int32_t g_hulkSpawn;
 G_EXTERN int32_t g_vixenLevel;
 G_EXTERN int32_t g_lastLevel;
+G_EXTERN int32_t g_turdLevel;
 
 G_EXTERN int32_t g_mineCartDir[MAXMINECARTS];
 G_EXTERN int32_t g_mineCartSpeed[MAXMINECARTS];
@@ -197,8 +198,10 @@ G_EXTERN intptr_t *g_scriptPtr;
 G_EXTERN map_t g_mapInfo[(MAXVOLUMES + 1) * MAXLEVELS];  // +1 volume for "intro", "briefing" and "loading" music
 G_EXTERN vec2_t g_origins[MAXANIMPOINTS];
 
+G_EXTERN int32_t g_windTime, g_windDir;
+G_EXTERN int16_t g_fakeBubbaCnt, g_mamaSpawnCnt, g_banjoSong, g_bellTime, g_bellSprite;
 G_EXTERN uint8_t g_spriteExtra[MAXSPRITES], g_sectorExtra[MAXSECTORS];
-G_EXTERN uint8_t g_changeEnemySize, g_slotWin, g_ufoSpawnMinion, g_pistonSound;
+G_EXTERN uint8_t g_changeEnemySize, g_slotWin, g_ufoSpawnMinion, g_pistonSound, g_chickenWeaponTimer, g_RAendLevel, g_RAendEpisode, g_fogType;
 
 // XXX: I think this pragma pack is meaningless here.
 // MSDN (https://msdn.microsoft.com/en-us/library/2e70t5y1%28VS.80%29.aspx) says:
