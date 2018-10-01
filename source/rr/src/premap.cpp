@@ -371,7 +371,7 @@ static void G_CacheSpriteNum(int32_t i)
 
 static void G_PrecacheSprites(void)
 {
-    int32_t i,j;
+    int32_t i;
 
     //for (i=0; i<MAXTILES; i++)
     //{
@@ -471,7 +471,7 @@ static void G_PrecacheSprites(void)
 
 static void G_DoLoadScreen(const char *statustext, int32_t percent)
 {
-    int32_t i=0,j;
+    int32_t i=0;
 
     if (ud.recstat != 2)
     {

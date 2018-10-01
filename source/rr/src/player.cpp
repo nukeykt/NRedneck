@@ -440,10 +440,10 @@ static int Proj_DoHitscan(int spriteNum, int32_t const cstatmask, const vec3_t *
         if (((sector[hitData->sect].lotag == 160 && zvel > 0) || (sector[hitData->sect].lotag == 161 && zvel < 0))
             && hitData->sprite == -1 && hitData->wall == -1)
         {
-            for (int spriteNum; spriteNum < MAXSPRITES; spriteNum++)
+            for (int spriteNum = 0; spriteNum < MAXSPRITES; spriteNum++)
             {
                 if (sprite[spriteNum].sectnum == hitData->sect && sprite[spriteNum].picnum == SECTOREFFECTOR
-                    && sprite[spriteNum].lotag == SE_7_TELEPORT);
+                    && sprite[spriteNum].lotag == SE_7_TELEPORT)
                 {
                     vec3_t const newVect = {
                         hitData->pos.x + (sprite[OW(spriteNum)].x - sprite[spriteNum].x),
@@ -891,7 +891,7 @@ growspark_rr:
                     shootAng -= krand()&16;
                 else
                     shootAng += 16 - (krand() & 31);
-                //hitData.pos.x         = safeldist(g_player[otherPlayer].ps->i, pSprite);
+                hitData.pos.x         = safeldist(g_player[otherPlayer].ps->i, pSprite);
                 Zvel                  = tabledivide32_noinline((g_player[otherPlayer].ps->opos.z - startPos.z + (3 << 8)) * vel, hitData.pos.x);
             }
 
@@ -1008,7 +1008,7 @@ growspark_rr:
                 }
                 else
                     shootAng           += 16 - (krand() & 31);
-                //hitData.pos.x         = safeldist(g_player[otherPlayer].ps->i, pSprite);
+                hitData.pos.x         = safeldist(g_player[otherPlayer].ps->i, pSprite);
                 Zvel                  = tabledivide32_noinline((g_player[otherPlayer].ps->opos.z - startPos.z + (3 << 8)) * vel, hitData.pos.x);
             }
 
@@ -1724,7 +1724,7 @@ void P_DisplayWeapon(void)
     DukePlayer_t *const  pPlayer     = g_player[screenpeek].ps;
     const uint8_t *const weaponFrame = &pPlayer->kickback_pic;
 
-    int currentWeapon;
+    int currentWeapon, quickKickFrame;
 
 #ifdef SPLITSCREEN_MOD_HACKS
     g_snum = screenpeek;
@@ -1768,7 +1768,7 @@ void P_DisplayWeapon(void)
     hudweap.count       = *weaponFrame;
     hudweap.lookhalfang = pPlayer->look_ang >> 1;
 
-    int const quickKickFrame = 14 - pPlayer->quick_kick;
+    quickKickFrame = 14 - pPlayer->quick_kick;
 
     if (!RR && (quickKickFrame != 14 || pPlayer->last_quick_kick) && ud.drawweapon == 1)
     {
@@ -2412,7 +2412,6 @@ void P_DisplayWeapon(void)
 
                 if (*weaponFrame > 0)
                 {
-                    int totalTime;
                     if (*weaponFrame < 8)
                         G_DrawWeaponTileWithID(currentWeapon << 1, weaponX + 164, (weaponY << 1) + 176 - weaponYOffset,
                             RPGGUN + ((*weaponFrame) >> 1), weaponShade, weaponBits, weaponPal);
@@ -6359,7 +6358,7 @@ void P_ProcessInput(int playerNum)
             }
             else if (pPlayer->moto_speed >= 20 && pPlayer->on_ground == 1 && (pPlayer->moto_on_mud || pPlayer->moto_on_oil))
             {
-                short var9c, vara0, vara4, vara8;
+                short var9c, vara0, vara4;
                 var9c = pPlayer->moto_speed;
                 vara0 = fix16_to_int(pPlayer->q16ang);
                 var84 = krand()&1;
@@ -7430,14 +7429,15 @@ check_enemy_sprite:
                                                ? TrackerCast(sprite[lowZhit & (MAXSPRITES - 1)].picnum)
                                                : TrackerCast(sector[pPlayer->cursectnum].floorpicnum);
 
-                        switch (!RR && DYNAMICTILEMAP(walkPicnum))
-                        {
-                            case PANNEL1__STATIC:
-                            case PANNEL2__STATIC:
-                                A_PlaySound(DUKE_WALKINDUCTS, pPlayer->i);
-                                pPlayer->walking_snd_toggle = 1;
-                                break;
-                        }
+                        if (!RR)
+                            switch (DYNAMICTILEMAP(walkPicnum))
+                            {
+                                case PANNEL1__STATIC:
+                                case PANNEL2__STATIC:
+                                    A_PlaySound(DUKE_WALKINDUCTS, pPlayer->i);
+                                    pPlayer->walking_snd_toggle = 1;
+                                    break;
+                            }
                     }
                     break;
 
@@ -7638,7 +7638,7 @@ HORIZONLY:;
                 }
                 else if (RRRA && pPlayer->on_boat)
                 {
-                    short var114, var118, var11c;
+                    short var114, var118;
                     var114 = getangle(wall[wall[wallNum].point2].x-wall[wallNum].x,wall[wall[wallNum].point2].y-wall[wallNum].y);
                     var118 = klabs(fix16_to_int(pPlayer->q16ang)-var114);
                     switch (krand()&1)

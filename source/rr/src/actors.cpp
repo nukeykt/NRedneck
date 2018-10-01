@@ -4543,6 +4543,7 @@ ACTOR_STATIC void G_MoveActors(void)
         spritetype *const pSprite    = &sprite[spriteNum];
         int const         sectNum    = pSprite->sectnum;
         int32_t *const    pData      = actor[spriteNum].t_data;
+        int deleteAfterExecute = 0;
 
         int switchPic;
 
@@ -4550,8 +4551,6 @@ ACTOR_STATIC void G_MoveActors(void)
             DELETE_SPRITE_AND_CONTINUE(spriteNum);
 
         Bmemcpy(&actor[spriteNum].bpos, pSprite, sizeof(vec3_t));
-
-        int deleteAfterExecute = 0;
 
         switchPic = pSprite->picnum;
 
@@ -6631,7 +6630,7 @@ jib_code:
 
                 A_SetSprite(spriteNum,CLIPMASK0);
 
-                if (sectNum < 0 || (!RR && (sector[sectNum].floorz + (24<<8))) < pSprite->z)
+                if (sectNum < 0 || (!RR && (sector[sectNum].floorz + (24<<8)) < pSprite->z))
                     DELETE_SPRITE_AND_CONTINUE(spriteNum);
 
                 if (sector[sectNum].lotag == ST_2_UNDERWATER)

@@ -1204,7 +1204,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 void G_DumpDebugInfo(void)
 {
     static char const s_WEAPON[] = "WEAPON";
-    int32_t i,j,x;
+    int32_t j,x;
     //    FILE * fp=fopen("condebug.log","w");
 
     VM_ScriptInfo(insptr, 64);

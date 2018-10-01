@@ -5280,6 +5280,7 @@ void G_Thunder(void)
             i = 0;
         else if (i >= MAXTORCHSECTORS)
             i = MAXTORCHSECTORS - 1;
+        shade = g_torchSectorShade[i]+(krand()&8);
         for (i = 0; i < g_lightninCnt; i++)
         {
             sector[g_lightninSector[i]].floorshade = g_lightninSectorShade[i] - shade;

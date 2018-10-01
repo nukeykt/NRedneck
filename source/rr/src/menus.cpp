@@ -4078,16 +4078,10 @@ static void Menu_AboutToStartDisplaying(Menu_t * m)
 
 static void Menu_ChangingTo(Menu_t * m)
 {
-    switch (m->menuID)
-    {
 #ifdef __ANDROID__
-    case MENU_TOUCHBUTTONS:
+    if (m->menuID == MENU_TOUCHBUTTONS)
         AndroidToggleButtonEditor();
-        break;
 #endif
-    default:
-        break;
-    }
 
     switch (m->type)
     {

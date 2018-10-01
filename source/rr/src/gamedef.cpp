@@ -1131,7 +1131,6 @@ static int32_t C_ParseCommand(int32_t loop)
         case CON_STATE:
             if (!g_parsingActorPtr && g_processingState == 0)
             {
-DO_DEFSTATE:
                 C_GetNextLabelName();
                 g_scriptPtr--;
                 labelcode[g_labelCnt] = g_scriptPtr-apScript;
