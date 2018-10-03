@@ -4348,7 +4348,8 @@ static void polymost_drawalls(int32_t const bunch)
                 int i = (1<<(picsiz[globalpicnum]>>4)); if (i != tilesiz[globalpicnum].y) i += i;
                 vec3f_t o;
 
-                if ((tilesiz[globalpicnum].y * daptileyscale * (1.f/65536.f)) > 256)
+                //if ((tilesiz[globalpicnum].y * daptileyscale * (1.f/65536.f)) > 256)
+                if (1)
                 {
                     //Hack to draw black rectangle below sky when looking down...
                     xtex.d = xtex.u = xtex.v = 0;
@@ -4441,7 +4442,9 @@ static void polymost_drawalls(int32_t const bunch)
                 do
                 {
                     globalpicnum = dapskyoff[y&((1<<dapskybits)-1)]+i;
-                    otex.u = otex.d*(t*((float)(fglobalang-(y<<(11-dapskybits)))) * (1.f/2048.f) + (float)((r_parallaxskypanning)?sec->floorxpanning:0)) - xtex.u*ghalfx;
+                    int32_t picbits = picsiz[globalpicnum]&15;
+                    int32_t np2 = tilesiz[globalpicnum].x != (1<<picbits);
+                    otex.u = otex.d*(t*((float)(fglobalang-(np2 ? 0 : (y<<(11-dapskybits))))) * (1.f/2048.f) + (float)((r_parallaxskypanning)?sec->floorxpanning:0)) - xtex.u*ghalfx;
                     y++;
                     o.x = fx; fx = ((float)((y<<(11-dapskybits))-fglobalang))*o.z+ghalfx;
                     if (fx > x1) { fx = x1; i = -1; }
@@ -4680,7 +4683,8 @@ static void polymost_drawalls(int32_t const bunch)
                 int i = (1<<(picsiz[globalpicnum]>>4)); if (i != tilesiz[globalpicnum].y) i += i;
                 vec3f_t o;
 
-                if ((tilesiz[globalpicnum].y * daptileyscale * (1.f/65536.f)) > 256)
+                //if ((tilesiz[globalpicnum].y * daptileyscale * (1.f/65536.f)) > 256)
+                if (1)
                 {
 #if 0
                     //Hack to draw black rectangle below sky when looking down...
@@ -4773,7 +4777,9 @@ static void polymost_drawalls(int32_t const bunch)
                 do
                 {
                     globalpicnum = dapskyoff[y&((1<<dapskybits)-1)]+i;
-                    otex.u = otex.d*(t*((float)(fglobalang-(y<<(11-dapskybits)))) * (1.f/2048.f) + (float)((r_parallaxskypanning)?sec->ceilingxpanning:0)) - xtex.u*ghalfx;
+                    int32_t picbits = picsiz[globalpicnum]&15;
+                    int32_t np2 = tilesiz[globalpicnum].x != (1<<picbits);
+                    otex.u = otex.d*(t*((float)(fglobalang-(np2 ? 0 : (y<<(11-dapskybits))))) * (1.f/2048.f) + (float)((r_parallaxskypanning)?sec->ceilingxpanning:0)) - xtex.u*ghalfx;
                     y++;
                     o.x = fx; fx = (((float) (y<<(11-dapskybits))-fglobalang))*o.z+ghalfx;
                     if (fx > x1) { fx = x1; i = -1; }
