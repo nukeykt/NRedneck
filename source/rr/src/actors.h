@@ -57,6 +57,7 @@ extern "C" {
 #define STAT_FALLER         12
 #define STAT_DUMMYPLAYER    13
 #define STAT_LIGHT          14
+#define STAT_RAROR          15
 #define STAT_NETALLOC       MAXSTATUS-1
 
 
@@ -213,8 +214,9 @@ enum sflags_t
     SFLAG_REALCLIPDIST     = 0x01000000,
     SFLAG_WAKEUPBADGUYS    = 0x02000000,
     SFLAG_DAMAGEEVENT      = 0x04000000,
-    SFLAG_KILLCOUNT        = 0x08000000,
-    SFLAG_NOCANSEECHECK    = 0x10000000,
+    SFLAG_BADGUY_TILE      = 0x08000000,
+    SFLAG_KILLCOUNT        = 0x10000000,
+    SFLAG_NOCANSEECHECK    = 0x20000000,
 };
 
 // Custom projectiles "workslike" flags.
@@ -313,7 +315,7 @@ EXTERN_INLINE_HEADER int A_CheckEnemySprite(void const * const s);
 
 ACTOR_INLINE int A_CheckEnemyTile(int const tileNum)
 {
-    return ((g_tile[tileNum].flags & (SFLAG_HARDCODED_BADGUY | SFLAG_BADGUY)) != 0);
+    return ((g_tile[tileNum].flags & (SFLAG_BADGUY_TILE | SFLAG_BADGUY)) != 0);
 }
 
 ACTOR_INLINE int A_SetSprite(int const spriteNum, uint32_t cliptype)

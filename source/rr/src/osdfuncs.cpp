@@ -34,12 +34,13 @@ float osdscale = 2.f, osdrscale = 0.5f;
 #else
 float osdscale = 1.f, osdrscale = 1.f;
 #endif
+float osdscale2 = 1.f, osdrscale2 = 1.f;
 
-#define OSD_SCALE(x) (int32_t)(osdscale != 1.f ? Blrintf(osdscale*(float)(x)) : (x))
-#define OSD_SCALEDIV(x) (int32_t)Blrintf((float)(x) * osdrscale)
+#define OSD_SCALE(x) (int32_t)Blrintf(osdscale*osdscale2*(float)(x))
+#define OSD_SCALEDIV(x) (int32_t)Blrintf((float)(x) * osdrscale * osdrscale2)
 
-#define OSDCHAR_WIDTH (tilesiz[STARTALPHANUM + 'A' - '!'].x)
-#define OSDCHAR_HEIGHT (tilesiz[STARTALPHANUM + 'A' - '!'].y + 1)
+#define OSDCHAR_WIDTH (tilesiz[STARTALPHANUM + 'W' - '!'].x)
+#define OSDCHAR_HEIGHT (tilesiz[STARTALPHANUM + 'W' - '!'].y + 1)
 
 static inline int32_t GAME_isspace(int32_t ch)
 {

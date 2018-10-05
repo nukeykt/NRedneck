@@ -731,12 +731,12 @@ void G_UpdateScreenArea(void)
         int32_t x1 = scale(ss,xdim,160);
         int32_t x2 = xdim-x1;
 
-        int32_t y1 = scale(ss,(200 * 100) - (tilesiz[BOTTOMSTATUSBAR].y * ud.statusbarscale),200 - tilesiz[BOTTOMSTATUSBAR].y);
+        int32_t y1 = scale(ss,(200 * 100) - ((tilesiz[BOTTOMSTATUSBAR].y >> (RR ? 1 : 0)) * ud.statusbarscale),200 - tilesiz[BOTTOMSTATUSBAR].y);
         int32_t y2 = 200*100-y1;
 
         y1 += fragbarheight()*100;
         if (ud.screen_size >= 8 && ud.statusbarmode==0)
-            y2 -= tilesiz[BOTTOMSTATUSBAR].y*ud.statusbarscale;
+            y2 -= (tilesiz[BOTTOMSTATUSBAR].y >> (RR ? 1 : 0))*ud.statusbarscale;
         y1 = scale(y1,ydim,200*100);
         y2 = scale(y2,ydim,200*100);
 
@@ -1031,7 +1031,7 @@ void P_ResetStatus(int playerNum)
             pPlayer->drug_stat[0] = 0;
             pPlayer->drug_stat[1] = 0;
             pPlayer->drug_stat[2] = 0;
-            pPlayer->drug_stat[3] = 0;
+            pPlayer->drug_aspect = 0;
         }
         A_ResetLanePics();
         if (!g_netServer && numplayers < 2)
@@ -1412,7 +1412,7 @@ static void prelevel(char g)
         case 41:
         {
             if (!RR) break;
-            int32_t p1, p2, p3;
+            int32_t p1 = 0, p2 = 0, p3 = 0;
             int k = headspritesect[i];
             while (k != -1)
             {
@@ -1452,7 +1452,7 @@ static void prelevel(char g)
         case 42:
         {
             if (!RR) break;
-            int32_t p1, p2, p3;
+            int32_t p1, p2, p3 = 0;
             int k = headspritesect[i];
             while (k != -1)
             {
@@ -1523,7 +1523,7 @@ static void prelevel(char g)
                     sky->horizfrac = 32768;
                     sky->lognumtiles = 1;
                     sky->tileofs[0] = 0;
-                    sky->tileofs[1] = 1;
+                    sky->tileofs[1] = 0;
                 }
                 else if (tilesiz[picnum].x == 1024)
                 {
@@ -1967,7 +1967,7 @@ void G_NewGame(int volumeNum, int levelNum, int skillNum)
             G_BonusScreenRRRA(1);
     }
 
-    if (RRRA && g_turdLevel && !g_lastLevel)
+    if (RR && !RRRA && g_turdLevel && !g_lastLevel)
         G_BonusScreen(0);
 
     g_showShareware = GAMETICSPERSEC*34;
@@ -1988,7 +1988,7 @@ void G_NewGame(int volumeNum, int levelNum, int skillNum)
 
     // we don't want the intro to play after the multiplayer setup screen
     if (!RR && (!g_netServer && ud.multimode < 2) && UserMap == 0 &&
-        levelNum == 0 && volumeNum == 3 && ud.lockout == 0 && (G_GetLogoFlags() & LOGO_NOE4CUTSCENE)==0)
+        levelNum == 0 && volumeNum == 3 && ud.lockout == 0)
     {
         S_PlaySpecialMusicOrNothing(MUS_BRIEFING);
 
@@ -2658,8 +2658,11 @@ void G_FreeMapState(int levelNum)
 
 void G_SetFog(int fogtype)
 {
+    static int oldFogType = 0;
     static int makeTables = 0;
     static char *lut0,*lut30,*lut33,*lut23,*lut8;
+    static palette_t flut0,flut30,flut33,flut23,flut8;
+    extern coltypef fogtable[MAXPALOOKUPS];
     if (!makeTables)
     {
         makeTables = 1;
@@ -2668,8 +2671,13 @@ void G_SetFog(int fogtype)
         lut33 = palookup[33];
         lut23 = palookup[23];
         lut8 = palookup[8];
-        paletteMakeLookupTable(50, NULL, 12, 12, 12, 1);
-        paletteMakeLookupTable(51, NULL, 12, 12, 12, 1);
+        flut0 = palookupfog[0];
+        flut30 = palookupfog[30];
+        flut33 = palookupfog[33];
+        flut23 = palookupfog[23];
+        flut8 = palookupfog[8];
+        paletteMakeLookupTable(50, NULL, 12*4, 12*4, 12*4, 1);
+        paletteMakeLookupTable(51, NULL, 12*4, 12*4, 12*4, 1);
     }
     if (fogtype == 0)
     {
@@ -2678,6 +2686,11 @@ void G_SetFog(int fogtype)
         palookup[33] = lut33;
         palookup[23] = lut23;
         palookup[8] = lut8;
+        palookupfog[0] = flut0;
+        palookupfog[30] = flut30;
+        palookupfog[33] = flut33;
+        palookupfog[23] = flut23;
+        palookupfog[8] = flut8;
     }
     else if (fogtype == 2)
     {
@@ -2686,5 +2699,24 @@ void G_SetFog(int fogtype)
         palookup[33] = palookup[51];
         palookup[23] = palookup[51];
         palookup[8] = palookup[54];
+        palookupfog[0] = palookupfog[50];
+        palookupfog[30] = palookupfog[51];
+        palookupfog[33] = palookupfog[51];
+        palookupfog[23] = palookupfog[51];
+        palookupfog[8] = palookupfog[54];
+    }
+    if (oldFogType != fogtype)
+    {
+        oldFogType = fogtype;
+        if (videoGetRenderMode() >= REND_POLYMOST)
+        {
+            for (bssize_t i=0; i<=MAXPALOOKUPS-1; i++)
+            {
+                fogtable[i].r = palookupfog[i].r * (1.f/255.f);
+                fogtable[i].g = palookupfog[i].g * (1.f/255.f);
+                fogtable[i].b = palookupfog[i].b * (1.f/255.f);
+                fogtable[i].a = 0;
+            }
+        }
     }
 }

@@ -243,8 +243,8 @@ void CONFIG_SetDefaults(void)
     ud.m_ffire = 1;
     ud.m_marker = 1;
     ud.menu_slidebarz = 65536;
-    ud.menu_slidebarmargin = 65536;
-    ud.menu_slidecursorz = 65536;
+    ud.menu_slidebarmargin = RR ? 6 * 65536 : 65536;
+    ud.menu_slidecursorz = RR ? 32768 : 65536;
     ud.mouseaiming = 0;
     ud.mouseflip = 1;
     ud.msgdisptime = 120;

@@ -911,7 +911,7 @@ void G_CleanupSearchPaths(void)
     if (!RRRA)
         removesearchpaths_withuser(SEARCHPATH_RRRA);
 
-    if (!RR)
+    if (!RR || RRRA)
         removesearchpaths_withuser(SEARCHPATH_RR);
 }
 
@@ -1086,7 +1086,7 @@ void G_LoadLookups(void)
             table[i] = i+192;
         paletteMakeLookupTable(35, table, 0, 0, 0, 1);
         if (RRRA)
-            paletteMakeLookupTable(54, palookup[8], 32, 32, 32, 1);
+            paletteMakeLookupTable(54, palookup[8], 32*4, 32*4, 32*4, 1);
     }
 }
 

@@ -1459,13 +1459,14 @@ int P_ActivateSwitch(int playerNum, int wallOrSprite, int switchType)
     case MULTISWITCH__STATIC:
     case MULTISWITCH2__STATICRR:
     case REST_SWITCH_CASES:
-        if (!RR && nSwitchPicnum == NUKEBUTTON) break;
-        if (RR && !RRRA && (nSwitchPicnum == MULTISWITCH2 || nSwitchPicnum == RRTILE8464 || nSwitchPicnum == RRTILE8660)) break;
+        if (!RR && nSwitchPicnum == NUKEBUTTON) goto default_case;
+        if (RR && !RRRA && (nSwitchPicnum == MULTISWITCH2 || nSwitchPicnum == RRTILE8464 || nSwitchPicnum == RRTILE8660)) goto default_case;
         if (G_CheckActivatorMotion(lotag))
             return 0;
         break;
 
     default:
+default_case:
         if (CheckDoorTile(nSwitchPicnum) == 0)
             return 0;
         break;

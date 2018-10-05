@@ -167,7 +167,7 @@ void S_RestartMusic(void)
     {
         S_PlayLevelMusicOrNothing(g_musicIndex);
     }
-    else if (G_GetLogoFlags() & LOGO_PLAYMUSIC)
+    else
     {
         S_PlaySpecialMusicOrNothing(MUS_INTRO);
     }

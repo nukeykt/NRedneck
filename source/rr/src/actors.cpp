@@ -618,6 +618,8 @@ void A_DoGuts(int spriteNum, int tileNum, int spawnCnt)
     else if (RRRA && pSprite->picnum == MINION && (pSprite->pal == 8 || pSprite->pal == 19))
         pal = pSprite->pal;
 
+    if (RR) repeat.x >>= 1, repeat.y >>= 1;
+
     for (bssize_t j=spawnCnt; j>0; j--)
     {
         int const i = A_InsertSprite(pSprite->sectnum, pSprite->x + (krand() & 255) - 128,
@@ -2796,44 +2798,62 @@ ACTOR_STATIC void G_MoveWeapons(void)
                     sprite[newSprite].z += (1 << 8);
                 }
 
-                if (RRRA && pSprite->picnum == RPG2)
+                if (RRRA)
                 {
-                    pSprite->hitag++;
-                    if (actor[spriteNum].picnum != BOSS2 && pSprite->xrepeat >= 10
-                    && sector[pSprite->sectnum].lotag != ST_2_UNDERWATER)
+                    if (pSprite->picnum == RPG2)
                     {
-                        int const newSprite = A_Spawn(spriteNum, SMALLSMOKE);
-                        sprite[newSprite].z += (1 << 8);
-                        if ((krand()&15) == 2)
-                            A_Spawn(spriteNum, MONEY);
-                    }
-                    if (sprite[pSprite->lotag].extra <= 0)
-                        pSprite->lotag = 0;
-                    else if (pSprite->lotag != 0 && pSprite->hitag > 5)
-                    {
-                        spritetype *pTarget = &sprite[pSprite->lotag];
-                        int const angle = getangle(pTarget->x-pSprite->x, pTarget->y-pSprite->y);
-                        int const angleDiff = angle - pSprite->ang;
-                        int const angleDiffAbs = klabs(angleDiff);
-                        if (angleDiff < 100)
+                        pSprite->hitag++;
+                        if (actor[spriteNum].picnum != BOSS2 && pSprite->xrepeat >= 10
+                            && sector[pSprite->sectnum].lotag != ST_2_UNDERWATER)
                         {
-                            if (angleDiffAbs > 1023)
-                                pSprite->ang += 51;
-                            else
-                                pSprite->ang -= 51;
+                            int const newSprite = A_Spawn(spriteNum, SMALLSMOKE);
+                            sprite[newSprite].z += (1 << 8);
+                            if ((krand() & 15) == 2)
+                                A_Spawn(spriteNum, MONEY);
                         }
-                        else if (angleDiff > 100)
+                        if (sprite[pSprite->lotag].extra <= 0)
+                            pSprite->lotag = 0;
+                        else if (pSprite->lotag != 0 && pSprite->hitag > 5)
                         {
-                            if (angleDiffAbs > 1023)
-                                pSprite->ang -= 51;
+                            spritetype *pTarget = &sprite[pSprite->lotag];
+                            int const angle = getangle(pTarget->x - pSprite->x, pTarget->y - pSprite->y);
+                            int const angleDiff = angle - pSprite->ang;
+                            int const angleDiffAbs = klabs(angleDiff);
+                            if (angleDiff < 100)
+                            {
+                                if (angleDiffAbs > 1023)
+                                    pSprite->ang += 51;
+                                else
+                                    pSprite->ang -= 51;
+                            }
+                            else if (angleDiff > 100)
+                            {
+                                if (angleDiffAbs > 1023)
+                                    pSprite->ang -= 51;
+                                else
+                                    pSprite->ang += 51;
+                            }
                             else
-                                pSprite->ang += 51;
+                                pSprite->ang = angle;
+
+                            if (pSprite->hitag > 180 && pSprite->zvel <= 0)
+                                pSprite->zvel += 200;
+                        }
+                    }
+                    else if (pSprite->picnum == RRTILE1790)
+                    {
+                        if (pSprite->extra)
+                        {
+                            pSprite->zvel = -(pSprite->extra * 250);
+                            pSprite->extra--;
                         }
                         else
-                            pSprite->ang = angle;
-
-                        if (pSprite->hitag > 180 && pSprite->zvel <= 0)
-                            pSprite->zvel += 200;
+                            A_Fall(spriteNum);
+                        if (pSprite->xrepeat >= 10 && sector[pSprite->sectnum].lotag != ST_2_UNDERWATER)
+                        {
+                            int const newSprite = A_Spawn(spriteNum, SMALLSMOKE);
+                            sprite[newSprite].z += (1 << 8);
+                        }
                     }
                 }
 
@@ -9541,6 +9561,31 @@ static void A_DoLight(int spriteNum)
 
 void A_PlayAlertSound(int spriteNum)
 {
+    if (RR)
+    {
+        if (sprite[spriteNum].extra > 0)
+        {
+            switch (DYNAMICTILEMAP(PN(spriteNum)))
+            {
+                case COOT__STATICRR: if (!RRRA || (krand()&3) == 2) A_PlaySound(PRED_RECOG, spriteNum); break;
+                case LTH__STATICRR: break;
+                case BILLYCOCK__STATICRR:
+                case BILLYRAY__STATICRR:
+                case BRAYSNIPER__STATICRR: A_PlaySound(PIG_RECOG, spriteNum); break;
+                case DOGRUN__STATICRR:
+                case HULK__STATICRR:
+                case HEN__STATICRR:
+                case DRONE__STATICRR:
+                case PIG__STATICRR:
+                case RECON__STATICRR:
+                case MINION__STATICRR:
+                case COW__STATICRR:
+                case VIXEN__STATICRR:
+                case RABBIT__STATICRR: break;
+            }
+        }
+        return;
+    }
     if (sprite[spriteNum].extra > 0)
     {
         switch (DYNAMICTILEMAP(PN(spriteNum)))
@@ -9589,11 +9634,20 @@ int A_CheckSwitchTile(int spriteNum)
     if ((PN(spriteNum) >= MULTISWITCH && PN(spriteNum) <= MULTISWITCH + 3) || (PN(spriteNum) == ACCESSSWITCH || PN(spriteNum) == ACCESSSWITCH2))
         return 1;
 
+    if (RRRA && PN(spriteNum) >= MULTISWITCH2 && PN(spriteNum) <= MULTISWITCH2 + 3)
+        return 1;
+
     // Loop to catch both states of switches.
     for (bssize_t j=1; j>=0; j--)
     {
         switch (DYNAMICTILEMAP(PN(spriteNum)-j))
         {
+        case RRTILE8464__STATICRR:
+            if (RRRA) return 1;
+            break;
+        case NUKEBUTTON__STATIC:
+            if (RR) return 1;
+            break;
         case HANDPRINTSWITCH__STATIC:
         case ALIENSWITCH__STATIC:
         case MULTISWITCH__STATIC:
@@ -9669,6 +9723,9 @@ void G_MoveWorld(void)
     G_RefreshLights();
     G_DoSectorAnimations();
     G_MoveFX();               //ST 11
+
+    if (RR && numplayers < 2 && g_thunderOn)
+        G_Thunder();
 
     g_moveWorldTime = (1-0.033)*g_moveWorldTime + 0.033*(timerGetHiTicks()-worldTime);
 }

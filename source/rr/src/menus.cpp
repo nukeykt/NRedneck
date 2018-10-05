@@ -96,7 +96,7 @@ static void shadowminitext(int32_t x, int32_t y, const char *t, int32_t p)
     if (!minitext_lowercase)
         f |= TEXT_UPPERCASE;
 
-    G_ScreenTextShadow(1, 1, MINIFONT, x, y, 65536, 0, 0, t, 0, p, 2|8|16|ROTATESPRITE_FULL16, 0, 4<<16, 8<<16, 1<<16, 0, f, 0, 0, xdim-1, ydim-1);
+    G_ScreenTextShadow(1, 1, MINIFONT, x, y, RR ? 32768 : 65536, 0, 0, t, 0, p, 2|8|16|ROTATESPRITE_FULL16, 0, 4<<16, 8<<16, 1<<16, 0, f, 0, 0, xdim-1, ydim-1);
 }
 
 static void creditsminitext(int32_t x, int32_t y, const char *t, int32_t p)
@@ -106,7 +106,7 @@ static void creditsminitext(int32_t x, int32_t y, const char *t, int32_t p)
     if (!minitext_lowercase)
         f |= TEXT_UPPERCASE;
 
-    G_ScreenTextShadow(1, 1, MINIFONT, x, y, 65536, 0, 0, t, 0, p, 2|8|16|ROTATESPRITE_FULL16, 0, 4<<16, 8<<16, 1<<16, 0, f, 0, 0, xdim-1, ydim-1);
+    G_ScreenTextShadow(1, 1, MINIFONT, x, y, RR ? 32768 : 65536, 0, 0, t, 0, p, 2|8|16|ROTATESPRITE_FULL16, 0, 4<<16, 8<<16, 1<<16, 0, f, 0, 0, xdim-1, ydim-1);
 }
 
 #pragma pack(push,1)
@@ -120,8 +120,7 @@ static void Menu_DrawBackground(const vec2_t origin)
 
 static void Menu_DrawTopBar(const vec2_t origin)
 {
-    if ((G_GetLogoFlags() & LOGO_NOTITLEBAR) == 0)
-        rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (19<<16), MF_Redfont.cursorScale, 0,MENUBAR,16,0,10);
+    rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (19<<16), MF_Redfont.cursorScale2, 0,MENUBAR,16,0,10);
 }
 
 static void Menu_DrawTopBarCaption(const char *caption, const vec2_t origin)
@@ -147,11 +146,13 @@ static void Menu_DrawCursorCommon(int32_t x, int32_t y, int32_t z, int32_t picnu
 }
 static void Menu_DrawCursorLeft(int32_t x, int32_t y, int32_t z)
 {
-    Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+((totalclock>>3)%7));
+    const int frames = RR ? 16 : 7;
+    Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+((totalclock>>3)%frames));
 }
 static void Menu_DrawCursorRight(int32_t x, int32_t y, int32_t z)
 {
-    Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+6-((6+(totalclock>>3))%7));
+    const int frames = RR ? 16 : 7;
+    Menu_DrawCursorCommon(x, y, z, SPINNINGNUKEICON+frames-1-((frames-1+(totalclock>>3))%frames));
 }
 static void Menu_DrawCursorTextTile(int32_t x, int32_t y, int32_t h, int32_t picnum, vec2s_t const & siz, int32_t ydim_upper = 0, int32_t ydim_lower = ydim-1)
 {
@@ -161,6 +162,7 @@ static void Menu_DrawCursorTextTile(int32_t x, int32_t y, int32_t h, int32_t pic
 static void Menu_DrawCursorText(int32_t x, int32_t y, int32_t h, int32_t ydim_upper = 0, int32_t ydim_lower = ydim-1)
 {
     vec2s_t const & siz = tilesiz[SPINNINGNUKEICON];
+    const int frames = RR ? 16 : 7;
 
     if (siz.x == 0)
     {
@@ -168,7 +170,7 @@ static void Menu_DrawCursorText(int32_t x, int32_t y, int32_t h, int32_t ydim_up
         return;
     }
 
-    Menu_DrawCursorTextTile(x, y, h, SPINNINGNUKEICON+((totalclock>>3)%7), siz, ydim_upper, ydim_lower);
+    Menu_DrawCursorTextTile(x, y, h, SPINNINGNUKEICON+((totalclock>>3)%frames), siz, ydim_upper, ydim_lower);
 }
 
 extern int32_t g_quitDeadline;
@@ -202,13 +204,13 @@ they effectively stand in for curly braces as struct initializers.
 
 //                                      emptychar x,y       between x,y         zoom                cursorLeft          cursorCenter        cursorScale         textflags
 //                                      tilenum             shade_deselected    shade_disabled      pal                 pal_selected        pal_deselected      pal_disabled
-MenuFont_t MF_Redfont =               { { 5<<16, 15<<16 },  { 0, 0 },           65536,              20<<16,             110<<16,            65536,              TEXT_BIGALPHANUM | TEXT_UPPERCASE,
+MenuFont_t MF_Redfont =               { { 5<<16, 15<<16 },  { 0, 0 },           65536,              20<<16,             110<<16,            65536, 65536,       TEXT_BIGALPHANUM | TEXT_UPPERCASE,
                                         -1,                 10,                 0,                  0,                  0,                  0,                  1,
                                         0,                  0,                  1 };
-MenuFont_t MF_Bluefont =              { { 5<<16, 7<<16 },   { 0, 0 },           65536,              10<<16,             110<<16,            32768,              0,
+MenuFont_t MF_Bluefont =              { { 5<<16, 7<<16 },   { 0, 0 },           65536,              10<<16,             110<<16,            32768, 65536,       0,
                                         -1,                 10,                 0,                  0,                  10,                 10,                 16,
                                         0,                  0,                  16 };
-MenuFont_t MF_Minifont =              { { 4<<16, 5<<16 },   { 1<<16, 1<<16 },   65536,              10<<16,             110<<16,            32768,              0,
+MenuFont_t MF_Minifont =              { { 4<<16, 5<<16 },   { 1<<16, 1<<16 },   65536,              10<<16,             110<<16,            32768, 65536,       0,
                                         -1,                 10,                 0,                  0,                  2,                  2,                  0,
                                         0,                  0,                  16 };
 
@@ -1404,11 +1406,39 @@ static MenuPanel_t M_STORY = { NoTitle, MENU_F1HELP, MA_Return, MENU_F1HELP, MA_
 #endif
 
 static MenuPanel_t M_F1HELP = { NoTitle, MENU_STORY, MA_Return, MENU_STORY, MA_Advance, };
-static MenuPanel_t M_CREDITS = { NoTitle, MENU_CREDITS5, MA_Return, MENU_CREDITS2, MA_Advance, };
+static MenuPanel_t M_CREDITS = { NoTitle, MENU_CREDITS33, MA_Return, MENU_CREDITS2, MA_Advance, };
 static MenuPanel_t M_CREDITS2 = { NoTitle, MENU_CREDITS, MA_Return, MENU_CREDITS3, MA_Advance, };
-static MenuPanel_t M_CREDITS3 = { NoTitle, MENU_CREDITS2, MA_Return, MENU_CREDITS4, MA_Advance, };
-static MenuPanel_t M_CREDITS4 = { "About " APPNAME, MENU_CREDITS3, MA_Return, MENU_CREDITS5, MA_Advance, };
-static MenuPanel_t M_CREDITS5 = { "About " APPNAME, MENU_CREDITS4, MA_Return, MENU_CREDITS, MA_Advance, };
+static MenuPanel_t M_CREDITS3 = { NoTitle, MENU_CREDITS2, MA_Return, MENU_CREDITS31, MA_Advance, };
+static MenuPanel_t M_CREDITS4 = { s_Credits, MENU_CREDITS3, MA_Return, MENU_CREDITS5, MA_Advance, };
+static MenuPanel_t M_CREDITS5 = { s_Credits, MENU_CREDITS4, MA_Return, MENU_CREDITS6, MA_Advance, };
+static MenuPanel_t M_CREDITS6 = { s_Credits, MENU_CREDITS5, MA_Return, MENU_CREDITS7, MA_Advance, };
+static MenuPanel_t M_CREDITS7 = { s_Credits, MENU_CREDITS6, MA_Return, MENU_CREDITS8, MA_Advance, };
+static MenuPanel_t M_CREDITS8 = { s_Credits, MENU_CREDITS7, MA_Return, MENU_CREDITS9, MA_Advance, };
+static MenuPanel_t M_CREDITS9 = { s_Credits, MENU_CREDITS8, MA_Return, MENU_CREDITS10, MA_Advance, };
+static MenuPanel_t M_CREDITS10 = { s_Credits, MENU_CREDITS9, MA_Return, MENU_CREDITS11, MA_Advance, };
+static MenuPanel_t M_CREDITS11 = { s_Credits, MENU_CREDITS10, MA_Return, MENU_CREDITS12, MA_Advance, };
+static MenuPanel_t M_CREDITS12 = { s_Credits, MENU_CREDITS11, MA_Return, MENU_CREDITS13, MA_Advance, };
+static MenuPanel_t M_CREDITS13 = { s_Credits, MENU_CREDITS12, MA_Return, MENU_CREDITS14, MA_Advance, };
+static MenuPanel_t M_CREDITS14 = { s_Credits, MENU_CREDITS13, MA_Return, MENU_CREDITS15, MA_Advance, };
+static MenuPanel_t M_CREDITS15 = { s_Credits, MENU_CREDITS14, MA_Return, MENU_CREDITS16, MA_Advance, };
+static MenuPanel_t M_CREDITS16 = { s_Credits, MENU_CREDITS15, MA_Return, MENU_CREDITS17, MA_Advance, };
+static MenuPanel_t M_CREDITS17 = { s_Credits, MENU_CREDITS16, MA_Return, MENU_CREDITS18, MA_Advance, };
+static MenuPanel_t M_CREDITS18 = { s_Credits, MENU_CREDITS17, MA_Return, MENU_CREDITS19, MA_Advance, };
+static MenuPanel_t M_CREDITS19 = { s_Credits, MENU_CREDITS18, MA_Return, MENU_CREDITS20, MA_Advance, };
+static MenuPanel_t M_CREDITS20 = { s_Credits, MENU_CREDITS19, MA_Return, MENU_CREDITS21, MA_Advance, };
+static MenuPanel_t M_CREDITS21 = { s_Credits, MENU_CREDITS20, MA_Return, MENU_CREDITS22, MA_Advance, };
+static MenuPanel_t M_CREDITS22 = { s_Credits, MENU_CREDITS21, MA_Return, MENU_CREDITS23, MA_Advance, };
+static MenuPanel_t M_CREDITS23 = { s_Credits, MENU_CREDITS22, MA_Return, MENU_CREDITS24, MA_Advance, };
+static MenuPanel_t M_CREDITS24 = { s_Credits, MENU_CREDITS23, MA_Return, MENU_CREDITS25, MA_Advance, };
+static MenuPanel_t M_CREDITS25 = { s_Credits, MENU_CREDITS24, MA_Return, MENU_CREDITS26, MA_Advance, };
+static MenuPanel_t M_CREDITS26 = { s_Credits, MENU_CREDITS25, MA_Return, MENU_CREDITS27, MA_Advance, };
+static MenuPanel_t M_CREDITS27 = { s_Credits, MENU_CREDITS26, MA_Return, MENU_CREDITS28, MA_Advance, };
+static MenuPanel_t M_CREDITS28 = { s_Credits, MENU_CREDITS27, MA_Return, MENU_CREDITS29, MA_Advance, };
+static MenuPanel_t M_CREDITS29 = { s_Credits, MENU_CREDITS28, MA_Return, MENU_CREDITS30, MA_Advance, };
+static MenuPanel_t M_CREDITS30 = { s_Credits, MENU_CREDITS29, MA_Return, MENU_CREDITS31, MA_Advance, };
+static MenuPanel_t M_CREDITS31 = { "About " APPNAME, MENU_CREDITS3, MA_Return, MENU_CREDITS32, MA_Advance, };
+static MenuPanel_t M_CREDITS32 = { "About EDuke32", MENU_CREDITS31, MA_Return, MENU_CREDITS33, MA_Advance, };
+static MenuPanel_t M_CREDITS33 = { "About EDuke32", MENU_CREDITS32, MA_Return, MENU_CREDITS, MA_Advance, };
 
 #define CURSOR_CENTER_2LINE { MENU_MARGIN_CENTER<<16, 120<<16, }
 #define CURSOR_CENTER_3LINE { MENU_MARGIN_CENTER<<16, 129<<16, }
@@ -1502,6 +1532,34 @@ static Menu_t Menus[] = {
     { &M_CREDITS3, MENU_CREDITS3, MENU_MAIN, MA_Return, Panel },
     { &M_CREDITS4, MENU_CREDITS4, MENU_MAIN, MA_Return, Panel },
     { &M_CREDITS5, MENU_CREDITS5, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS6, MENU_CREDITS6, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS7, MENU_CREDITS7, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS8, MENU_CREDITS8, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS9, MENU_CREDITS9, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS10, MENU_CREDITS10, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS11, MENU_CREDITS11, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS12, MENU_CREDITS12, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS13, MENU_CREDITS13, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS14, MENU_CREDITS14, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS15, MENU_CREDITS15, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS16, MENU_CREDITS16, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS17, MENU_CREDITS17, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS18, MENU_CREDITS18, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS19, MENU_CREDITS19, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS20, MENU_CREDITS20, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS21, MENU_CREDITS21, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS22, MENU_CREDITS22, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS23, MENU_CREDITS23, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS24, MENU_CREDITS24, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS25, MENU_CREDITS25, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS26, MENU_CREDITS26, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS27, MENU_CREDITS27, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS28, MENU_CREDITS28, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS29, MENU_CREDITS29, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS30, MENU_CREDITS30, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS31, MENU_CREDITS31, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS32, MENU_CREDITS32, MENU_MAIN, MA_Return, Panel },
+    { &M_CREDITS33, MENU_CREDITS33, MENU_MAIN, MA_Return, Panel },
     { &M_LOADVERIFY, MENU_LOADVERIFY, MENU_LOAD, MA_None, Verify },
     { &M_LOADDELVERIFY, MENU_LOADDELVERIFY, MENU_LOAD, MA_None, Verify },
     { &M_NEWVERIFY, MENU_NEWVERIFY, MENU_PREVIOUS, MA_Return, Verify },
@@ -1838,6 +1896,22 @@ void Menu_Init(void)
     }
 #endif
 
+    if (RR)
+    {
+        MF_Redfont.zoom = 32768;
+        MF_Redfont.emptychar.x <<= 1;
+        MF_Redfont.cursorScale = 13107;
+        //MF_Redfont.emptychar.y <<= 1;
+        MF_Bluefont.zoom = 32768;
+        MF_Bluefont.emptychar.x <<= 1;
+        MF_Bluefont.cursorScale = 6553;
+        //MF_Bluefont.emptychar.y <<= 1;
+        MF_Minifont.zoom = 32768;
+        MF_Minifont.emptychar.x <<= 1;
+        MF_Minifont.cursorScale = 6553;
+        //MF_Minifont.emptychar.y <<= 1;
+    }
+
     // prepare shareware
     if (VOLUMEONE)
     {
@@ -1855,17 +1929,26 @@ void Menu_Init(void)
         MenuEntry_DisableOnCondition(&ME_NETOPTIONS_EPISODE, 1);
     }
 
+    if (RR)
+    {
+        M_CREDITS.title = M_CREDITS2.title = M_CREDITS3.title = s_Credits;
+        M_CREDITS3.nextID = MENU_CREDITS4;
+        if (RRRA)
+        {
+            M_CREDITS31.previousID = MENU_CREDITS30;
+        }
+        else
+        {
+            M_CREDITS31.previousID = MENU_CREDITS23;
+            M_CREDITS23.nextID = MENU_CREDITS31;
+        }
+    }
     // prepare pre-Atomic
-    if (!VOLUMEALL || !PLUTOPAK)
+    else if (!VOLUMEALL || !PLUTOPAK)
     {
         // prepare credits
         M_CREDITS.title = M_CREDITS2.title = M_CREDITS3.title = s_Credits;
     }
-
-    MenuEntry_HideOnCondition(&ME_MAIN_HELP, G_GetLogoFlags() & LOGO_NOHELP);
-#ifndef EDUKE32_SIMPLE_MENU
-    MenuEntry_HideOnCondition(&ME_MAIN_CREDITS, G_GetLogoFlags() & LOGO_NOCREDITS);
-#endif
 }
 
 static void Menu_Run(Menu_t *cm, vec2_t origin);
@@ -2113,7 +2196,7 @@ static void Menu_PreDrawBackground(MenuID_t cm, const vec2_t origin)
     case MENU_CREDITS:
     case MENU_CREDITS2:
     case MENU_CREDITS3:
-        if (!VOLUMEALL || !PLUTOPAK)
+        if (!VOLUMEALL || !PLUTOPAK || RR)
             Menu_DrawBackground(origin);
         else
             rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (100<<16), 65536L,0,2504+cm-MENU_CREDITS,0,0,10+64);
@@ -2123,6 +2206,34 @@ static void Menu_PreDrawBackground(MenuID_t cm, const vec2_t origin)
     case MENU_SAVE:
     case MENU_CREDITS4:
     case MENU_CREDITS5:
+    case MENU_CREDITS6:
+    case MENU_CREDITS7:
+    case MENU_CREDITS8:
+    case MENU_CREDITS9:
+    case MENU_CREDITS10:
+    case MENU_CREDITS11:
+    case MENU_CREDITS12:
+    case MENU_CREDITS13:
+    case MENU_CREDITS14:
+    case MENU_CREDITS15:
+    case MENU_CREDITS16:
+    case MENU_CREDITS17:
+    case MENU_CREDITS18:
+    case MENU_CREDITS19:
+    case MENU_CREDITS20:
+    case MENU_CREDITS21:
+    case MENU_CREDITS22:
+    case MENU_CREDITS23:
+    case MENU_CREDITS24:
+    case MENU_CREDITS25:
+    case MENU_CREDITS26:
+    case MENU_CREDITS27:
+    case MENU_CREDITS28:
+    case MENU_CREDITS29:
+    case MENU_CREDITS30:
+    case MENU_CREDITS31:
+    case MENU_CREDITS32:
+    case MENU_CREDITS33:
         Menu_DrawBackground(origin);
         break;
 
@@ -2147,7 +2258,14 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
         l += 4;
         fallthrough__;
     case MENU_MAIN:
-        if ((G_GetLogoFlags() & LOGO_NOGAMETITLE) == 0)
+        if (RR)
+        {
+            if (RRRA)
+                rotatesprite_fs(origin.x + ((MENU_MARGIN_CENTER-5)<<16), origin.y + ((57+l)<<16), 16592L,0,THREEDEE,0,0,10);
+            else
+                rotatesprite_fs(origin.x + ((MENU_MARGIN_CENTER+5)<<16), origin.y + ((24+l)<<16), 23592L,0,INGAMEDUKETHREEDEE,0,0,10);
+        }
+        else
         {
             rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + ((28+l)<<16), 65536L,0,INGAMEDUKETHREEDEE,0,0,10);
             if (PLUTOPAK)   // JBF 20030804
@@ -2156,7 +2274,10 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
         break;
 
     case MENU_PLAYER:
-        rotatesprite_fs(origin.x + (260<<16), origin.y + ((24+(tilesiz[APLAYER].y>>1))<<16), 49152L,0,1441-((((4-(totalclock>>4)))&3)*5),0,entry == &ME_PLAYER_TEAM ? G_GetTeamPalette(ud.team) : ud.color,10);
+        if (RR)
+            rotatesprite_fs(origin.x + (260<<16), origin.y + ((24+(tilesiz[APLAYER].y>>2))<<16), 24576L,0,3845+36-((((8-(totalclock>>4)))&7)*5),0,entry == &ME_PLAYER_TEAM ? G_GetTeamPalette(ud.team) : ud.color,10);
+        else
+            rotatesprite_fs(origin.x + (260<<16), origin.y + ((24+(tilesiz[APLAYER].y>>1))<<16), 49152L,0,1441-((((4-(totalclock>>4)))&3)*5),0,entry == &ME_PLAYER_TEAM ? G_GetTeamPalette(ud.team) : ud.color,10);
         break;
 
     case MENU_MACROS:
@@ -2166,11 +2287,12 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
     case MENU_COLCORR:
     case MENU_COLCORR_INGAME:
         // center panel
-        rotatesprite_fs(origin.x + (120<<16), origin.y + (32<<16), 16384, 0, 3290, 0, 0, 2|8|16);
-        rotatesprite_fs(origin.x + (160<<16) - (tilesiz[BOTTOMSTATUSBAR].x<<13), origin.y + (82<<16) - (tilesiz[BOTTOMSTATUSBAR].y<<14), 16384, 0, BOTTOMSTATUSBAR, 0, 0, 2|8|16);
+        if (!RR)
+            rotatesprite_fs(origin.x + (120<<16), origin.y + (32<<16), 16384, 0, 3290, 0, 0, 2|8|16);
+        rotatesprite_fs(origin.x + (160<<16) - (tilesiz[BOTTOMSTATUSBAR].x<<(RR ? 12 : 13)), origin.y + (82<<16) - (tilesiz[BOTTOMSTATUSBAR].y<<14), RR ? 8192 : 16384, 0, BOTTOMSTATUSBAR, 0, 0, 2|8|16);
 
         // left panel
-        rotatesprite_fs(origin.x + (40<<16), origin.y + (32<<16), 16384, 0, BONUSSCREEN, 0, 0, 2|8|16);
+        rotatesprite_fs(origin.x + (40<<16), origin.y + (32<<16), 16384, 0, RR ? RRTILE403 : BONUSSCREEN, 0, 0, 2|8|16);
 
         // right panel
         rotatesprite_fs(origin.x + (200<<16), origin.y + (32<<16), 16384, 0, LOADSCREEN, 0, 0, 2|8|16);
@@ -2477,7 +2599,441 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
     case MENU_CREDITS:
     case MENU_CREDITS2:
     case MENU_CREDITS3:
-        if (!VOLUMEALL || !PLUTOPAK)
+    case MENU_CREDITS4:
+    case MENU_CREDITS5:
+    case MENU_CREDITS6:
+    case MENU_CREDITS7:
+    case MENU_CREDITS8:
+    case MENU_CREDITS9:
+    case MENU_CREDITS10:
+    case MENU_CREDITS11:
+    case MENU_CREDITS12:
+    case MENU_CREDITS13:
+    case MENU_CREDITS14:
+    case MENU_CREDITS15:
+    case MENU_CREDITS16:
+    case MENU_CREDITS17:
+    case MENU_CREDITS18:
+    case MENU_CREDITS19:
+    case MENU_CREDITS20:
+    case MENU_CREDITS21:
+    case MENU_CREDITS22:
+    case MENU_CREDITS23:
+    case MENU_CREDITS24:
+    case MENU_CREDITS25:
+    case MENU_CREDITS26:
+    case MENU_CREDITS27:
+    case MENU_CREDITS28:
+    case MENU_CREDITS29:
+    case MENU_CREDITS30:
+        if (RR)
+        {
+            if (RRRA)
+            {
+                switch (cm)
+                {
+                case MENU_CREDITS:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ORIGINAL CONCEPT, DESIGN AND DIRECTION\n\n"
+                                                                   "DREW MARKHAM");
+                    break;
+            
+                case MENU_CREDITS2:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ART DIRECTION AND ADDITIONAL DESIGN\n\n"
+                                                                   "CORKY LEHMKUHL");
+                    break;
+            
+                case MENU_CREDITS3:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "PRODUCED BY\n\n"
+                                                                   "GREG GOODRICH");
+                    break;
+            
+                case MENU_CREDITS4:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "GAME PROGRAMMING\n\n"
+                                                                   "JOSEPH AURILI");
+                    break;
+            
+                case MENU_CREDITS5:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ORIGINAL GAME PROGRAMMING\n\n"
+                                                                   "RAFAEL PAIZ");
+                    break;
+            
+                case MENU_CREDITS6:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "LEVEL DESIGN\n\n"
+                                                                   "RHETT BALDWIN & AARON BARBER");
+                    break;
+            
+                case MENU_CREDITS7:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ORIGINAL ART DIRECTION AND SUPPORT\n\n"
+                                                                   "MAXX KAUFMAN & CLAIRE PRADERIE-MARKHAM");
+                    break;
+            
+                case MENU_CREDITS8:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "COMPUTER GRAPHICS SUPERVISOR &\n"
+                                                                   "CHARACTER ANIMATION DIRECTION\n\n"
+                                                                   "BARRY DEMPSEY");
+                    break;
+            
+                case MENU_CREDITS9:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "SENIOR ANIMATOR & MODELER\n\n"
+                                                                   "JASON HOOVER");
+                    break;
+            
+                case MENU_CREDITS10:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "CHARACTER ANIMATION &\n"
+                                                                   "MOTION CAPTURE SPECIALIST\n\n"
+                                                                   "AMIT DORON");
+                    break;
+            
+                case MENU_CREDITS11:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "SOUND DESIGN &\n"
+                                                                   "MUSIC PRODUCTION COORDINATION\n\n"
+                                                                   "GARY BRADFIELD");
+                    break;
+            
+                case MENU_CREDITS12:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "INTRODUCTION ANIMATION\n\n"
+                                                                   "DOMINIQUE DROZDZ");
+                    break;
+            
+                case MENU_CREDITS13:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ARTIST\n\n"
+                                                                   "MATTHIAS BEEGUER");
+                    break;
+            
+                case MENU_CREDITS14:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ADDITIONAL ART\n\n"
+                                                                   "VIKTOR ANTONOV");
+                    break;
+            
+                case MENU_CREDITS15:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "PRODUCTION COORDINATOR\n\n"
+                                                                   "VICTORIA SYLVESTER");
+                    break;
+            
+                case MENU_CREDITS16:
+                    mgametextcenter(origin.x, origin.y + (40<<16), "CHARACTER VOICES\n\n"
+                                                                   "LEONARD\n"
+                                                                   "BURTON GILLIAM\n\n"
+                                                                   "DAISY MAE\n"
+                                                                   "TARA CHARENDOFF\n\n"
+                                                                   "BUBBA, BILLY RAY, SKINNY OL' COOT,\n"
+                                                                   "FRANK THE BIKER, THE TURD MINION\n"
+                                                                   "& ALL OTHER VARIOUS RAMBLINGS...\n"
+                                                                   "DREW MARKHAM");
+                    break;
+            
+                case MENU_CREDITS17:
+                    mgametextcenter(origin.x, origin.y + (70<<16), "SPECIAL APPEARENCE BY\n\n"
+                                                                   "SHERIFF LESTER T. HOBBES\n"
+                                                                   "MOJO NIXON\n\n"
+                                                                   "ALIEN VIXEN\n"
+                                                                   "PEGGY JO JACOBS");
+                    break;
+            
+                case MENU_CREDITS18:
+                    mgametextcenter(origin.x, origin.y + (70<<16), "REDNECK RAMPAGE TITLE TRACK & CYBERSEX\n"
+                                                                   "WRITTEN & PERFORMED BY\n"
+                                                                   "MOJO NIXON\n\n"
+                                                                   "(c) MUFFIN'STUFFIN' MUSIC (BMI)\n"
+                                                                   "ADMINISTERED BY BUG.");
+                    break;
+            
+                case MENU_CREDITS19:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "MUSIC\n\n"
+                                                                   "DISGRACELAND\n"
+                                                                   "TINY D & THE SOFA KINGS\n\n"
+                                                                   "BANJO AND GUITAR PICKIN\n"
+                                                                   "JOHN SCHLOCKER\n"
+                                                                   "HOWARD YEARWOOD");
+                    break;
+            
+                case MENU_CREDITS20:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "RECORDING ENGINEER\n"
+                                                                   "DAVE AHLERT\n\n"
+                                                                   "RECORDING ASSISTANCE\n"
+                                                                   "JEFF GILBERT");
+                    break;
+            
+                case MENU_CREDITS21:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "MOTION CAPTURE ACTOR\n"
+                                                                   "J.P. MANOUX\n\n"
+                                                                   "MOTION CAPTURE ACTRESS\n"
+                                                                   "SHAWN WOLFE");
+                    break;
+            
+                case MENU_CREDITS22:
+                    mgametextcenter(origin.x, origin.y + (50<<16), "THIS GAME COULD NOT HAVE BEEN MADE WITHOUT\n"
+                                                                   "ALEX MAYBERRY\n"
+                                                                   "MAL BLACKWELL\n\n"
+                                                                   "NUTS AND BOLTS\n"
+                                                                   "STEVE GOLDBERG\n\n"
+                                                                   "BEAN COUNTING\n"
+                                                                   "MAX YOSHIKAWA\n\n"
+                                                                   "ADMINISTRATIVE ASSISTANCE\n"
+                                                                   "MINERVA MAYBERRY");
+                    break;
+            
+                case MENU_CREDITS23:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "FOR INTERPLAY\n\n"
+                                                                   "PRODUCER\n"
+                                                                   "BILL DUGAN\n\n"
+                                                                   "LINE PRODUCER\n"
+                                                                   "CHRIS BENSON\n\n"
+                                                                   "LEAD TESTER\n"
+                                                                   "DARRELL JONES");
+                    break;
+            
+                case MENU_CREDITS24:
+                    mgametextcenter(origin.x, origin.y + (70<<16), "TESTERS\n\n"
+                                                                   "TIM ANDERSON\n"
+                                                                   "PRIMO PULANCO\n"
+                                                                   "MARK MCCARTY\n"
+                                                                   "BRIAN AXLINE");
+                    break;
+            
+                case MENU_CREDITS25:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "PRODUCTION BABY\n\n"
+                                                                   "PAULINE MARIE MARKHAM");
+                    break;
+            
+                case MENU_CREDITS26:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ORIGINAL PRODUCTION BABY\n\n"
+                                                                   "ALYSON KAUFMAN");
+                    break;
+            
+                case MENU_CREDITS27:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "3D BUILD ENGINE LICENSED FROM\n"
+                                                                   "3D REALMS ENTERTAINMENT\n\n"
+                                                                   "BUILD ENGINE AND RELATED TOOLS\n"
+                                                                   "CREATED BY KEN SILVERMAN");
+                    break;
+            
+                case MENU_CREDITS28:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "SPECIAL THANKS\n\n"
+                                                                   "SCOTT MILLER\n"
+                                                                   "GEORGE BROUSSARD");
+                    break;
+            
+                case MENU_CREDITS29:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "EXTRA SPECIAL THANKS\n\n"
+                                                                   "BRIAN FARGO");
+                    break;
+            
+                case MENU_CREDITS30:
+                    mgametextcenter(origin.x, origin.y + (70<<16), "REDNECK RAMPAGE RIDES AGAIN\n"
+                                                                   "(c) 1998 XATRIX ENTERTAINMENT, INC.\n\n"
+                                                                   "REDNECK RAMPAGE RIDES AGAIN\n"
+                                                                   "IS A TRADEMARK OF\n"
+                                                                   "INTERPLAY PRODUCTIONS");
+                    break;
+                }
+            }
+            else
+            {
+                switch (cm)
+                {
+                case MENU_CREDITS:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ORIGINAL CONCEPT, DESIGN AND DIRECTION\n\n"
+                                                                   "DREW MARKHAM");
+                    break;
+            
+                case MENU_CREDITS2:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "PRODUCED BY\n\n"
+                                                                   "GREG GOODRICH");
+                    break;
+            
+                case MENU_CREDITS3:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "GAME PROGRAMMING\n\n"
+                                                                   "RAFAEL PAIZ");
+                    break;
+            
+                case MENU_CREDITS4:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "ART DIRECTORS\n\n"
+                                                                   "CLAIRE PRADERIE     MAXX KAUFMAN ");
+                    break;
+            
+                case MENU_CREDITS5:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "LEAD LEVEL DESIGNER\n"
+                                                                   "ALEX MAYBERRY\n\n"
+                                                                   "LEVEL DESIGN\n"
+                                                                   "MAL BLACKWELL\n"
+                                                                   "SVERRE KVERNMO");
+                    break;
+            
+                case MENU_CREDITS6:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "SENIOR ANIMATOR AND ARTIST\n\n"
+                                                                   "JASON HOOVER");
+                    break;
+            
+                case MENU_CREDITS7:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "TECHNICAL DIRECTOR\n\n"
+                                                                   "BARRY DEMPSEY");
+                    break;
+            
+                case MENU_CREDITS8:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "MOTION CAPTURE SPECIALIST AND\n"
+                                                                   "CHARACTER ANIMATION\n"
+                                                                   "AMIT DORON\n\n"
+                                                                   "A.I. PROGRAMMING\n"
+                                                                   "ARTHUR DONAVAN\n\n"
+                                                                   "ADDITIONAL ANIMATION\n"
+                                                                   "GEORGE KARL");
+                    break;
+            
+                case MENU_CREDITS9:
+                    mgametextcenter(origin.x, origin.y + (50<<16), "CHARACTER DESIGN\n"
+                                                                   "CORKY LEHMKUHL\n\n"
+                                                                   "MAP PAINTERS\n"
+                                                                   "VIKTOR ANTONOV\n"
+                                                                   "MATTHIAS BEEGUER\n"
+                                                                   "STEPHAN BURLE\n\n"
+                                                                   "SCULPTORS\n"
+                                                                   "GEORGE ENGEL\n"
+                                                                   "JAKE GARBER\n"
+                                                                   "JEFF HIMMEL");
+                    break;
+            
+                case MENU_CREDITS10:
+                    mgametextcenter(origin.x, origin.y + (40<<16), "CHARACTER VOICES\n\n"
+                                                                   "LEONARD\n"
+                                                                   "BURTON GILLIAM\n\n"
+                                                                   "BUBBA, BILLY RAY, SKINNY OL' COOT\n"
+                                                                   "AND THE TURD MINION\n"
+                                                                   "DREW MARKHAM\n\n"
+                                                                   "SHERIFF LESTER T. HOBBES\n"
+                                                                   "MOJO NIXON\n\n"
+                                                                   "ALIEN VIXEN\n"
+                                                                   "PEGGY JO JACOBS");
+                    break;
+            
+                case MENU_CREDITS11:
+                    mgametextcenter(origin.x, origin.y + (50<<16), "SOUND DESIGN\n"
+                                                                   "GARY BRADFIELD\n\n"
+                                                                   "MUSIC\n"
+                                                                   "MOJO NIXON\n"
+                                                                   "THE BEAT FARMERS\n"
+                                                                   "THE REVEREND HORTON HEAT\n"
+                                                                   "CEMENT POND\n\n"
+                                                                   "ADDITIONAL SOUND EFFECTS\n"
+                                                                   "JIM SPURGIN");
+                    break;
+            
+                case MENU_CREDITS12:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "MOTION CAPTURE ACTOR\n"
+                                                                   "J.P. MANOUX\n\n"
+                                                                   "MOTION CAPTURE VIXEN\n"
+                                                                   "SHAWN WOLFE");
+                    break;
+            
+                case MENU_CREDITS13:
+                    mgametextcenter(origin.x, origin.y + (50<<16), "PRODUCTION ASSISTANCE\n"
+                                                                   "MINERVA MAYBERRY\n\n"
+                                                                   "NUTS AND BOLTS\n"
+                                                                   "STEVE GOLDBERG\n"
+                                                                   "MARCUS HUTCHINSON\n\n"
+                                                                   "BEAN COUNTING\n"
+                                                                   "MAX YOSHIKAWA\n\n"
+                                                                   "ADMINISTRATIVE ASSISTANCE\n"
+                                                                   "SERAFIN LEWIS");
+                    break;
+            
+                case MENU_CREDITS14:
+                    mgametextcenter(origin.x, origin.y + (70<<16), "LOCATION MANAGER, LOUISIANA\n"
+                                                                   "RICK SKINNER\n\n"
+                                                                   "LOCATION SCOUT, LOUISIANA\n"
+                                                                   "BRIAN BENOS\n\n"
+                                                                   "PHOTOGRAPHER\n"
+                                                                   "CARLOS SERRAO");
+                    break;
+            
+                case MENU_CREDITS15:
+                    mgametextcenter(origin.x, origin.y + (50<<16), "ADDITIONAL 3D MODELING BY\n"
+                                                                   "3 NAME 3D\n"
+                                                                   "VIEWPOINT DATALABS INTERNATIONAL\n\n"
+                                                                   "AUDIO RECORDED AT\n"
+                                                                   "PACIFIC OCEAN POST, SANTA MONICA, C.A.\n\n"
+                                                                   "CEMENT POND TRACKS RECORDED AT\n"
+                                                                   "DREAMSTATE RECORDING, BURBANK, C.A.\n\n"
+                                                                   "RECORDING ENGINEER\n"
+                                                                   "DAVE AHLERT");
+                    break;
+            
+                case MENU_CREDITS16:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "3D BUILD ENGINE LICENSED FROM\n"
+                                                                   "3D REALMS ENTERTAINMENT\n\n"
+                                                                   "BUILD ENGINE AND RELATED TOOLS\n"
+                                                                   "CREATED BY KEN SILVERMAN");
+                    break;
+            
+                case MENU_CREDITS17:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "FOR INTERPLAY\n\n"
+                                                                   "LEAD TESTER\n"
+                                                                   "DARRELL JONES\n\n"
+                                                                   "TESTERS\n"
+                                                                   "TIM ANDERSON\n"
+                                                                   "ERICK LUJAN\n"
+                                                                   "TIEN TRAN");
+                    break;
+            
+                case MENU_CREDITS18:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "IS TECHS\n"
+                                                                   "BILL DELK\n"
+                                                                   "AARON MEYERS\n\n"
+                                                                   "COMPATIBILITY TECHS\n"
+                                                                   "MARC DURAN\n"
+                                                                   "DAN FORSYTH\n"
+                                                                   "DEREK GIBBS\n"
+                                                                   "AARON OLAIZ\n"
+                                                                   "JACK PARKER");
+                    break;
+            
+                case MENU_CREDITS19:
+                    mgametextcenter(origin.x, origin.y + (70<<16), "DIRECTOR OF COMPATIBILITY\n"
+                                                                   "PHUONG NGUYEN\n\n"
+                                                                   "ASSISTANT QA DIRECTOR\n"
+                                                                   "COLIN TOTMAN\n\n"
+                                                                   "QA DIRECTOR\n"
+                                                                   "CHAD ALLISON");
+                    break;
+            
+                case MENU_CREDITS20:
+                    mgametextcenter(origin.x, origin.y + (50<<16), "INTERPLAY PRODUCER\n"
+                                                                   "BILL DUGAN\n\n"
+                                                                   "INTERPLAY LINE PRODUCER\n"
+                                                                   "CHRIS BENSON\n\n"
+                                                                   "PRODUCT MANAGER\n"
+                                                                   "JIM VEEVAERT\n\n"
+                                                                   "PUBLIC RELATIONS\n"
+                                                                   "ERIKA PRICE");
+                    break;
+            
+                case MENU_CREDITS21:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "SPECIAL THANKS\n\n"
+                                                                   "JIM GAUER\n"
+                                                                   "PAUL VAIS\n"
+                                                                   "SCOTT MILLER\n"
+                                                                   "TODD REPLOGLE\n"
+                                                                   "CHUCK BUECHE\n"
+                                                                   "CARTER LIPSCOMB\n"
+                                                                   "JOHN CONLEY\n"
+                                                                   "DON MAGGI");
+                    break;
+            
+                case MENU_CREDITS22:
+                    mgametextcenter(origin.x, origin.y + (80<<16), "EXTRA SPECIAL THANKS\n\n"
+                                                                   "BRIAN FARGO");
+                    break;
+            
+                case MENU_CREDITS23:
+                    mgametextcenter(origin.x, origin.y + (60<<16), "REDNECK RAMPAGE\n"
+                                                                   "(c) 1997 XATRIX ENTERTAINMENT, INC.\n\n"
+                                                                   "REDNECK RAMPAGE IS A TRADEMARK OF\n"
+                                                                   "INTERPLAY PRODUCTIONS");
+                    break;
+                }
+            }
+        }
+        else if (!VOLUMEALL || !PLUTOPAK)
         {
             int32_t m;
             switch (cm)
@@ -2598,7 +3154,10 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
         }
         break;
 
-    case MENU_CREDITS4:   // JBF 20031220
+    case MENU_CREDITS31:
+        break;
+
+    case MENU_CREDITS32:   // JBF 20031220
         l = 7;
 
         mgametextcenter(origin.x, origin.y + ((50-l)<<16), "Developers");
@@ -2618,7 +3177,7 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
 
         break;
 
-    case MENU_CREDITS5:
+    case MENU_CREDITS33:
         l = 7;
 
         mgametextcenter(origin.x, origin.y + ((38-l)<<16), "License and Other Contributors");
@@ -2735,7 +3294,7 @@ static void Menu_PreInput(MenuEntry_t *entry)
             key[1] = ud.config.KeyboardKeys[M_KEYBOARDKEYS.currentEntry][1];
             *column->column[M_KEYBOARDKEYS.currentColumn] = 0xff;
             CONFIG_MapKey(M_KEYBOARDKEYS.currentEntry, ud.config.KeyboardKeys[M_KEYBOARDKEYS.currentEntry][0], key[0], ud.config.KeyboardKeys[M_KEYBOARDKEYS.currentEntry][1], key[1]);
-            S_PlaySound(KICK_HIT);
+            S_PlaySound(RR ? 335 : KICK_HIT);
             KB_ClearKeyDown(sc_Delete);
         }
         break;
@@ -2794,7 +3353,7 @@ static int32_t Menu_PreCustom2ColScreen(MenuEntry_t *entry)
             key[0] = ud.config.KeyboardKeys[M_KEYBOARDKEYS.currentEntry][0];
             key[1] = ud.config.KeyboardKeys[M_KEYBOARDKEYS.currentEntry][1];
 
-            S_PlaySound(PISTOL_BODYHIT);
+            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
             *column->column[M_KEYBOARDKEYS.currentColumn] = KB_GetLastScanCode();
 
@@ -2853,7 +3412,7 @@ static void Menu_StartGameWithoutSkill(void)
 {
     ud.m_player_skill = M_SKILL.currentEntry+1;
 
-    g_skillSoundVoice = S_PlaySound(PISTOL_BODYHIT);
+    g_skillSoundVoice = S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
     ud.m_respawn_monsters = 0;
 
@@ -2942,25 +3501,45 @@ static void Menu_EntryLinkActivate(MenuEntry_t *entry)
 
     case MENU_SKILL:
     {
-        int32_t skillsound = PISTOL_BODYHIT;
+        int32_t skillsound = RR ? 341 : PISTOL_BODYHIT;
 
-        switch (M_SKILL.currentEntry)
-        {
-        case 0:
-            skillsound = JIBBED_ACTOR6;
-            break;
-        case 1:
-            skillsound = BONUS_SPEECH1;
-            break;
-        case 2:
-            skillsound = DUKE_GETWEAPON2;
-            break;
-        case 3:
-            skillsound = JIBBED_ACTOR5;
-            break;
-        }
+        if (RR)
+            switch (M_SKILL.currentEntry)
+            {
+            case 0:
+                skillsound = 427;
+                break;
+            case 1:
+                skillsound = 428;
+                break;
+            case 2:
+                skillsound = 196;
+                break;
+            case 3:
+                skillsound = 195;
+                break;
+            case 4:
+                skillsound = 197;
+                break;
+            }
+        else
+            switch (M_SKILL.currentEntry)
+            {
+            case 0:
+                skillsound = JIBBED_ACTOR6;
+                break;
+            case 1:
+                skillsound = BONUS_SPEECH1;
+                break;
+            case 2:
+                skillsound = DUKE_GETWEAPON2;
+                break;
+            case 3:
+                skillsound = JIBBED_ACTOR5;
+                break;
+            }
 
-        ud.m_player_skill = M_SKILL.currentEntry+1;
+        ud.m_player_skill = M_SKILL.currentEntry+(RRRA ? 0 : 1);
 
         g_skillSoundVoice = S_PlaySound(skillsound);
 
@@ -3611,7 +4190,7 @@ static void Menu_TextFormSubmit(char *input)
             ud.lockout = 0;
         }
 
-        S_PlaySound(PISTOL_BODYHIT);
+        S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
         Menu_Change(MENU_GAMESETUP);
         break;
 
@@ -3637,14 +4216,14 @@ static void Menu_TextFormSubmit(char *input)
         switch (cheatID)
         {
             case -1:
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
                 break;
             case CHEAT_SCOTTY:
             {
                 char const * const numberpos = Bstrchr(CheatStrings[CHEAT_SCOTTY], '#');
                 if (numberpos == NULL)
                 {
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
                     break;
                 }
 
@@ -3658,7 +4237,7 @@ static void Menu_TextFormSubmit(char *input)
                 char const * const numberpos = Bstrchr(CheatStrings[CHEAT_SKILL], '#');
                 if (numberpos == NULL)
                 {
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
                     break;
                 }
 
@@ -3688,13 +4267,13 @@ static void Menu_TextFormSubmit(char *input)
 
     case MENU_CHEAT_WARP:
         if (Menu_Cheat_Warp(input))
-            S_PlaySound(KICK_HIT);
+            S_PlaySound(RR ? 335 : KICK_HIT);
         Menu_Change(MENU_CHEATS);
         break;
 
     case MENU_CHEAT_SKILL:
         if (Menu_Cheat_Skill(input))
-            S_PlaySound(KICK_HIT);
+            S_PlaySound(RR ? 335 : KICK_HIT);
         Menu_Change(MENU_CHEATS);
         break;
 
@@ -4346,7 +4925,7 @@ static void Menu_GetFmt(const MenuFont_t *font, uint8_t const status, int32_t *s
 static vec2_t Menu_Text(int32_t x, int32_t y, const MenuFont_t *font, const char *t, uint8_t status, int32_t ydim_upper, int32_t ydim_lower)
 {
     int32_t s, p, ybetween = font->between.y;
-    int32_t f = font->textflags;
+    int32_t f = font->textflags | TEXT_RRMENUTEXTHACK;
     if (status & MT_XCenter)
         f |= TEXT_XCENTER;
     if (status & MT_XRight)
@@ -4685,7 +5264,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                                 Menu_RunInput_EntryLink_Activate(entry);
 
                                 if (g_player[myconnectindex].ps->gm&MODE_MENU) // for skill selection
-                                    S_PlaySound(PISTOL_BODYHIT);
+                                    S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                                 m_mousecaught = 1;
                             }
@@ -4729,7 +5308,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                                 Menu_RunInput_EntryOption_Activate(entry, object);
 
-                                S_PlaySound(PISTOL_BODYHIT);
+                                S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                                 m_mousecaught = 1;
                             }
@@ -4780,7 +5359,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                                     Menu_RunInput_EntryCustom2Col_Activate(entry);
 
-                                    S_PlaySound(PISTOL_BODYHIT);
+                                    S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                                     m_mousecaught = 1;
                                 }
@@ -4803,7 +5382,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                                     Menu_RunInput_EntryCustom2Col_Activate(entry);
 
-                                    S_PlaySound(PISTOL_BODYHIT);
+                                    S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                                     m_mousecaught = 1;
                                 }
@@ -4816,7 +5395,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         MenuRangeInt32_t *object = (MenuRangeInt32_t*)entry->entry;
 
                         int32_t s, p;
-                        int32_t z = entry->font->cursorScale;
+                        int32_t z = entry->font->cursorScale2;
                         Menu_GetFmt(object->font, status|MT_RightSide, &s, &z);
 
                         if (status & MT_Disabled)
@@ -4839,11 +5418,12 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                         rotatesprite_ybounds(slidebarx, slidebary, mulscale16(ud.menu_slidebarz, z), 0, SLIDEBAR, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
 
-                        const int32_t slideregionwidth = mulscale16((tilesiz[SLIDEBAR].x * ud.menu_slidebarz) - (ud.menu_slidebarmargin<<1) - (tilesiz[SLIDEBAR+1].x * ud.menu_slidecursorz), z);
+                        const int32_t cursorTile = RR ? BIGALPHANUM-9 : SLIDEBAR+1;
+                        const int32_t slideregionwidth = mulscale16((tilesiz[SLIDEBAR].x * ud.menu_slidebarz) - (ud.menu_slidebarmargin<<1) - (tilesiz[cursorTile].x * ud.menu_slidecursorz), z);
                         const int32_t slidepointx = slidebarx + mulscale16(ud.menu_slidebarmargin, z) + scale(slideregionwidth, *object->variable - object->min, object->max - object->min);
-                        const int32_t slidepointy = slidebary + mulscale16(((tilesiz[SLIDEBAR].y * ud.menu_slidebarz) - (tilesiz[SLIDEBAR+1].y * ud.menu_slidecursorz))>>1, z);
+                        const int32_t slidepointy = slidebary + mulscale16(((tilesiz[SLIDEBAR].y * ud.menu_slidebarz) - (tilesiz[cursorTile].y * ud.menu_slidecursorz))>>1, z);
 
-                        rotatesprite_ybounds(slidepointx, slidepointy, mulscale16(ud.menu_slidecursorz, z), 0, SLIDEBAR+1, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
+                        rotatesprite_ybounds(slidepointx, slidepointy, mulscale16(ud.menu_slidecursorz, z), 0, cursorTile, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
 
                         if (object->flags & DisplayTypeMask)
                         {
@@ -4879,7 +5459,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                             if (!m_mousecaught && (g_mouseClickState == MOUSE_PRESSED || g_mouseClickState == MOUSE_HELD))
                             {
-                                const int32_t slidepointhalfwidth = mulscale16((((tilesiz[SLIDEBAR+1].x)*ud.menu_slidecursorz)>>2) + ud.menu_slidebarmargin, z);
+                                const int32_t slidepointhalfwidth = mulscale16((((tilesiz[cursorTile].x)*ud.menu_slidecursorz)>>2) + ud.menu_slidebarmargin, z);
                                 const int32_t slideregionx = slidebarx + slidepointhalfwidth;
 
                                 menu->currentEntry = e;
@@ -4915,7 +5495,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         MenuRangeFloat_t *object = (MenuRangeFloat_t*)entry->entry;
 
                         int32_t s, p;
-                        int32_t z = entry->font->cursorScale;
+                        int32_t z = entry->font->cursorScale2;
                         Menu_GetFmt(object->font, status|MT_RightSide, &s, &z);
 
                         if (status & MT_Disabled)
@@ -4937,12 +5517,13 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         const int32_t slidebary = origin.y + y_upper + y + ((height - slidebarheight)>>1) - menu->scrollPos;
 
                         rotatesprite_ybounds(slidebarx, slidebary, mulscale16(ud.menu_slidebarz, z), 0, SLIDEBAR, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
-
-                        const int32_t slideregionwidth = mulscale16((tilesiz[SLIDEBAR].x * ud.menu_slidebarz) - (ud.menu_slidebarmargin<<1) - (tilesiz[SLIDEBAR+1].x * ud.menu_slidecursorz), z);
+                        
+                        const int32_t cursorTile = RR ? BIGALPHANUM-9 : SLIDEBAR+1;
+                        const int32_t slideregionwidth = mulscale16((tilesiz[SLIDEBAR].x * ud.menu_slidebarz) - (ud.menu_slidebarmargin<<1) - (tilesiz[cursorTile].x * ud.menu_slidecursorz), z);
                         const int32_t slidepointx = slidebarx + mulscale16(ud.menu_slidebarmargin, z) + Blrintf((float) slideregionwidth * (*object->variable - object->min) / (object->max - object->min));
-                        const int32_t slidepointy = slidebary + mulscale16(((tilesiz[SLIDEBAR].y * ud.menu_slidebarz) - (tilesiz[SLIDEBAR+1].y * ud.menu_slidecursorz))>>1, z);
+                        const int32_t slidepointy = slidebary + mulscale16(((tilesiz[SLIDEBAR].y * ud.menu_slidebarz) - (tilesiz[cursorTile].y * ud.menu_slidecursorz))>>1, z);
 
-                        rotatesprite_ybounds(slidepointx, slidepointy, mulscale16(ud.menu_slidecursorz, z), 0, SLIDEBAR+1, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
+                        rotatesprite_ybounds(slidepointx, slidepointy, mulscale16(ud.menu_slidecursorz, z), 0, cursorTile, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
 
                         if (object->flags & DisplayTypeMask)
                         {
@@ -4978,7 +5559,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                             if (!m_mousecaught && (g_mouseClickState == MOUSE_PRESSED || g_mouseClickState == MOUSE_HELD))
                             {
-                                const int32_t slidepointhalfwidth = mulscale16((2+tilesiz[SLIDEBAR+1].x)<<15, z);
+                                const int32_t slidepointhalfwidth = mulscale16((2+tilesiz[cursorTile].x)<<15, z);
                                 const int32_t slideregionx = slidebarx + slidepointhalfwidth;
 
                                 menu->currentEntry = e;
@@ -5015,7 +5596,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         MenuRangeDouble_t *object = (MenuRangeDouble_t*)entry->entry;
 
                         int32_t s, p;
-                        int32_t z = entry->font->cursorScale;
+                        int32_t z = entry->font->cursorScale2;
                         Menu_GetFmt(object->font, status|MT_RightSide, &s, &z);
 
                         if (status & MT_Disabled)
@@ -5038,11 +5619,12 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                         rotatesprite_ybounds(slidebarx, slidebary, mulscale16(ud.menu_slidebarz, z), 0, SLIDEBAR, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
 
-                        const int32_t slideregionwidth = mulscale16((tilesiz[SLIDEBAR].x * ud.menu_slidebarz) - (ud.menu_slidebarmargin<<1) - (tilesiz[SLIDEBAR+1].x * ud.menu_slidecursorz), z);
+                        const int32_t cursorTile = RR ? BIGALPHANUM-9 : SLIDEBAR+1;
+                        const int32_t slideregionwidth = mulscale16((tilesiz[SLIDEBAR].x * ud.menu_slidebarz) - (ud.menu_slidebarmargin<<1) - (tilesiz[cursorTile].x * ud.menu_slidecursorz), z);
                         const int32_t slidepointx = slidebarx + mulscale16(ud.menu_slidebarmargin, z) + lrint((double) slideregionwidth * (*object->variable - object->min) / (object->max - object->min));
-                        const int32_t slidepointy = slidebary + mulscale16(((tilesiz[SLIDEBAR].y * ud.menu_slidebarz) - (tilesiz[SLIDEBAR+1].y * ud.menu_slidecursorz))>>1, z);
+                        const int32_t slidepointy = slidebary + mulscale16(((tilesiz[SLIDEBAR].y * ud.menu_slidebarz) - (tilesiz[cursorTile].y * ud.menu_slidecursorz))>>1, z);
 
-                        rotatesprite_ybounds(slidepointx, slidepointy, mulscale16(ud.menu_slidecursorz, z), 0, SLIDEBAR+1, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
+                        rotatesprite_ybounds(slidepointx, slidepointy, mulscale16(ud.menu_slidecursorz, z), 0, cursorTile, s, p, 2|8|16|ROTATESPRITE_FULL16, ydim_upper, ydim_lower);
 
                         if (object->flags & DisplayTypeMask)
                         {
@@ -5078,7 +5660,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                             if (!m_mousecaught && (g_mouseClickState == MOUSE_PRESSED || g_mouseClickState == MOUSE_HELD))
                             {
-                                const int32_t slidepointhalfwidth = mulscale16((2+tilesiz[SLIDEBAR+1].x)<<15, z);
+                                const int32_t slidepointhalfwidth = mulscale16((2+tilesiz[cursorTile].x)<<15, z);
                                 const int32_t slideregionx = slidebarx + slidepointhalfwidth;
 
                                 menu->currentEntry = e;
@@ -5156,7 +5738,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                                 {
                                     Menu_RunInput_EntryString_Submit(/*entry, */object);
 
-                                    S_PlaySound(PISTOL_BODYHIT);
+                                    S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                                     m_mousecaught = 1;
                                 }
@@ -5170,7 +5752,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                                     Menu_RunInput_EntryString_Activate(entry);
 
-                                    S_PlaySound(PISTOL_BODYHIT);
+                                    S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                                     m_mousecaught = 1;
                                 }
@@ -5282,7 +5864,7 @@ static void Menu_RunOptionList(Menu_t *cm, MenuEntry_t *entry, MenuOption_t *obj
                     object->options->currentEntry = e;
 
                     if (!Menu_RunInput_EntryOptionList_Activate(entry, object))
-                        S_PlaySound(PISTOL_BODYHIT);
+                        S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                     m_mousecaught = 1;
                 }
@@ -5406,7 +5988,7 @@ static void Menu_Run(Menu_t *cm, const vec2_t origin)
 
             Menu_PreDraw(cm->menuID, NULL, origin);
 
-            Menu_DrawCursorLeft(origin.x + object->cursorpos.x, origin.y + object->cursorpos.y, 65536);
+            Menu_DrawCursorLeft(origin.x + object->cursorpos.x, origin.y + object->cursorpos.y, RR ? 3276 : 65536);
 
             break;
         }
@@ -5421,7 +6003,7 @@ static void Menu_Run(Menu_t *cm, const vec2_t origin)
 
             Menu_PreDraw(cm->menuID, NULL, origin);
 
-            Menu_DrawCursorLeft(origin.x + object->cursorpos.x, origin.y + object->cursorpos.y, 65536);
+            Menu_DrawCursorLeft(origin.x + object->cursorpos.x, origin.y + object->cursorpos.y, RR ? 3276 : 65536);
 
             break;
         }
@@ -5577,7 +6159,7 @@ static void Menu_Run(Menu_t *cm, const vec2_t origin)
             {
                 Menu_RunInput_FileSelect_Select(object);
 
-                S_PlaySound(PISTOL_BODYHIT);
+                S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
 
                 m_mousecaught = 1;
             }
@@ -6166,7 +6748,7 @@ static void Menu_RunInput(Menu_t *cm)
             {
                 I_PanelUpClear();
 
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
                 Menu_AnimateChange(panel->previousID, panel->previousAnimation);
             }
             else if (I_PanelDown() || Menu_RunInput_MouseAdvance())
@@ -6174,7 +6756,7 @@ static void Menu_RunInput(Menu_t *cm)
                 I_PanelDownClear();
                 m_mousecaught = 1;
 
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
                 Menu_AnimateChange(panel->nextID, panel->nextAnimation);
             }
             break;
@@ -6231,7 +6813,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                 Menu_RunInput_FileSelect_Select(object);
 
-                S_PlaySound(PISTOL_BODYHIT);
+                S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
             }
             else if (KB_KeyPressed(sc_Home))
             {
@@ -6239,7 +6821,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                 Menu_RunInput_FileSelect_Movement(object, MM_Home);
 
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
             }
             else if (KB_KeyPressed(sc_End))
             {
@@ -6247,7 +6829,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                 Menu_RunInput_FileSelect_Movement(object, MM_End);
 
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
             }
             else if (KB_KeyPressed(sc_PgUp))
             {
@@ -6269,7 +6851,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                     Menu_RunInput_FileSelect_MovementVerify(object);
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
                 }
             }
             else if (KB_KeyPressed(sc_PgDn))
@@ -6292,7 +6874,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                     Menu_RunInput_FileSelect_MovementVerify(object);
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
                 }
             }
             else if (I_MenuLeft() || I_MenuRight())
@@ -6304,7 +6886,7 @@ static void Menu_RunInput(Menu_t *cm)
                 {
                     Menu_RunInput_FileSelect_Movement(object, MM_Swap);
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
                 }
             }
             else if (I_MenuUp())
@@ -6313,7 +6895,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                 Menu_RunInput_FileSelect_Movement(object, MM_Up);
 
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
             }
             else if (I_MenuDown())
             {
@@ -6321,7 +6903,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                 Menu_RunInput_FileSelect_Movement(object, MM_Down);
 
-                S_PlaySound(KICK_HIT);
+                S_PlaySound(RR ? 335 : KICK_HIT);
             }
             else
             {
@@ -6348,7 +6930,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                         Menu_RunInput_FileSelect_MovementVerify(object);
 
-                        S_PlaySound(KICK_HIT);
+                        S_PlaySound(RR ? 335 : KICK_HIT);
                     }
                 }
             }
@@ -6408,7 +6990,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                 Menu_AnimateChange(verify->linkID, verify->animation);
 
-                S_PlaySound(PISTOL_BODYHIT);
+                S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
             }
 
             Menu_PreInput(NULL);
@@ -6441,7 +7023,7 @@ static void Menu_RunInput(Menu_t *cm)
                             Menu_RunInput_EntryLink_Activate(currentry);
 
                             if (g_player[myconnectindex].ps->gm&MODE_MENU) // for skill selection
-                                S_PlaySound(PISTOL_BODYHIT);
+                                S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                         }
                         break;
                     case Option:
@@ -6457,7 +7039,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryOption_Activate(currentry, object);
 
-                            S_PlaySound(PISTOL_BODYHIT);
+                            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                         }
                         else if (I_MenuRight())
                         {
@@ -6465,7 +7047,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryOption_Movement(currentry, object, MM_Right);
 
-                            S_PlaySound(PISTOL_BODYHIT);
+                            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                         }
                         else if (I_MenuLeft())
                         {
@@ -6473,7 +7055,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryOption_Movement(currentry, object, MM_Left);
 
-                            S_PlaySound(PISTOL_BODYHIT);
+                            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                         }
                     }
                         break;
@@ -6485,7 +7067,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_Menu_Movement(menu, MM_Swap);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
 
                         if (currentry->flags & MEF_Disabled)
@@ -6497,7 +7079,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryCustom2Col_Activate(currentry);
 
-                            S_PlaySound(PISTOL_BODYHIT);
+                            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                         }
                         break;
                     case RangeInt32:
@@ -6513,7 +7095,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryRangeInt32_Movement(currentry, object, MM_Left);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
                         else if (I_SliderRight())
                         {
@@ -6521,7 +7103,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryRangeInt32_Movement(currentry, object, MM_Right);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
                         break;
                     }
@@ -6538,7 +7120,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryRangeFloat_Movement(currentry, object, MM_Left);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
                         else if (I_SliderRight())
                         {
@@ -6546,7 +7128,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryRangeFloat_Movement(currentry, object, MM_Right);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
                         break;
                     }
@@ -6564,7 +7146,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryRangeDouble_Movement(/*currentry, */object, MM_Left);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
                         else if (I_SliderRight())
                         {
@@ -6572,7 +7154,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryRangeDouble_Movement(/*currentry, */object, MM_Right);
 
-                            S_PlaySound(KICK_HIT);
+                            S_PlaySound(RR ? 335 : KICK_HIT);
                         }
                         break;
                     }
@@ -6589,7 +7171,7 @@ static void Menu_RunInput(Menu_t *cm)
 
                             Menu_RunInput_EntryString_Activate(currentry);
 
-                            S_PlaySound(PISTOL_BODYHIT);
+                            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                         }
 
                         break;
@@ -6611,7 +7193,7 @@ static void Menu_RunInput(Menu_t *cm)
                 {
                     KB_ClearKeyDown(sc_Home);
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
 
                     currentry = Menu_RunInput_Menu_Movement(menu, MM_Home);
                 }
@@ -6619,7 +7201,7 @@ static void Menu_RunInput(Menu_t *cm)
                 {
                     KB_ClearKeyDown(sc_End);
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
 
                     currentry = Menu_RunInput_Menu_Movement(menu, MM_End);
                 }
@@ -6627,7 +7209,7 @@ static void Menu_RunInput(Menu_t *cm)
                 {
                     I_MenuUpClear();
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
 
                     currentry = Menu_RunInput_Menu_Movement(menu, MM_Up);
                 }
@@ -6635,7 +7217,7 @@ static void Menu_RunInput(Menu_t *cm)
                 {
                     I_MenuDownClear();
 
-                    S_PlaySound(KICK_HIT);
+                    S_PlaySound(RR ? 335 : KICK_HIT);
 
                     currentry = Menu_RunInput_Menu_Movement(menu, MM_Down);
                 }
@@ -6663,7 +7245,7 @@ static void Menu_RunInput(Menu_t *cm)
                     {
                         Menu_RunInput_EntryString_Submit(/*currentry, */object);
 
-                        S_PlaySound(PISTOL_BODYHIT);
+                        S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                     }
                 }
             }
@@ -6687,13 +7269,13 @@ static void Menu_RunInput(Menu_t *cm)
                         I_AdvanceTriggerClear();
 
                         if (!Menu_RunInput_EntryOptionList_Activate(currentry, object))
-                            S_PlaySound(PISTOL_BODYHIT);
+                            S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
                     }
                     else if (KB_KeyPressed(sc_Home))
                     {
                         KB_ClearKeyDown(sc_Home);
 
-                        S_PlaySound(KICK_HIT);
+                        S_PlaySound(RR ? 335 : KICK_HIT);
 
                         Menu_RunInput_EntryOptionList_Movement(object, MM_Home);
                     }
@@ -6701,7 +7283,7 @@ static void Menu_RunInput(Menu_t *cm)
                     {
                         KB_ClearKeyDown(sc_End);
 
-                        S_PlaySound(KICK_HIT);
+                        S_PlaySound(RR ? 335 : KICK_HIT);
 
                         Menu_RunInput_EntryOptionList_Movement(object, MM_End);
                     }
@@ -6709,7 +7291,7 @@ static void Menu_RunInput(Menu_t *cm)
                     {
                         I_MenuUpClear();
 
-                        S_PlaySound(KICK_HIT);
+                        S_PlaySound(RR ? 335 : KICK_HIT);
 
                         Menu_RunInput_EntryOptionList_Movement(object, MM_Up);
                     }
@@ -6717,7 +7299,7 @@ static void Menu_RunInput(Menu_t *cm)
                     {
                         I_MenuDownClear();
 
-                        S_PlaySound(KICK_HIT);
+                        S_PlaySound(RR ? 335 : KICK_HIT);
 
                         Menu_RunInput_EntryOptionList_Movement(object, MM_Down);
                     }

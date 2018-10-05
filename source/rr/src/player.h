@@ -217,12 +217,13 @@ typedef struct {
     uint8_t on_motorcycle, on_boat, moto_underwater, not_on_water, moto_on_ground;
     uint8_t moto_do_bump, moto_bump_fast, moto_on_oil, moto_on_mud;
     int16_t moto_bump, moto_bump_target, moto_turb;
-    int16_t drug_stat[4];
+    int16_t drug_stat[3];
+    int32_t drug_aspect;
     uint8_t drug_mode, lotag800kill, sea_sick_stat;
     int32_t sea_sick;
     uint8_t hurt_delay2, nocheat;
 
-    int8_t padding_[2];
+    int8_t padding_[4];
 } DukePlayer_t;
 
 // KEEPINSYNC lunatic/_defs_game.lua

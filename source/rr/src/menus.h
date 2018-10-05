@@ -86,11 +86,39 @@ enum MenuIndex_t {
     MENU_CHEATENTRY     = 801,
     MENU_CHEAT_WARP     = 802,
     MENU_CHEAT_SKILL    = 803,
-    MENU_CREDITS        = 990,
-    MENU_CREDITS2       = 991,
-    MENU_CREDITS3       = 992,
-    MENU_CREDITS4       = 993,
-    MENU_CREDITS5       = 994,
+    MENU_CREDITS        = 960,
+    MENU_CREDITS2       = 961,
+    MENU_CREDITS3       = 962,
+    MENU_CREDITS4       = 963,
+    MENU_CREDITS5       = 964,
+    MENU_CREDITS6       = 965,
+    MENU_CREDITS7       = 966,
+    MENU_CREDITS8       = 967,
+    MENU_CREDITS9       = 968,
+    MENU_CREDITS10      = 969,
+    MENU_CREDITS11      = 970,
+    MENU_CREDITS12      = 971,
+    MENU_CREDITS13      = 972,
+    MENU_CREDITS14      = 973,
+    MENU_CREDITS15      = 974,
+    MENU_CREDITS16      = 975,
+    MENU_CREDITS17      = 976,
+    MENU_CREDITS18      = 977,
+    MENU_CREDITS19      = 978,
+    MENU_CREDITS20      = 979,
+    MENU_CREDITS21      = 980,
+    MENU_CREDITS22      = 981,
+    MENU_CREDITS23      = 982,
+    MENU_CREDITS24      = 983,
+    MENU_CREDITS25      = 984,
+    MENU_CREDITS26      = 985,
+    MENU_CREDITS27      = 986,
+    MENU_CREDITS28      = 987,
+    MENU_CREDITS29      = 988,
+    MENU_CREDITS30      = 989,
+    MENU_CREDITS31      = 990,
+    MENU_CREDITS32      = 991,
+    MENU_CREDITS33      = 992,
     MENU_LOADVERIFY     = 1000,
     MENU_LOADDELVERIFY  = 1100,
     MENU_NEWVERIFY      = 1500,
@@ -126,7 +154,7 @@ typedef struct MenuFont_t
 //    int32_t xspace, yline;
     vec2_t emptychar, between;
     int32_t zoom;
-    int32_t cursorLeftPosition, cursorCenterPosition, cursorScale;
+    int32_t cursorLeftPosition, cursorCenterPosition, cursorScale, cursorScale2;
     int32_t textflags;
     int16_t tilenum;
     // selected shade glows, deselected shade is used by Blood, disabled shade is used by SW

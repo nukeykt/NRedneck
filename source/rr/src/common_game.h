@@ -16,11 +16,11 @@ extern "C" {
 extern int g_useCwd;
 
 #ifndef APPNAME
-#define APPNAME             "EDuke32"
+#define APPNAME             "Rednukem"
 #endif
 
 #ifndef APPBASENAME
-#define APPBASENAME         "eduke32"
+#define APPBASENAME         "rednukem"
 #endif
 
 #define GAMEFLAG_DUKE       0x00000001

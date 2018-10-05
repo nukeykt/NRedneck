@@ -166,6 +166,26 @@ void Anim_Init(void)
         { BIGBANG, 50 },
     };
 
+    static defaultanmsound const rr_intro[] =
+    {
+        { 29, 1 },
+    };
+
+    static defaultanmsound const redneck[] =
+    {
+        { 478, 1 },
+    };
+
+    static defaultanmsound const xatlogo[] =
+    {
+        { 479, 1 },
+    };
+
+    static defaultanmsound const turdmov[] =
+    {
+        { 82, 1 },
+    };
+
     struct defaultanm {
         char const *fn;
         defaultanmsound const *sounds;
@@ -188,6 +208,10 @@ void Anim_Init(void)
         { "radlogo.anm", NULL, 0, 10 },
         { "cineov2.anm", anmsnd(cineov2), 18 },
         { "cineov3.anm", anmsnd(cineov3), 10 },
+        { "rr_intro.anm", anmsnd(rr_intro), 9 },
+        { "redneck.anm", anmsnd(redneck), 9 },
+        { "xatlogo.anm", anmsnd(xatlogo), 9 },
+        { "turdmov.anm", anmsnd(turdmov), 9 },
     };
 #undef anmsnd
 

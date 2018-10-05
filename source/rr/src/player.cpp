@@ -856,9 +856,9 @@ growspark_rr:
         case BOWLINGBALL__STATICRR:
         {
             int const newSprite = A_Spawn(spriteNum, projecTile);
-            sprite[newSprite].xvel = 32;
+            sprite[newSprite].xvel = 250;
             sprite[newSprite].ang = sprite[spriteNum].ang;
-            sprite[newSprite].z -= (5<<8);
+            sprite[newSprite].z -= (15<<8);
             break;
         }
 
@@ -1108,7 +1108,7 @@ growspark_rr:
                 {
                     if (projecTile == RPG2)
                         A_PlaySound(244, spriteNum);
-                    else
+                    else if (projecTile == RRTILE1790)
                         A_PlaySound(94, spriteNum);
                 }
             }
@@ -2037,23 +2037,23 @@ void P_DisplayWeapon(void)
                 if (!RRRA) break;
                 if (!(duke3d_globalflags & DUKE3D_NO_WIDESCREEN_PINNING))
                     weaponBits |= 512;
-                if (weaponFrame)
+                if (*weaponFrame)
                 {
                     static int frames[] = { 0,1,1,2,2,3,2,3,2,3,2,2,2,2,2,2,2,2,2,4,4,4,4,5,5,5,5,6,6,6,6,6,6,7,7,7,7,7,7 };
                     int frame = frames[*weaponFrame];
                     if (frame == 2 || frame == 3)
                     {
-                        G_DrawWeaponTileWithID(currentWeapon, weaponX + 200 - halfLookAng, weaponY + 222 - weaponYOffset,
+                        G_DrawWeaponTileWithID(currentWeapon, weaponX + 200 - halfLookAng, weaponY + 250 - weaponYOffset,
                                                RPGGUN2 + frame, weaponShade, weaponBits, weaponPal, 36700);
                     }
                     else if (frame == 1)
                     {
-                        G_DrawWeaponTileWithID(currentWeapon, weaponX + 200 - halfLookAng, weaponY + 222 - weaponYOffset,
+                        G_DrawWeaponTileWithID(currentWeapon, weaponX + 200 - halfLookAng, weaponY + 250 - weaponYOffset,
                                                RPGGUN2 + frame, 0, weaponBits, weaponPal, 36700);
                     }
                     else
                     {
-                        G_DrawWeaponTileWithID(currentWeapon, weaponX + 210 - halfLookAng, weaponY + 225 - weaponYOffset,
+                        G_DrawWeaponTileWithID(currentWeapon, weaponX + 210 - halfLookAng, weaponY + 255 - weaponYOffset,
                                                RPGGUN2 + frame, weaponShade, weaponBits, weaponPal, 36700);
                     }
                 }
@@ -3302,8 +3302,6 @@ void P_GetInputMotorcycle(int playerNum)
 
     staticInput.fvel += pPlayer->moto_speed;
 
-    if (staticInput.fvel < -15) staticInput.fvel = -15;
-    if (staticInput.fvel > 120) staticInput.fvel = 120;
     staticInput.fvel = clamp(staticInput.fvel, -15, 120);
     staticInput.svel = clamp(staticInput.svel, -MAXSVEL, MAXSVEL);
     staticInput.q16avel = fix16_clamp(staticInput.q16avel, F16(-MAXANGVEL), F16(MAXANGVEL));
@@ -3595,8 +3593,6 @@ void P_GetInputBoat(int playerNum)
 
     staticInput.fvel += pPlayer->moto_speed;
 
-    if (staticInput.fvel < -15) staticInput.fvel = -15;
-    if (staticInput.fvel > 120) staticInput.fvel = 120;
     staticInput.fvel = clamp(staticInput.fvel, -15, 120);
     staticInput.svel = clamp(staticInput.svel, -MAXSVEL, MAXSVEL);
     staticInput.q16avel = fix16_clamp(staticInput.q16avel, F16(-MAXANGVEL), F16(MAXANGVEL));
@@ -3711,7 +3707,7 @@ static int32_t P_DoCounters(int playerNum)
         if (pPlayer->eat_amt >= 100)
             pPlayer->eat_amt = 100;
 
-        if (pPlayer->eat_ang >= 31 && krand() < pPlayer->eat_amt)
+        if (pPlayer->eat_amt >= 31 && krand() < pPlayer->eat_amt)
         {
             switch (krand()&3)
             {
@@ -4703,7 +4699,7 @@ static void P_ProcessWeapon(int playerNum)
                     {
                         if (pPlayer->ammo_amount[pPlayer->curr_weapon] > 0)
                         {
-                            pPlayer->ammo_amount[pPlayer->curr_weapon]--;
+                            //pPlayer->ammo_amount[pPlayer->curr_weapon]--;
                             (*weaponFrame) = 1;
                         }
                         break;
@@ -4788,7 +4784,8 @@ static void P_ProcessWeapon(int playerNum)
                     {
                         (*weaponFrame)            = 1;
                         pPlayer->hbomb_hold_delay = !pPlayer->hbomb_hold_delay;
-                        A_PlaySound(CAT_FIRE, pPlayer->i);
+                        if (!RR)
+                            A_PlaySound(CAT_FIRE, pPlayer->i);
                     }
                     break;
 
@@ -5238,7 +5235,7 @@ static void P_ProcessWeapon(int playerNum)
                 if (*weaponFrame == 3)
                 {
                     pPlayer->moto_speed -= 20;
-                    pPlayer->ammo_amount[MOTORCYCLE_WEAPON]--;
+                    pPlayer->ammo_amount[BOAT_WEAPON]--;
                     A_Shoot(pPlayer->i, RRTILE1790);
                 }
                 (*weaponFrame)++;
@@ -5295,19 +5292,19 @@ static void P_ProcessWeapon(int playerNum)
                     pPlayer->gotweapon &= ~(1<<TRIPBOMB_WEAPON);
                     if (pPlayer->on_ground && TEST_SYNC_KEY(playerBits, SK_CROUCH) && (!RRRA || !pPlayer->on_motorcycle))
                     {
-                        Zvel = 15;
-                        FwdVel = (fix16_to_int(pPlayer->q16horiz + pPlayer->q16horizoff - F16(100)) * 20);
+                        FwdVel = 15;
+                        Zvel = (fix16_to_int(pPlayer->q16horiz + pPlayer->q16horizoff - F16(100)) * 20);
                     }
                     else
                     {
-                        Zvel = 32;
-                        FwdVel = -512 - (fix16_to_int(pPlayer->q16horiz + pPlayer->q16horizoff - F16(100)) * 20);
+                        FwdVel = 32;
+                        Zvel = -512 - (fix16_to_int(pPlayer->q16horiz + pPlayer->q16horizoff - F16(100)) * 20);
                     }
 
                     A_InsertSprite(pPlayer->cursectnum,
                                    pPlayer->pos.x+(sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]>>6),
                                    pPlayer->pos.y+(sintable[fix16_to_int(pPlayer->q16ang)&2047]>>6),
-                                   pPlayer->pos.z,HEAVYHBOMB,-16,9,9,
+                                   pPlayer->pos.z,TRIPBOMBSPRITE,-16,9,9,
                                    fix16_to_int(pPlayer->q16ang),FwdVel*2,Zvel,pPlayer->i,1);
                 }
                 (*weaponFrame)++;
@@ -6827,7 +6824,7 @@ check_enemy_sprite:
                 if (!pPlayer->stairs)
                 {
                     pPlayer->stairs = 10;
-                    if (TEST_SYNC_KEY(playerBits, SK_JUMP) && (!RRRA || !pPlayer->on_motorcycle))
+                    if (TEST_SYNC_KEY(playerBits, SK_CROUCH) && (!RRRA || !pPlayer->on_motorcycle))
                     {
                         ceilZ = sprite[spriteNum].z;
                         highZhit = 0;
@@ -7157,7 +7154,7 @@ check_enemy_sprite:
                     }
                     else
                     {
-                        pPlayer->vel.z -= g_spriteGravity-80+(120-pPlayer->moto_speed);
+                        pPlayer->vel.z += g_spriteGravity-80+(120-pPlayer->moto_speed);
                         if (!A_CheckSoundPlaying(pPlayer->i, 189) && !A_CheckSoundPlaying(pPlayer->i, 190))
                             A_PlaySound(190, pPlayer->i);
                     }
@@ -7478,12 +7475,12 @@ check_enemy_sprite:
                     if (pPlayer->on_motorcycle && pPlayer->on_ground)
                         pPlayer->moto_on_oil = 1;
                 }
-                else if (sector[pPlayer->cursectnum].floorpicnum == RRTILE7888)
+                else if (sector[pPlayer->cursectnum].floorpicnum == RRTILE7889)
                 {
                     if (pPlayer->on_motorcycle)
                     {
                         if (pPlayer->on_ground)
-                            pPlayer->moto_on_oil = 1;
+                            pPlayer->moto_on_mud = 1;
                     }
                     else if (pPlayer->inv_amount[GET_BOOTS] > 0)
                         pPlayer->inv_amount[GET_BOOTS]--;

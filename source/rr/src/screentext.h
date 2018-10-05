@@ -57,6 +57,7 @@ enum ScreenTextFlags_t {
     TEXT_DIGITALNUMBER   = 0x00080000,
     TEXT_BIGALPHANUM     = 0x00100000,
     TEXT_GRAYFONT        = 0x00200000,
+    TEXT_RRMENUTEXTHACK  = 0x00400000,
 };
 
 extern int32_t minitext_(int32_t x, int32_t y, const char *t, int32_t s, int32_t p, int32_t sb);
@@ -71,7 +72,7 @@ extern int32_t textsc(int32_t sc);
 
 #define minitextshade(x, y, t, s, p, sb) minitext_(x,y,t,s,p,sb)
 #define minitext(x, y, t, p, sb) minitext_(x,y,t,0,p,sb)
-#define menutext(x, y, t) menutext_((x), (y), 0, (t), 10|16, 0)
+#define menutext(x, y, t) menutext_((x)<<16, (y)<<16, 0, (t), 10|16, 0)
 #define menutext_centeralign(x, y, t) menutext_((x), (y), 0, (t), 10|16, TEXT_XCENTER|TEXT_YCENTER)
 #define menutext_center(y, t) menutext_(160<<16, (y)<<16, 0, (t), 10|16, TEXT_XCENTER)
 #define gametext(x, y, t) gametext_simple((x)<<16, (y)<<16, (t))

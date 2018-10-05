@@ -53,7 +53,20 @@ char CheatStrings [NUMCHEATS][MAXCHEATLEN] =
     "keys",         // 23
     "debug",        // 24
     "<RESERVED>",   // 25
-    "cgs",          // 26
+    "<RESERVED>",   // 26
+    "<RESERVED>",   // 27
+    "<RESERVED>",   // 28
+    "<RESERVED>",   // 29
+    "<RESERVED>",   // 30
+    "<RESERVED>",   // 31
+    "<RESERVED>",   // 32
+    "<RESERVED>",   // 33
+    "<RESERVED>",   // 34
+    "<RESERVED>",   // 35
+    "<RESERVED>",   // 36
+    "<RESERVED>",   // 37
+    "<RESERVED>",   // 38
+    "<RESERVED>",   // 39
 };
 
 const uint32_t CheatFunctionFlags [NUMCHEATS] =
@@ -84,7 +97,20 @@ const uint32_t CheatFunctionFlags [NUMCHEATS] =
     1 << CHEATFUNC_GIVEKEYS,
     1 << CHEATFUNC_DEBUG,
     0,
-    (1 << CHEATFUNC_GOD) | (1 << CHEATFUNC_GIVEEVERYTHING),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 // KEEPINSYNC game.h: enum CheatCodeFunctions
@@ -113,83 +139,43 @@ const uint8_t CheatFunctionIDs[NUMCHEATS] =
     CHEAT_COORDS,
     CHEAT_DEBUG,
 };
-
-char const * const g_NAMMattCheatQuote = "Matt Saettler.  matts@saettler.com";
-
 void G_SetupCheats(void)
 {
-#if 0
-    // KEEPINSYNC: NAM_WW2GI_CHEATS
-    if (WW2GI)
+    if (RR)
     {
-#if 0
-        // WWII GI's original cheat prefix temporarily disabled because W conflicts with WSAD movement
-        CheatKeys[0] = CheatKeys[1] = sc_W;
-#else
-        CheatKeys[0] = sc_G;
-        CheatKeys[1] = sc_I;
-#endif
-
-        Bstrcpy(CheatStrings[0], "2god");
-        Bstrcpy(CheatStrings[1], "2blood");
-        Bstrcpy(CheatStrings[2], "2level###");
-        Bstrcpy(CheatStrings[3], "2coords");
-        Bstrcpy(CheatStrings[4], "2view");
-        Bstrcpy(CheatStrings[5], "<RESERVED>");
-        Bstrcpy(CheatStrings[7], "<RESERVED>");
-        Bstrcpy(CheatStrings[8], "<RESERVED>");
-        Bstrcpy(CheatStrings[9], "2rate");
-        Bstrcpy(CheatStrings[10], "2skill");
-        Bstrcpy(CheatStrings[11], "<RESERVED>");
-        Bstrcpy(CheatStrings[12], "<RESERVED>");
-        Bstrcpy(CheatStrings[13], "<RESERVED>");
-        Bstrcpy(CheatStrings[16], "2matt");
-        Bstrcpy(CheatStrings[17], "2showmap");
-        Bstrcpy(CheatStrings[18], "2ryan");
+        CheatKeys[0] = sc_R;
+        CheatKeys[1] = sc_D;
+        Bstrcpy(CheatStrings[0], "hounddog");
+        Bstrcpy(CheatStrings[1], "all");
+        Bstrcpy(CheatStrings[2], "meadow###");
+        Bstrcpy(CheatStrings[3], "yerat");
+        Bstrcpy(CheatStrings[7], "cluck");
+        Bstrcpy(CheatStrings[11], "teachers");
+        Bstrcpy(CheatStrings[12], "moonshine");
+        Bstrcpy(CheatStrings[13], "critters");
+        Bstrcpy(CheatStrings[16], "rafael");
+        Bstrcpy(CheatStrings[18], "elvis");
         Bstrcpy(CheatStrings[19], "<RESERVED>");
-        Bstrcpy(CheatStrings[20], "2clip");
-        Bstrcpy(CheatStrings[21], "2weapons");
-        Bstrcpy(CheatStrings[22], "2inventory");
-        Bstrcpy(CheatStrings[23], "<RESERVED>");
-        Bstrcpy(CheatStrings[24], "2debug");
-        Bstrcpy(CheatStrings[26], "2cgs");
-
-        Bstrcpy(g_gametypeNames[0], "GI Match (Spawn)");
-        Bstrcpy(g_gametypeNames[2], "GI Match (No Spawn)");
-}
-    else if (NAM)
-    {
-        CheatKeys[0] = sc_N;
-        CheatKeys[1] = sc_V;
-
-        Bstrcpy(CheatStrings[0], "acaleb");
-        Bstrcpy(CheatStrings[1], "ablood");
-        Bstrcpy(CheatStrings[2], "alevel###");
-        Bstrcpy(CheatStrings[3], "acoords");
-        Bstrcpy(CheatStrings[4], "aview");
-        Bstrcpy(CheatStrings[5], "<RESERVED>");
-        Bstrcpy(CheatStrings[7], "<RESERVED>");
-        Bstrcpy(CheatStrings[8], "<RESERVED>");
-        Bstrcpy(CheatStrings[9], "arate");
-        Bstrcpy(CheatStrings[10], "askill");
-        Bstrcpy(CheatStrings[11], "<RESERVED>");
-        Bstrcpy(CheatStrings[12], "ahyper");
-        Bstrcpy(CheatStrings[13], "<RESERVED>");
-        Bstrcpy(CheatStrings[16], "amatt");
-        Bstrcpy(CheatStrings[17], "ashowmap");
-        Bstrcpy(CheatStrings[18], "agod");
-        Bstrcpy(CheatStrings[19], "<RESERVED>");
-        Bstrcpy(CheatStrings[20], "aclip");
-        Bstrcpy(CheatStrings[21], "aweapons");
-        Bstrcpy(CheatStrings[22], "ainventory");
-        Bstrcpy(CheatStrings[23], "<RESERVED>");
-        Bstrcpy(CheatStrings[24], "adebug");
-        Bstrcpy(CheatStrings[26], "acgs");
-
-        Bstrcpy(g_gametypeNames[0], "GruntMatch (Spawn)");
-        Bstrcpy(g_gametypeNames[2], "GruntMatch (No Spawn)");
+        Bstrcpy(CheatStrings[21], "guns");
+        if (RRRA)
+        {
+            Bstrcpy(CheatStrings[25], "joseph");
+            Bstrcpy(CheatStrings[26], "mrbill");
+            Bstrcpy(CheatStrings[27], "tony");
+            Bstrcpy(CheatStrings[28], "gary");
+            Bstrcpy(CheatStrings[29], "rhett");
+            Bstrcpy(CheatStrings[30], "aaron");
+            Bstrcpy(CheatStrings[31], "nocheat");
+            Bstrcpy(CheatStrings[32], "woleslagle");
+            Bstrcpy(CheatStrings[33], "mikael");
+            Bstrcpy(CheatStrings[34], "greg");
+            Bstrcpy(CheatStrings[35], "noah");
+            Bstrcpy(CheatStrings[36], "arijit");
+            Bstrcpy(CheatStrings[37], "donut");
+            Bstrcpy(CheatStrings[38], "kfc");
+            Bstrcpy(CheatStrings[39], "van");
+        }
     }
-#endif
 }
 
 static void doinvcheat(DukePlayer_t * const pPlayer, int32_t invidx, int32_t defaultnum)
@@ -201,12 +187,12 @@ static void doinvcheat(DukePlayer_t * const pPlayer, int32_t invidx, int32_t def
 static void G_CheatGetInv(DukePlayer_t *pPlayer)
 {
     doinvcheat(pPlayer, GET_STEROIDS, 400);
-    doinvcheat(pPlayer, GET_HEATS, 1200);
-    doinvcheat(pPlayer, GET_BOOTS, 200);
+    if (!RR) doinvcheat(pPlayer, GET_HEATS, 1200);
+    doinvcheat(pPlayer, GET_BOOTS, RR ? 2000 : 200);
     doinvcheat(pPlayer, GET_SHIELD, 100);
     doinvcheat(pPlayer, GET_SCUBA, 6400);
     doinvcheat(pPlayer, GET_HOLODUKE, 2400);
-    doinvcheat(pPlayer, GET_JETPACK, 1600);
+    doinvcheat(pPlayer, GET_JETPACK, RR ? 600 : 1600);
     doinvcheat(pPlayer, GET_FIRSTAID, pPlayer->max_player_health);
 }
 
@@ -229,7 +215,7 @@ void G_DoCheats(void)
     {
         cheatNum = osdcmd_cheatsinfo_stat.cheatnum;
 
-        if (ud.player_skill == 4)
+        if (ud.player_skill == 4 || (RR && ud.player_skill > 3) || (RRRA && pPlayer->nocheat))
         {
             switch (cheatNum)
             {
@@ -238,7 +224,7 @@ void G_DoCheats(void)
             case CHEAT_RATE:
             case CHEAT_RESERVED:
             case CHEAT_RESERVED2:
-            case CHEAT_RESERVED3:
+            //case CHEAT_RESERVED3:
                 break;
             default:
                 P_DoQuote(QUOTE_CHEATS_DISABLED, pPlayer);
@@ -267,6 +253,9 @@ void G_DoCheats(void)
 
     if (consoleCheat && numplayers < 2 && ud.recstat == 0)
         goto FOUNDCHEAT;
+
+    if ((RR && ud.player_skill > 3) || (RRRA && pPlayer->nocheat))
+        return;
 
     if (pPlayer->gm & (MODE_TYPE|MODE_MENU))
         return;
@@ -368,6 +357,8 @@ void G_DoCheats(void)
                         pPlayer->gotweapon |= (1<<weaponNum);
                     }
 
+                    if (RRRA) pPlayer->ammo_amount[SLINGBLADE_WEAPON] = 1;
+
                     P_DoQuote(QUOTE_CHEAT_ALL_WEAPONS, pPlayer);
 
                     end_cheat(pPlayer);
@@ -382,6 +373,9 @@ void G_DoCheats(void)
 
                 case CHEAT_KEYS:
                     pPlayer->got_access =  7;
+                    if (RR)
+                        for (int key = 0; key < 5; key++)
+                            pPlayer->keys[key] = 1;
                     KB_FlushKeyboardQueue();
                     P_DoQuote(QUOTE_CHEAT_ALL_KEYS, pPlayer);
                     end_cheat(pPlayer);
@@ -405,8 +399,16 @@ void G_DoCheats(void)
                     return;
 
                 case CHEAT_RESERVED2:
-                    pPlayer->player_par = 0;
-                    pPlayer->gm = MODE_EOL;
+                    if (RR)
+                    {
+                        P_DoQuote(QUOTE_JETPACK_ON, pPlayer);
+                        KB_FlushKeyboardQueue();
+                    }
+                    else
+                    {
+                        pPlayer->player_par = 0;
+                        pPlayer->gm = MODE_EOL;
+                    }
                     end_cheat(pPlayer);
                     return;
 
@@ -418,7 +420,7 @@ void G_DoCheats(void)
 
                 case CHEAT_CORNHOLIO:
                 case CHEAT_KROZ:
-                case CHEAT_COMEGETSOME:
+                //case CHEAT_COMEGETSOME:
                 {
                     const int32_t pi = pPlayer->i;
 
@@ -426,6 +428,8 @@ void G_DoCheats(void)
 
                     if (ud.god)
                     {
+                        if (RRRA)
+                            S_PlaySound(218);
                         pus = 1;
                         pub = 1;
                         sprite[pi].cstat = 257;
@@ -441,26 +445,26 @@ void G_DoCheats(void)
                         sprite[pi].lotag = 0;
                         sprite[pi].pal = pPlayer->palookup;
 
-                        if (cheatNum != CHEAT_COMEGETSOME)
-                        {
+                        //if (cheatNum != CHEAT_COMEGETSOME)
+                        //{
                             P_DoQuote(QUOTE_CHEAT_GODMODE_ON, pPlayer);
-                        }
-                        else
-                        {
-                            Bstrcpy(apStrings[QUOTE_RESERVED4], "Come Get Some!");
-
-                            S_PlaySound(DUKE_GETWEAPON2);
-                            P_DoQuote(QUOTE_RESERVED4, pPlayer);
-                            G_CheatGetInv(pPlayer);
-
-                            for (bssize_t weaponNum = PISTOL_WEAPON; weaponNum < MAX_WEAPONS; weaponNum++)
-                                pPlayer->gotweapon |= (1<<weaponNum);
-
-                            for (bssize_t weaponNum = PISTOL_WEAPON; weaponNum < MAX_WEAPONS; weaponNum++)
-                                P_AddAmmo(pPlayer, weaponNum, pPlayer->max_ammo_amount[weaponNum]);
-
-                            pPlayer->got_access = 7;
-                        }
+                        //}
+                        //else
+                        //{
+                        //    Bstrcpy(apStrings[QUOTE_RESERVED4], "Come Get Some!");
+                        //
+                        //    S_PlaySound(DUKE_GETWEAPON2);
+                        //    P_DoQuote(QUOTE_RESERVED4, pPlayer);
+                        //    G_CheatGetInv(pPlayer);
+                        //
+                        //    for (bssize_t weaponNum = PISTOL_WEAPON; weaponNum < MAX_WEAPONS; weaponNum++)
+                        //        pPlayer->gotweapon |= (1<<weaponNum);
+                        //
+                        //    for (bssize_t weaponNum = PISTOL_WEAPON; weaponNum < MAX_WEAPONS; weaponNum++)
+                        //        P_AddAmmo(pPlayer, weaponNum, pPlayer->max_ammo_amount[weaponNum]);
+                        //
+                        //    pPlayer->got_access = 7;
+                        //}
                     }
                     else
                     {
@@ -473,7 +477,7 @@ void G_DoCheats(void)
                     sprite[pi].extra = pPlayer->max_player_health;
                     actor[pi].extra = 0;
 
-                    if (cheatNum != CHEAT_COMEGETSOME)
+                    //if (cheatNum != CHEAT_COMEGETSOME)
                         pPlayer->dead_flag = 0;
 
                     end_cheat(pPlayer);
@@ -490,8 +494,14 @@ void G_DoCheats(void)
                     for (bssize_t weaponNum = PISTOL_WEAPON; weaponNum < MAX_WEAPONS-weaponLimit; weaponNum++)
                         P_AddAmmo(pPlayer, weaponNum, pPlayer->max_ammo_amount[weaponNum]);
 
+                    if (RRRA)
+                        pPlayer->ammo_amount[SLINGBLADE_WEAPON] = 1;
+
                     G_CheatGetInv(pPlayer);
                     pPlayer->got_access = 7;
+                    if (RR)
+                        for (int key = 0; key < 5; key++)
+                            pPlayer->keys[key] = 1;
                     P_DoQuote(QUOTE_CHEAT_EVERYTHING, pPlayer);
 
                     //                    P_DoQuote(QUOTE_21,pPlayer);
@@ -503,6 +513,8 @@ void G_DoCheats(void)
 
                 case CHEAT_SCOTTY:
                 {
+                    if (RR)
+                        g_lastLevel = 0;
                     int32_t const volnume = ud.m_volume_number, levnume = ud.m_level_number;
 
                     if ((!VOLUMEONE || volnume == 0) && (unsigned)volnume < (unsigned)g_volumeCnt &&
@@ -524,6 +536,8 @@ void G_DoCheats(void)
                 }
 
                 case CHEAT_SKILL:
+                    if (RR)
+                        g_lastLevel = 0;
                     ud.player_skill = ud.m_player_skill;
 
 #if 0
@@ -546,10 +560,13 @@ void G_DoCheats(void)
                     return;
 
                 case CHEAT_VIEW:
-                    pPlayer->over_shoulder_on ^= 1;
-                    CAMERADIST = 0;
-                    CAMERACLOCK = totalclock;
-                    //                    P_DoQuote(QUOTE_CHEATS_DISABLED,pPlayer);
+                    if (!RRRA || (!pPlayer->on_motorcycle && !pPlayer->on_boat))
+                    {
+                        pPlayer->over_shoulder_on ^= 1;
+                        CAMERADIST = 0;
+                        CAMERACLOCK = totalclock;
+                        //                    P_DoQuote(QUOTE_CHEATS_DISABLED,pPlayer);
+                    }
                     end_cheat(pPlayer);
                     return;
 
@@ -587,6 +604,9 @@ void G_DoCheats(void)
                 case CHEAT_ITEMS:
                     G_CheatGetInv(pPlayer);
                     pPlayer->got_access = 7;
+                    if (RR)
+                        for(int key = 0; key < 5; key++)
+                            pPlayer->keys[key] = 1;
                     P_DoQuote(QUOTE_CHEAT_EVERYTHING, pPlayer);
                     end_cheat(pPlayer);
                     return;
@@ -624,7 +644,8 @@ void G_DoCheats(void)
 
                 case CHEAT_HYPER:
                     pPlayer->inv_amount[GET_STEROIDS] = 399;
-                    pPlayer->inv_amount[GET_HEATS] = 1200;
+                    if (!RR)
+                        pPlayer->inv_amount[GET_HEATS] = 1200;
                     P_DoQuote(QUOTE_CHEAT_STEROIDS, pPlayer);
                     end_cheat(pPlayer);
                     return;
@@ -644,10 +665,150 @@ void G_DoCheats(void)
                 }
 
                 case CHEAT_RESERVED:
-                case CHEAT_RESERVED3:
-                    ud.eog = 1;
-                    pPlayer->player_par = 0;
-                    pPlayer->gm |= MODE_EOL;
+                //case CHEAT_RESERVED3:
+                    if (RR)
+                    {
+                        P_DoQuote(51, pPlayer);
+                        end_cheat(pPlayer);
+                    }
+                    else
+                    {
+                        ud.eog = 1;
+                        pPlayer->player_par = 0;
+                        pPlayer->gm |= MODE_EOL;
+                    }
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAJOSEPH:
+                    G_OnMotorcycle(pPlayer, 0);
+                    pPlayer->ammo_amount[MOTORCYCLE_WEAPON] = pPlayer->max_ammo_amount[MOTORCYCLE_WEAPON];
+                    P_DoQuote(126, pPlayer);
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAMRBILL:
+                    P_QuickKill(pPlayer);
+                    P_DoQuote(127, pPlayer);
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAGARY:
+                    // RR TODO
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RANOAH:
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RARHETT:
+                    ud.god = 0;
+                    pPlayer->gotweapon = 1<<KNEE_WEAPON;
+                    pPlayer->curr_weapon = KNEE_WEAPON;
+                    pPlayer->nocheat = 1;
+                    sprite[pPlayer->i].extra = 1;
+                    P_DoQuote(128, pPlayer);
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAAARON:
+                    pPlayer->drug_mode = pPlayer->drug_mode ? 0 : 5;
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RANOCHEAT:
+                    pPlayer->nocheat = 1;
+                    P_DoQuote(130, pPlayer);
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RATONY:
+                    g_changeEnemySize = 2;
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAVAN:
+                    g_changeEnemySize = 3;
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAKFC:
+                    for (int i = 0; i < 7; i++)
+                    {
+                        int const newSprite = A_Spawn(pPlayer->i, HEN);
+                        sprite[newSprite].pal = 1;
+                        sprite[newSprite].xrepeat <<= 2;
+                        sprite[newSprite].yrepeat <<= 2;
+                    }
+                    P_DoQuote(139, pPlayer);
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAWOLESLAGLE:
+                    if (pPlayer->drink_amt)
+                    {
+                        pPlayer->drink_amt = 0;
+                        P_DoQuote(132, pPlayer);
+                    }
+                    else
+                    {
+                        pPlayer->drink_amt = 90;
+                        P_DoQuote(131, pPlayer);
+                    }
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAMIKAEL:
+                    for (bssize_t weaponNum = PISTOL_WEAPON; weaponNum < MAX_WEAPONS; weaponNum++)
+                    {
+                        pPlayer->gotweapon |= 1 << weaponNum;
+                        pPlayer->ammo_amount[weaponNum] = 66;
+                    }
+
+                    pPlayer->ammo_amount[SLINGBLADE_WEAPON] = 1;
+
+                    G_CheatGetInv(pPlayer);
+                    pPlayer->got_access = 7;
+                    for (int key = 0; key < 5; key++)
+                        pPlayer->keys[key] = 1;
+                    P_DoQuote(5, pPlayer);
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAGREG:
+                    if (pPlayer->sea_sick_stat)
+                    {
+                        pPlayer->sea_sick_stat = 0;
+                        P_DoQuote(129, pPlayer);
+                    }
+                    else
+                    {
+                        pPlayer->sea_sick_stat = 1;
+                        P_DoQuote(137, pPlayer);
+                    }
+                    end_cheat(pPlayer);
+                    KB_FlushKeyboardQueue();
+                    return;
+
+                case CHEAT_RAARIJIT:
+                case CHEAT_RADONUT:
+                    G_OnBoat(pPlayer, 0);
+                    pPlayer->ammo_amount[BOAT_WEAPON] = pPlayer->max_ammo_amount[BOAT_WEAPON];
+                    P_DoQuote(136, pPlayer);
+                    end_cheat(pPlayer);
                     KB_FlushKeyboardQueue();
                     return;
 

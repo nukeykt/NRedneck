@@ -470,6 +470,7 @@ vec2_t G_ScreenText(const int32_t font,
     vec2_t extent = { 0, 0, }; // holds the x-width of each character and the greatest y-height of each line
     const vec2_t Xdirection = { sintable[(blockangle+512)&2047], sintable[blockangle&2047], };
     const vec2_t Ydirection = { sintable[(blockangle+1024)&2047], sintable[(blockangle+512)&2047], };
+    const int32_t z2 = (RR && (f & TEXT_RRMENUTEXTHACK) != 0) ? 26214 : z;
 
     int32_t blendidx=0, tile;
     char t;
@@ -637,7 +638,7 @@ vec2_t G_ScreenText(const int32_t font,
             G_AddCoordsFromRotation(&location, &Xdirection, pos.x);
             G_AddCoordsFromRotation(&location, &Ydirection, pos.y);
 
-            rotatesprite_(location.x, location.y, z, angle, tile, shade, pal, orientation, alpha, blendidx, x1, y1, x2, y2);
+            rotatesprite_(location.x, location.y, z2, angle, tile, shade, pal, orientation, alpha, blendidx, x1, y1, x2, y2);
 
             break;
         }
@@ -966,7 +967,7 @@ int32_t minitext_(int32_t x, int32_t y, const char *t, int32_t s, int32_t p, int
 
 void menutext_(int32_t x, int32_t y, int32_t s, char const *t, int32_t o, int32_t f)
 {
-    G_ScreenText(MF_Redfont.tilenum, x, y - (12<<16), MF_Redfont.zoom, 0, 0, t, s, MF_Redfont.pal, o|ROTATESPRITE_FULL16, 0, MF_Redfont.emptychar.x, MF_Redfont.emptychar.y, MF_Redfont.between.x, MF_Redfont.between.y, f|MF_Redfont.textflags|TEXT_LITERALESCAPE, 0, 0, xdim-1, ydim-1);
+    G_ScreenText(MF_Redfont.tilenum, x, y - (12<<16), MF_Redfont.zoom, 0, 0, t, s, MF_Redfont.pal, o|ROTATESPRITE_FULL16, 0, MF_Redfont.emptychar.x, MF_Redfont.emptychar.y, MF_Redfont.between.x, MF_Redfont.between.y, f|MF_Redfont.textflags|TEXT_LITERALESCAPE|TEXT_RRMENUTEXTHACK, 0, 0, xdim-1, ydim-1);
 }
 
 void captionmenutext(int32_t x, int32_t y, char const *t)

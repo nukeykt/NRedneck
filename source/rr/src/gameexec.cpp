@@ -879,10 +879,10 @@ static void VM_AddInventory(DukePlayer_t * const pPlayer, int const itemNum, int
         {
             switch (vm.pSprite->lotag)
             {
-                case 101: pPlayer->keys[1] = 1; break;
-                case 102: pPlayer->keys[2] = 1; break;
-                case 103: pPlayer->keys[3] = 1; break;
-                case 104: pPlayer->keys[4] = 1; break;
+                case 100: pPlayer->keys[1] = 1; break;
+                case 101: pPlayer->keys[2] = 1; break;
+                case 102: pPlayer->keys[3] = 1; break;
+                case 103: pPlayer->keys[4] = 1; break;
             }
         }
         else
