@@ -734,6 +734,15 @@ void G_UpdateScreenArea(void)
         int32_t y1 = scale(ss,(200 * 100) - ((tilesiz[BOTTOMSTATUSBAR].y >> (RR ? 1 : 0)) * ud.statusbarscale),200 - tilesiz[BOTTOMSTATUSBAR].y);
         int32_t y2 = 200*100-y1;
 
+        if (RR && ud.screen_size <= 12)
+        {
+            x1 = 0;
+            x2 = xdim;
+            y1 = 0;
+            if (ud.statusbarmode)
+                y2 = 200*100;
+        }
+
         y1 += fragbarheight()*100;
         if (ud.screen_size >= 8 && ud.statusbarmode==0)
             y2 -= (tilesiz[BOTTOMSTATUSBAR].y >> (RR ? 1 : 0))*ud.statusbarscale;

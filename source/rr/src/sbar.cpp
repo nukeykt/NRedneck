@@ -76,10 +76,12 @@ static void G_PatchStatusBar(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     int32_t const scl = sbarsc(RR ? 32768 : 65536);
     int32_t const tx = sbarx16((160<<16) - (tilesiz[BOTTOMSTATUSBAR].x<<(RR ? 14 : 15))); // centered
     int32_t const ty = sbary(200-(tilesiz[BOTTOMSTATUSBAR].y>>(RR ? 1 : 0)));
+    // Assumed to be 4:3 aspect ratio
+    int32_t const xdimcorrect = (4 * ydim) / 3;
 
-    int32_t const clx1 = sbarsc(scale(x1, xdim, 320)), cly1 = sbarsc(scale(y1, ydim, 200));
-    int32_t const clx2 = sbarsc(scale(x2, xdim, 320)), cly2 = sbarsc(scale(y2, ydim, 200));
-    int32_t const clofx = (xdim - sbarsc(xdim)) >> 1, clofy = (ydim - sbarsc(ydim));
+    int32_t const clx1 = sbarsc(scale(x1, xdimcorrect, 320)), cly1 = sbarsc(scale(y1, ydim, 200));
+    int32_t const clx2 = sbarsc(scale(x2, xdimcorrect, 320)), cly2 = sbarsc(scale(y2, ydim, 200));
+    int32_t const clofx = (xdim - sbarsc(xdimcorrect)) >> 1, clofy = (ydim - sbarsc(ydim));
 
     rotatesprite(tx, ty, scl, 0, BOTTOMSTATUSBAR, 4, 0, 10+16+64, clx1+clofx, cly1+clofy, clx2+clofx-1, cly2+clofy-1);
 }
@@ -91,10 +93,12 @@ static void G_PatchStatusBar2(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     int32_t const scl = sbarsc(32768);
     int32_t const tx = sbarx16((160<<16) - (tilesiz[WEAPONBAR].x<<14)); // centered
     int32_t const ty = sbary(200-tilesiz[BOTTOMSTATUSBAR].y/2-tilesiz[WEAPONBAR].y/2);
+    // Assumed to be 4:3 aspect ratio
+    int32_t const xdimcorrect = (4 * ydim) / 3;
 
-    int32_t const clx1 = sbarsc(scale(x1, xdim, 320)), cly1 = sbarsc(scale(y1, ydim, 200));
-    int32_t const clx2 = sbarsc(scale(x2, xdim, 320)), cly2 = sbarsc(scale(y2, ydim, 200));
-    int32_t const clofx = (xdim - sbarsc(xdim)) >> 1, clofy = (ydim - sbarsc(ydim));
+    int32_t const clx1 = sbarsc(scale(x1, xdimcorrect, 320)), cly1 = sbarsc(scale(y1, ydim, 200));
+    int32_t const clx2 = sbarsc(scale(x2, xdimcorrect, 320)), cly2 = sbarsc(scale(y2, ydim, 200));
+    int32_t const clofx = (xdim - sbarsc(xdimcorrect)) >> 1, clofy = (ydim - sbarsc(ydim));
 
     rotatesprite(tx, ty, scl, 0, WEAPONBAR, 4, 0, 10+16+64, clx1+clofx, cly1+clofy, clx2+clofx-1, cly2+clofy-1);
 }
@@ -107,7 +111,7 @@ static void G_PatchStatusBar2(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 static void G_DrawInvNum(int32_t x, int32_t yofs, int32_t y, char num1, char ha, int32_t sbits)
 {
     char dabuf[16];
-    int32_t i, shd = (x < 0);
+    int32_t shd = (x < 0);
 
     const int32_t sbscale = sbarsc(RR ? 32768 : 65536);
     const int32_t sby = yofs+sbary(y), sbyp1 = yofs+sbary(y+1), sbym1 = yofs+sbary(y-1);
@@ -356,7 +360,7 @@ static void G_DrawAltDigiNum(int32_t x, int32_t y, int32_t n, char s, int32_t cs
     int32_t rev = (x < 0);
     int32_t shd = (y < 0);
 
-    const int32_t sbscale = sbarsc(65536);
+    const int32_t sbscale = sbarsc(RR ? 32768 : 65536);
 
     if (rev) x = -x;
     if (shd) y = -y;
@@ -366,7 +370,7 @@ static void G_DrawAltDigiNum(int32_t x, int32_t y, int32_t n, char s, int32_t cs
     for (k=i-1; k>=0; k--)
     {
         p = althud_numbertile + b[k]-'0';
-        j += tilesiz[p].x+1;
+        j += (tilesiz[p].x>>(RR?1:0))+1;
     }
     c = x-(j>>1);
 
@@ -378,7 +382,7 @@ static void G_DrawAltDigiNum(int32_t x, int32_t y, int32_t n, char s, int32_t cs
             if (shd && videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
                 rotatesprite_fs(sbarxr(c+j-1), sbary(y+1), sbscale, 0, p, 127, 4, cs|POLYMOSTTRANS2);
             rotatesprite_fs(sbarxr(c+j), sbary(y), sbscale, 0, p, s, althud_numberpal, cs);
-            j -= tilesiz[p].x+1;
+            j -= (tilesiz[p].x>>(RR?1:0))+1;
         }
         return;
     }
@@ -390,7 +394,7 @@ static void G_DrawAltDigiNum(int32_t x, int32_t y, int32_t n, char s, int32_t cs
         if (shd && videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
             rotatesprite_fs(sbarx(c+j+1), sbary(y+1), sbscale, 0, p, 127, 4, cs|POLYMOSTTRANS2);
         rotatesprite_fs(sbarx(c+j), sbary(y), sbscale, 0, p, s, althud_numberpal, cs);
-        j += tilesiz[p].x+1;
+        j += (tilesiz[p].x>>(RR?1:0))+1;
     }
 }
 
@@ -533,19 +537,20 @@ static int32_t G_GetInvAmount(const DukePlayer_t *p)
 static void G_DrawWeaponBar(const DukePlayer_t *p)
 {
     const int32_t sbscale = sbarsc(32800);
+    const int32_t SBY = (200-tilesiz[BOTTOMSTATUSBAR].y/2);
     rotatesprite_fs(sbarx(0), sbary(158), sbscale, 0, WEAPONBAR, 0, 0, 10+16+64);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 9; i++) {
         if (RRRA && i == 4 && p->curr_weapon == CHICKEN_WEAPON)
         {
-            rotatesprite_fs(sbarx(18+i*32), sbary(160), sbscale, 0, AMMO_ICON + 10, 0, 0, 10+16+64);
+            rotatesprite_fs(sbarx(18+i*32), sbary(SBY-6), sbscale, 0, AMMO_ICON + 10, 0, 0, 10+16+64);
             G_DrawInvNum(38+i*32, 0, 162, (char)p->ammo_amount[CHICKEN_WEAPON], 0, 10);
         }
         else
         {
             if (p->gotweapon&(1 << (i + 1))) {
-                rotatesprite_fs(sbarx(18+i*32), sbary(160), sbscale, 0, AMMO_ICON + i, 0, 0, 10+16+64);
+                rotatesprite_fs(sbarx(18+i*32), sbary(SBY-6), sbscale, 0, AMMO_ICON + i, 0, 0, 10+16+64);
             }
-            G_DrawInvNum(38+i*32, 0, 162, (char)p->ammo_amount[i], 0, 10);
+            G_DrawInvNum(38+i*32, 0, SBY-4, (char)p->ammo_amount[i+1], 0, 10);
         }
     }
 }
@@ -600,7 +605,7 @@ void G_DrawStatusBar(int32_t snum)
 
     const int32_t SBY = (200-(tilesiz[BOTTOMSTATUSBAR].y >> (RR ? 1 : 0)));
 
-    const int32_t sb15 = sbarsc(32768), sb15h = sbarsc(49152);
+    const int32_t sb15 = sbarsc(32768), sb15h = sbarsc(49152), sb14h = sbarsc(24576);
     const int32_t sb16 = sbarsc(65536);
 
     static int32_t item_icons[8];
@@ -642,107 +647,202 @@ void G_DrawStatusBar(int32_t snum)
         {
             // ALTERNATIVE STATUS BAR
 
-            int32_t hudoffset = ud.hudontop == 1 ? 32 : 200;
-            static int32_t ammo_sprites[MAX_WEAPONS];
-
-            if (EDUKE32_PREDICT_FALSE(ammo_sprites[0] == 0))
+            if (RR)
             {
-                /* this looks stupid but it lets us initialize static memory to dynamic values
-                these values can be changed from the CONs with dynamic tile remapping
-                but we don't want to have to recreate the values in memory every time
-                the HUD is drawn */
+                int32_t hudoffset = ud.hudontop == 1 ? 32 : 200;
+                static int32_t ammo_sprites[MAX_WEAPONS];
 
-                int32_t asprites[MAX_WEAPONS] = { -1, AMMO, SHOTGUNAMMO, BATTERYAMMO,
-                    RPGAMMO, HBOMBAMMO, CRYSTALAMMO, DEVISTATORAMMO,
-                    TRIPBOMBSPRITE, FREEZEAMMO+1, HBOMBAMMO, GROWAMMO
-                };
-                Bmemcpy(ammo_sprites, asprites, sizeof(ammo_sprites));
-            }
-
-            //            rotatesprite_fs(sbarx(5+1),sbary(200-25+1),sb15h,0,SIXPAK,0,4,10+16+1+32);
-            //            rotatesprite_fs(sbarx(5),sbary(200-25),sb15h,0,SIXPAK,0,0,10+16);
-            rotatesprite_althud(2, hudoffset-21, sb15h, 0, COLA, 0, 0, 10+16+256);
-
-            if (sprite[p->i].pal == 1 && p->last_extra < 2)
-                G_DrawAltDigiNum(40, -(hudoffset-22), 1, -16, 10+16+256);
-            else if (!althud_flashing || p->last_extra >(p->max_player_health>>2) || totalclock&32)
-            {
-                int32_t s = -8;
-                if (althud_flashing && p->last_extra > p->max_player_health)
-                    s += (sintable[(totalclock<<5)&2047]>>10);
-                G_DrawAltDigiNum(40, -(hudoffset-22), p->last_extra, s, 10+16+256);
-            }
-
-            rotatesprite_althud(62, hudoffset-25, sb15h, 0, SHIELD, 0, 0, 10+16+256);
-
-            {
-                int32_t lAmount = G_GetMorale(p->i, snum);
-                if (lAmount == -1)
-                    lAmount = p->inv_amount[GET_SHIELD];
-                G_DrawAltDigiNum(105, -(hudoffset-22), lAmount, -16, 10+16+256);
-            }
-
-            if (ammo_sprites[p->curr_weapon] >= 0)
-            {
-                i = (tilesiz[ammo_sprites[p->curr_weapon]].y >= 50) ? 16384 : 32768;
-                rotatesprite_althudr(57, hudoffset-15, sbarsc(i), 0, ammo_sprites[p->curr_weapon], 0, 0, 10+512);
-            }
-
-            if (p->curr_weapon== HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
-            else i = p->curr_weapon;
-
-            if (p->curr_weapon != KNEE_WEAPON &&
-                (!althud_flashing || totalclock&32 || p->ammo_amount[i] > (p->max_ammo_amount[i]/10)))
-                G_DrawAltDigiNum(-20, -(hudoffset-22), p->ammo_amount[i], -16, 10+16+512);
-
-            o = 102;
-            permbit = 0;
-
-            if (p->inven_icon)
-            {
-                const int32_t orient = 10+16+permbit+256;
-
-                i = ((unsigned) p->inven_icon < ICON_MAX) ? item_icons[p->inven_icon] : -1;
-
-                if (i >= 0)
-                    rotatesprite_althud(231-o, hudoffset-21-2, sb16, 0, i, 0, 0, orient);
-
-                if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
-                    minitextshade(292-30-o+1, hudoffset-10-3+1, "%", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
-                minitext(292-30-o, hudoffset-10-3, "%", 6, orient+ROTATESPRITE_MAX);
-
-                i = G_GetInvAmount(p);
-                j = G_GetInvOn(p);
-
-                G_DrawInvNum(-(284-30-o), 0, hudoffset-6-3, (uint8_t) i, 0, 10+permbit+256);
-
-                if (j > 0)
+                if (EDUKE32_PREDICT_FALSE(ammo_sprites[0] == 0))
                 {
-                    if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
-                        minitextshade(288-30-o+1, hudoffset-20-3+1, "On", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
-                    minitext(288-30-o, hudoffset-20-3, "On", 0, orient+ROTATESPRITE_MAX);
-                }
-                else if ((uint32_t) j != 0x80000000)
-                {
-                    if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
-                        minitextshade(284-30-o+1, hudoffset-20-3+1, "Off", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
-                    minitext(284-30-o, hudoffset-20-3, "Off", 2, orient+ROTATESPRITE_MAX);
+                    /* this looks stupid but it lets us initialize static memory to dynamic values
+                    these values can be changed from the CONs with dynamic tile remapping
+                    but we don't want to have to recreate the values in memory every time
+                    the HUD is drawn */
+
+                    int32_t asprites[MAX_WEAPONS] = { -1, AMMO, SHOTGUNAMMO, BATTERYAMMO,
+                        HBOMBAMMO, HBOMBAMMO, RRTILE43, DEVISTATORAMMO,
+                        TRIPBOMBSPRITE, GROWSPRITEICON, HBOMBAMMO, -1, BOWLINGBALLSPRITE,
+                        MOTOAMMO, BOATAMMO, -1, RPG2SPRITE
+                    };
+                    Bmemcpy(ammo_sprites, asprites, sizeof(ammo_sprites));
+                    // Hardcoded for now
+                    althud_numbertile = BIGALPHANUM-10;
                 }
 
-                if (p->inven_icon >= ICON_SCUBA)
+                //            rotatesprite_fs(sbarx(5+1),sbary(200-25+1),sb15h,0,SIXPAK,0,4,10+16+1+32);
+                //            rotatesprite_fs(sbarx(5),sbary(200-25),sb15h,0,SIXPAK,0,0,10+16);
+                rotatesprite_althud(2, hudoffset-26, sbarsc(10000), 0, SPINNINGNUKEICON+1, 0, 0, 10+16+256);
+
+                if (sprite[p->i].pal == 1 && p->last_extra < 2)
+                    G_DrawAltDigiNum(44, -(hudoffset-22), 1, -16, 10+16+256);
+                else if (!althud_flashing || p->last_extra >(p->max_player_health>>2) || totalclock&32)
                 {
-                    if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
-                        minitextshade(284-35-o+1, hudoffset-20-3+1, "Auto", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
-                    minitext(284-35-o, hudoffset-20-3, "Auto", 2, orient+ROTATESPRITE_MAX);
+                    int32_t s = -8;
+                    if (althud_flashing && p->last_extra > p->max_player_health)
+                        s += (sintable[(totalclock<<5)&2047]>>10);
+                    G_DrawAltDigiNum(44, -(hudoffset-22), p->last_extra, s, 10+16+256);
                 }
+
+                rotatesprite_althud(70, hudoffset-22, sbarsc(10000), 0, COLA, 0, 0, 10+16+256);
+                G_DrawAltDigiNum(98, -(hudoffset-22), p->drink_amt, -8, 10+16+256);
+
+                rotatesprite_althud(122, hudoffset-22, sbarsc(19000), 0, JETPACK, 0, 0, 10+16+256);
+                G_DrawAltDigiNum(175, -(hudoffset-22), p->eat_amt, -8, 10+16+256);
+
+                if (ammo_sprites[p->curr_weapon] >= 0)
+                {
+                    i = (tilesiz[ammo_sprites[p->curr_weapon]].y >= 50) ? 16384 : 32768;
+                    if (p->curr_weapon == TRIPBOMB_WEAPON)
+                        rotatesprite_althudr(57, hudoffset-30, sbarsc(i), 0, ammo_sprites[p->curr_weapon], 0, 0, 10+512);
+                    else
+                        rotatesprite_althudr(57, hudoffset-15, sbarsc(i), 0, ammo_sprites[p->curr_weapon], 0, 0, 10+512);
+                }
+
+                if (p->curr_weapon== HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
+                else i = p->curr_weapon;
+
+                if (p->curr_weapon != KNEE_WEAPON && p->curr_weapon != SLINGBLADE_WEAPON &&
+                    (!althud_flashing || totalclock&32 || p->ammo_amount[i] > (p->max_ammo_amount[i]/10)))
+                    G_DrawAltDigiNum(-20, -(hudoffset-22), p->ammo_amount[i], -16, 10+16+512);
+
+                o = 102;
+                permbit = 0;
+
+                if (p->inven_icon)
+                {
+                    const int32_t orient = 10+16+permbit+512;
+
+                    i = ((unsigned) p->inven_icon < ICON_MAX) ? item_icons[p->inven_icon] : -1;
+
+                    if (i >= 0)
+                        rotatesprite_althud(231-o+85, hudoffset-21-2, sb15, 0, i, 0, 0, orient);
+
+                    if (p->inven_icon == 1 || p->inven_icon == 2)
+                    {
+                        if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+                            minitextshade(292-30-o+1+85, hudoffset-10-3+1, "%", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(292-30-o+85, hudoffset-10-3, "%", 0, orient+ROTATESPRITE_MAX);
+                    }
+
+                    i = G_GetInvAmount(p);
+
+                    G_DrawInvNum(-(284-30-o+85), 0, hudoffset-6-3, (uint8_t) i, 0, 10+permbit+512);
+
+                    if (p->inven_icon >= ICON_SCUBA)
+                    {
+                        if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+                            minitextshade(284-35-o+1+85, hudoffset-20-3+1, "Auto", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(284-35-o+85, hudoffset-20-3, "Auto", 2, orient+ROTATESPRITE_MAX);
+                    }
+                }
+
+                if (ud.hudontop == 1)
+                    hudoffset += 40;
+
+                if (p->keys[1]) rotatesprite_althudr(39, hudoffset-43, sb15, 0, ACCESSCARD, 0, 0, 10+16+512);
+                if (p->keys[3]) rotatesprite_althudr(34, hudoffset-41, sb15, 0, ACCESSCARD, 0, 23, 10+16+512);
+                if (p->keys[2]) rotatesprite_althudr(29, hudoffset-39, sb15, 0, ACCESSCARD, 0, 21, 10+16+512);
             }
+            else
+            {
+                int32_t hudoffset = ud.hudontop == 1 ? 32 : 200;
+                static int32_t ammo_sprites[MAX_WEAPONS];
 
-            if (ud.hudontop == 1)
-                hudoffset += 40;
+                if (EDUKE32_PREDICT_FALSE(ammo_sprites[0] == 0))
+                {
+                    /* this looks stupid but it lets us initialize static memory to dynamic values
+                    these values can be changed from the CONs with dynamic tile remapping
+                    but we don't want to have to recreate the values in memory every time
+                    the HUD is drawn */
 
-            if (p->got_access&1) rotatesprite_althudr(39, hudoffset-43, sb15, 0, ACCESSCARD, 0, 0, 10+16+512);
-            if (p->got_access&4) rotatesprite_althudr(34, hudoffset-41, sb15, 0, ACCESSCARD, 0, 23, 10+16+512);
-            if (p->got_access&2) rotatesprite_althudr(29, hudoffset-39, sb15, 0, ACCESSCARD, 0, 21, 10+16+512);
+                    int32_t asprites[MAX_WEAPONS] = { -1, AMMO, SHOTGUNAMMO, BATTERYAMMO,
+                        RPGAMMO, HBOMBAMMO, CRYSTALAMMO, DEVISTATORAMMO,
+                        TRIPBOMBSPRITE, FREEZEAMMO+1, HBOMBAMMO, GROWAMMO
+                    };
+                    Bmemcpy(ammo_sprites, asprites, sizeof(ammo_sprites));
+                    // Hardcoded for now
+                    althud_numbertile = BIGALPHANUM-10;
+                }
+
+                //            rotatesprite_fs(sbarx(5+1),sbary(200-25+1),sb15h,0,SIXPAK,0,4,10+16+1+32);
+                //            rotatesprite_fs(sbarx(5),sbary(200-25),sb15h,0,SIXPAK,0,0,10+16);
+                rotatesprite_althud(2, hudoffset-21, sb15h, 0, COLA, 0, 0, 10+16+256);
+
+                if (sprite[p->i].pal == 1 && p->last_extra < 2)
+                    G_DrawAltDigiNum(40, -(hudoffset-22), 1, -16, 10+16+256);
+                else if (!althud_flashing || p->last_extra >(p->max_player_health>>2) || totalclock&32)
+                {
+                    int32_t s = -8;
+                    if (althud_flashing && p->last_extra > p->max_player_health)
+                        s += (sintable[(totalclock<<5)&2047]>>10);
+                    G_DrawAltDigiNum(40, -(hudoffset-22), p->last_extra, s, 10+16+256);
+                }
+
+                rotatesprite_althud(62, hudoffset-25, sb15h, 0, SHIELD, 0, 0, 10+16+256);
+                G_DrawAltDigiNum(105, -(hudoffset-22), p->inv_amount[GET_SHIELD], -16, 10+16+256);
+
+                if (ammo_sprites[p->curr_weapon] >= 0)
+                {
+                    i = (tilesiz[ammo_sprites[p->curr_weapon]].y >= 50) ? 16384 : 32768;
+                    rotatesprite_althudr(57, hudoffset-15, sbarsc(i), 0, ammo_sprites[p->curr_weapon], 0, 0, 10+512);
+                }
+
+                if (p->curr_weapon== HANDREMOTE_WEAPON) i = HANDBOMB_WEAPON;
+                else i = p->curr_weapon;
+
+                if (p->curr_weapon != KNEE_WEAPON &&
+                    (!althud_flashing || totalclock&32 || p->ammo_amount[i] > (p->max_ammo_amount[i]/10)))
+                    G_DrawAltDigiNum(-20, -(hudoffset-22), p->ammo_amount[i], -16, 10+16+512);
+
+                o = 102;
+                permbit = 0;
+
+                if (p->inven_icon)
+                {
+                    const int32_t orient = 10+16+permbit+256;
+
+                    i = ((unsigned) p->inven_icon < ICON_MAX) ? item_icons[p->inven_icon] : -1;
+
+                    if (i >= 0)
+                        rotatesprite_althud(231-o, hudoffset-21-2, sb16, 0, i, 0, 0, orient);
+
+                    if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+                        minitextshade(292-30-o+1, hudoffset-10-3+1, "%", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                    minitext(292-30-o, hudoffset-10-3, "%", 6, orient+ROTATESPRITE_MAX);
+
+                    i = G_GetInvAmount(p);
+                    j = G_GetInvOn(p);
+
+                    G_DrawInvNum(-(284-30-o), 0, hudoffset-6-3, (uint8_t) i, 0, 10+permbit+256);
+
+                    if (j > 0)
+                    {
+                        if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+                            minitextshade(288-30-o+1, hudoffset-20-3+1, "On", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(288-30-o, hudoffset-20-3, "On", 0, orient+ROTATESPRITE_MAX);
+                    }
+                    else if ((uint32_t) j != 0x80000000)
+                    {
+                        if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+                            minitextshade(284-30-o+1, hudoffset-20-3+1, "Off", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(284-30-o, hudoffset-20-3, "Off", 2, orient+ROTATESPRITE_MAX);
+                    }
+
+                    if (p->inven_icon >= ICON_SCUBA)
+                    {
+                        if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+                            minitextshade(284-35-o+1, hudoffset-20-3+1, "Auto", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(284-35-o, hudoffset-20-3, "Auto", 2, orient+ROTATESPRITE_MAX);
+                    }
+                }
+
+                if (ud.hudontop == 1)
+                    hudoffset += 40;
+
+                if (p->got_access&1) rotatesprite_althudr(39, hudoffset-43, sb15, 0, ACCESSCARD, 0, 0, 10+16+512);
+                if (p->got_access&4) rotatesprite_althudr(34, hudoffset-41, sb15, 0, ACCESSCARD, 0, 23, 10+16+512);
+                if (p->got_access&2) rotatesprite_althudr(29, hudoffset-39, sb15, 0, ACCESSCARD, 0, 21, 10+16+512);
+            }
         }
         else
         {
@@ -796,17 +896,15 @@ void G_DrawStatusBar(int32_t snum)
 
                     i = ((unsigned) p->inven_icon < ICON_MAX) ? item_icons[p->inven_icon] : -1;
                     if (i >= 0)
-                        rotatesprite_fs(sbarx(231-o+10), yofssh+sbary(200-21), sb16, 0, i, 0, 0, orient);
+                        rotatesprite_fs(sbarx(231-o+10), yofssh+sbary(200-21), sb15, 0, i, 0, 0, orient);
 
                     // scale by status bar size
                     orient |= ROTATESPRITE_MAX;
 
                     minitext_yofs = yofssh;
-                    if (i == FIRSTAID_ICON || i == STEROIDS_ICON)
-                        minitext(292-30-o, 190, "%", 6, orient);
-
+                    if (p->inven_icon == 1 || p->inven_icon == 2)
+                        minitext(292-30-o+10, 190, "%", 0, orient);
                     i = G_GetInvAmount(p);
-                    j = G_GetInvOn(p);
 
                     G_DrawInvNum(284-30-o+8, yofssh, 200-6, (uint8_t) i, 0, orient&~16);
 
@@ -1070,37 +1168,37 @@ void G_DrawStatusBar(int32_t snum)
             {
                 if (p->curr_weapon == RPG_WEAPON || p->curr_weapon == HANDBOMB_WEAPON)
                 {
-                    G_PatchStatusBar2(126, SBY-8, 142, SBY-8+10);
+                    G_PatchStatusBar2(126, SBY-8, 142, SBY-8+16);
                     G_DrawInvNum(134, 0, SBY-4, p->ammo_amount[HANDBOMB_WEAPON], 0, 10);
-                    G_PatchStatusBar2(158, SBY-8, 174, SBY-8+10);
+                    G_PatchStatusBar2(158, SBY-8, 174, SBY-8+16);
                     G_DrawInvNum(166, 0, SBY-4, p->ammo_amount[RPG_WEAPON], 0, 10);
                 }
                 else if (RRRA && p->curr_weapon == CHICKEN_WEAPON)
                 {
-                    G_PatchStatusBar2(158, SBY-8, 174, SBY-8+10);
+                    G_PatchStatusBar2(158, SBY-8, 174, SBY-8+16);
                     G_DrawInvNum(166, 0, SBY-4, p->ammo_amount[CHICKEN_WEAPON], 0, 10);
                 }
-                else
+                else if (p->curr_weapon <= DEVISTATOR_WEAPON)
                 {
-                    G_PatchStatusBar2(p->curr_weapon * 32 - 2, SBY-8, p->curr_weapon * 32 + 14, SBY-8+10);
+                    G_PatchStatusBar2(p->curr_weapon * 32 - 2, SBY-8, p->curr_weapon * 32 + 14, SBY-8+16);
                     G_DrawInvNum(p->curr_weapon * 32 + 6, 0, SBY-4, p->ammo_amount[p->curr_weapon], 0, 10);
                 }
-                for (i = 1; i <= 10; i++)
+                /*for (i = 1; i < 10; i++)
                 {
                     if (RRRA && i == 4 && p->curr_weapon == CHICKEN_WEAPON)
                     {
                         if (!p->ammo_amount[CHICKEN_WEAPON] && (p->gotweapon&(1<< CHICKEN_WEAPON)))
                         {
-                            G_PatchStatusBar2(i * 32 - 2, SBY-8, i * 32 + 14, SBY-8+10);
+                            G_PatchStatusBar2(i * 32 - 2, SBY-8, i * 32 + 14, SBY-8+16);
                             G_DrawInvNum(i * 32 + 6, 0, SBY-4, p->ammo_amount[CHICKEN_WEAPON], 0, 10);
                         }
                     }
                     else if (!p->ammo_amount[i] && (p->gotweapon&(1<<i)))
                     {
-                        G_PatchStatusBar2(i * 32 - 2, SBY-8, i * 32 + 14, SBY-8+10);
+                        G_PatchStatusBar2(i * 32 - 2, SBY-8, i * 32 + 14, SBY-8+16);
                         G_DrawInvNum(i * 32 + 6, 0, SBY-4, p->ammo_amount[i], 0, 10);
                     }
-                }
+                }*/
             }
         }
     }

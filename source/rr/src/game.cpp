@@ -5925,13 +5925,17 @@ void G_SetViewportShrink(int32_t dir)
                 ud.screen_size = 8;
             else if (ud.screen_size == 8 && ud.statusbarmode == 1 && !(ud.statusbarflags & STATUSBAR_NOFULL))
                 ud.statusbarmode = 0;
+            else if (RR && ud.screen_size == 8)
+                ud.screen_size = 12;
             else if (ud.screen_size < 64 && !(ud.statusbarflags & STATUSBAR_NOSHRINK))
                 ud.screen_size += dir;
         }
         else // enlarging
         {
-            if (ud.screen_size > 12)
+            if (ud.screen_size > (RR ? 16 : 12))
                ud.screen_size += dir;
+            else if (RR && ud.screen_size > 12 && (!(ud.statusbarflags & STATUSBAR_NOFULL) || !(ud.statusbarflags & STATUSBAR_NOOVERLAY)))
+                ud.screen_size = 12;
             else if (ud.screen_size > 8 && (!(ud.statusbarflags & STATUSBAR_NOFULL) || !(ud.statusbarflags & STATUSBAR_NOOVERLAY)))
                 ud.screen_size = 8;
             else if (ud.screen_size == 8 && ud.statusbarmode == 0 && !(ud.statusbarflags & STATUSBAR_NOOVERLAY))
@@ -6017,7 +6021,8 @@ void G_HandleLocalKeys(void)
             if (!SHIFTS_IS_PRESSED)
             {
                 // conditions copied from G_SetViewportShrink
-                if ((ud.screen_size > 12) ||
+                if ((ud.screen_size > (RR ? 16 : 12)) ||
+                    (RR && ud.screen_size > 12 && (!(ud.statusbarflags & STATUSBAR_NOFULL) || !(ud.statusbarflags & STATUSBAR_NOOVERLAY))) ||
                     (ud.screen_size > 8 && (!(ud.statusbarflags & STATUSBAR_NOFULL) || !(ud.statusbarflags & STATUSBAR_NOOVERLAY))) ||
                     (ud.screen_size == 8 && ud.statusbarmode == 0 && !(ud.statusbarflags & STATUSBAR_NOOVERLAY)) ||
                     (ud.screen_size > 4 && (!(ud.statusbarflags & STATUSBAR_NOMINI) || !(ud.statusbarflags & STATUSBAR_NOMODERN))) ||
@@ -6049,6 +6054,7 @@ void G_HandleLocalKeys(void)
                     (ud.screen_size == 4 && ud.statusbarcustom < ud.statusbarrange && !(ud.statusbarflags & STATUSBAR_NOMINI)) ||
                     (ud.screen_size < 8 && (!(ud.statusbarflags & STATUSBAR_NOFULL) || !(ud.statusbarflags & STATUSBAR_NOOVERLAY))) ||
                     (ud.screen_size == 8 && ud.statusbarmode == 1 && !(ud.statusbarflags & STATUSBAR_NOFULL)) ||
+                    (RR && ud.screen_size == 8) ||
                     (ud.screen_size < 64 && !(ud.statusbarflags & STATUSBAR_NOSHRINK)))
                 {
                     S_PlaySound(RR ? 341 : THUD);
