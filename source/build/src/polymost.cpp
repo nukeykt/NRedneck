@@ -52,7 +52,7 @@ int32_t r_enablepolymost2 = 0;
 int32_t r_pogoDebug = 0;
 int32_t r_usenewshading = 4;
 int32_t r_usetileshades = 2;
-int32_t r_npotwallmode = 0;
+int32_t r_npotwallmode = 2;
 
 static float gviewxrange;
 static float ghoriz;
@@ -190,6 +190,12 @@ static GLint polymost1UseDetailMappingLoc = -1;
 static float polymost1UseDetailMapping = 0.f;
 static GLint polymost1UseGlowMappingLoc = -1;
 static float polymost1UseGlowMapping = 0.f;
+static GLint polymost1NPOTEmulationLoc = -1;
+static float polymost1NPOTEmulation = 0.f;
+static GLint polymost1NPOTEmulationFactorLoc = -1;
+static float polymost1NPOTEmulationFactor = 1.f;
+static GLint polymost1NPOTEmulationXOffsetLoc = -1;
+static float polymost1NPOTEmulationXOffset = 0.f;
 
 static inline float float_trans(uint32_t maskprops, uint8_t blend)
 {
@@ -600,6 +606,9 @@ static void polymost_setCurrentShaderProgram(uint32_t programID)
     polymost1UseColorOnlyLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_useColorOnly");
     polymost1UseDetailMappingLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_useDetailMapping");
     polymost1UseGlowMappingLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_useGlowMapping");
+    polymost1NPOTEmulationLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_npotEmulation");
+    polymost1NPOTEmulationFactorLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_npotEmulationFactor");
+    polymost1NPOTEmulationXOffsetLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_npotEmulationXOffset");
 
     //set the uniforms to the current values
     glUniform4f(polymost1TexturePosSizeLoc, polymost1TexturePosSize.x, polymost1TexturePosSize.y, polymost1TexturePosSize.z, polymost1TexturePosSize.w);
@@ -612,6 +621,9 @@ static void polymost_setCurrentShaderProgram(uint32_t programID)
     glUniform1f(polymost1UsePaletteLoc, polymost1UsePalette);
     glUniform1f(polymost1UseDetailMappingLoc, polymost1UseDetailMapping);
     glUniform1f(polymost1UseGlowMappingLoc, polymost1UseGlowMapping);
+    glUniform1f(polymost1NPOTEmulationLoc, polymost1NPOTEmulation);
+    glUniform1f(polymost1NPOTEmulationFactorLoc, polymost1NPOTEmulationFactor);
+    glUniform1f(polymost1NPOTEmulationXOffsetLoc, polymost1NPOTEmulationXOffset);
 }
 
 void polymost_setTexturePosSize(vec4f_t texturePosSize)
@@ -748,6 +760,19 @@ void polymost_useGlowMapping(char useGlowMapping)
 
         polymost1UseGlowMapping = useGlowMapping;
         glUniform1f(polymost1UseGlowMappingLoc, polymost1UseGlowMapping);
+    }
+}
+
+void polymost_npotEmulation(char npotEmulation, float factor, float xOffset)
+{
+    if (currentShaderProgramID == polymost1CurrentShaderProgramID)
+    {
+        polymost1NPOTEmulation = npotEmulation;
+        glUniform1f(polymost1NPOTEmulationLoc, polymost1NPOTEmulation);
+        polymost1NPOTEmulationFactor = factor;
+        glUniform1f(polymost1NPOTEmulationFactorLoc, polymost1NPOTEmulationFactor);
+        polymost1NPOTEmulationXOffset = xOffset;
+        glUniform1f(polymost1NPOTEmulationXOffsetLoc, polymost1NPOTEmulationXOffset);
     }
 }
 
@@ -1056,6 +1081,9 @@ void polymost_glinit()
          \n\
          uniform float u_useColorOnly;\n\
          uniform float u_usePalette;\n\
+         uniform float u_npotEmulation;\n\
+         uniform float u_npotEmulationFactor;\n\
+         uniform float u_npotEmulationXOffset;\n\
          \n\
          varying vec4 v_color;\n\
          \n\
@@ -1070,10 +1098,16 @@ void polymost_glinit()
          \n\
          void main()\n\
          {\n\
+             float coordY = mix(gl_TexCoord[0].y,gl_TexCoord[0].x,u_usePalette);\n\
+             float coordX = mix(gl_TexCoord[0].x,gl_TexCoord[0].y,u_usePalette);\n\
+             float period = floor(coordY/u_npotEmulationFactor);\n\
+             coordX += u_npotEmulationXOffset*floor(mod(coordY,u_npotEmulationFactor));\n\
+             coordY = period+mod(coordY,u_npotEmulationFactor);\n\
+             vec2 newCoord = mix(gl_TexCoord[0].xy,mix(vec2(coordX,coordY),vec2(coordY,coordX),u_usePalette),u_npotEmulation);\n\
              //GLSL 130+ could alternatively use texture2DGrad()\n\
-             vec2 transitionBlend = fwidth(floor(gl_TexCoord[0].xy));\n\
+             vec2 transitionBlend = fwidth(floor(newCoord.xy));\n\
              transitionBlend = fwidth(transitionBlend)+transitionBlend;\n\
-             vec2 texCoord = mix(fract(gl_TexCoord[0].xy), abs(c_one-mod(gl_TexCoord[0].xy+c_one, c_two)), transitionBlend);\n\
+             vec2 texCoord = mix(fract(newCoord.xy), abs(c_one-mod(newCoord.xy+c_one, c_two)), transitionBlend);\n\
              texCoord = clamp(u_texturePosSize.zw*texCoord, u_halfTexelSize, u_texturePosSize.zw-u_halfTexelSize);\n\
              vec4 color = texture2D(s_texture, u_texturePosSize.xy+texCoord);\n\
              \n\
@@ -1126,6 +1160,9 @@ void polymost_glinit()
          \n\
          uniform float u_useColorOnly;\n\
          uniform float u_usePalette;\n\
+         uniform float u_npotEmulation;\n\
+         uniform float u_npotEmulationFactor;\n\
+         uniform float u_npotEmulationXOffset;\n\
          \n\
          uniform float u_useDetailMapping;\n\
          uniform float u_useGlowMapping;\n\
@@ -1143,10 +1180,16 @@ void polymost_glinit()
          \n\
          void main()\n\
          {\n\
+             float coordY = mix(gl_TexCoord[0].y,gl_TexCoord[0].x,u_usePalette);\n\
+             float coordX = mix(gl_TexCoord[0].x,gl_TexCoord[0].y,u_usePalette);\n\
+             float period = floor(coordY/u_npotEmulationFactor);\n\
+             coordX += u_npotEmulationXOffset*floor(mod(coordY,u_npotEmulationFactor));\n\
+             coordY = period+mod(coordY,u_npotEmulationFactor);\n\
+             vec2 newCoord = mix(gl_TexCoord[0].xy,mix(vec2(coordX,coordY),vec2(coordY,coordX),u_usePalette),u_npotEmulation);\n\
              //GLSL 130+ could alternatively use texture2DGrad()\n\
-             vec2 transitionBlend = fwidth(floor(gl_TexCoord[0].xy));\n\
+             vec2 transitionBlend = fwidth(floor(newCoord.xy));\n\
              transitionBlend = fwidth(transitionBlend)+transitionBlend;\n\
-             vec2 texCoord = mix(fract(gl_TexCoord[0].xy), abs(c_one-mod(gl_TexCoord[0].xy+c_one, c_two)), transitionBlend);\n\
+             vec2 texCoord = mix(fract(newCoord.xy), abs(c_one-mod(newCoord.xy+c_one, c_two)), transitionBlend);\n\
              texCoord = clamp(u_texturePosSize.zw*texCoord, u_halfTexelSize, u_texturePosSize.zw-u_halfTexelSize);\n\
              vec4 color = texture2D(s_texture, u_texturePosSize.xy+texCoord);\n\
              \n\
@@ -3117,6 +3160,24 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
             glActiveTexture(GL_TEXTURE0);
         }
     }
+
+    if (glinfo.texnpot && r_npotwallmode == 2)
+    {
+        int32_t size = tilesiz[globalpicnum].y;
+        int32_t size2;
+        for (size2 = 1; size2 < size; size2 += size2) { }
+        if (size == size2)
+            polymost_npotEmulation(false, 1.f, 0.f);
+        else
+        {
+            float xOffset = 1.f / tilesiz[globalpicnum].x;
+            polymost_npotEmulation(true, (1.f*size2)/size, xOffset);
+        }
+    }
+    else
+    {
+        polymost_npotEmulation(false, 1.f, 0.f);
+    }
 #endif
 
     vec2f_t hacksc = { 1.f, 1.f };
@@ -3424,6 +3485,7 @@ do                                                                              
 
     polymost_useDetailMapping(false);
     polymost_useGlowMapping(false);
+    polymost_npotEmulation(false, 1.f, 0.f);
 #endif
     if (pth && pth->hicr)
     {
@@ -4180,7 +4242,7 @@ static void calc_ypanning(int32_t refposz, float ryp0, float ryp1,
         t *= (float)tilesiz[globalpicnum].y / i;
         i = tilesiz[globalpicnum].y;
     }
-    else if (dopancor)
+    else if (!(glinfo.texnpot && r_npotwallmode == 2) && dopancor)
     {
         // Carry out panning "correction" to make it look like classic in some
         // cases, but failing in the general case.
@@ -5677,7 +5739,7 @@ void polymost_drawmaskwall(int32_t damaskwallcnt)
         if (t0 >= 0)
             dp2[n2++] = dpxy[i];
 
-        if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
+        else if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
         {
             float const r = t0 / (t0 - t1);
             dp2[n2].x = (dpxy[j].x - dpxy[i].x) * r + dpxy[i].x;
@@ -5704,7 +5766,7 @@ void polymost_drawmaskwall(int32_t damaskwallcnt)
         if (t0 >= 0)
             dpxy[n++] = dp2[i];
 
-        if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
+        else if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
         {
             float const r = t0 / (t0 - t1);
             dpxy[n].x = (dp2[j].x - dp2[i].x) * r + dp2[i].x;
@@ -7921,7 +7983,7 @@ void polymost_initosdfuncs(void)
         { "r_swapinterval","sets the GL swap interval (VSync)",(void *) &vsync, CVAR_INT|CVAR_FUNCPTR, -1, 1 },
         {
             "r_npotwallmode", "enable/disable emulation of walls with non-power-of-two height textures (Polymost, r_hightile 0)",
-            (void *) &r_npotwallmode, CVAR_BOOL, 0, 1
+            (void *) &r_npotwallmode, CVAR_INT, 0, 2
         },
         { "r_anisotropy", "changes the OpenGL texture anisotropy setting", (void *) &glanisotropy, CVAR_INT|CVAR_FUNCPTR, 0, 16 },
         { "r_texturemaxsize","changes the maximum OpenGL texture size limit",(void *) &gltexmaxsize, CVAR_INT | CVAR_NOSAVE, 0, 4096 },
