@@ -1571,7 +1571,7 @@ static inline vec2_t get_rel_coords(int32_t const x, int32_t const y)
 
 // Note: the returned y coordinates are not actually screen coordinates, but
 // potentially clipped player-relative y coordinates.
-static int get_screen_coords(const vec2_t p1, const vec2_t p2,
+static int get_screen_coords(const vec2_t &p1, const vec2_t &p2,
                              int32_t *sx1ptr, int32_t *sy1ptr,
                              int32_t *sx2ptr, int32_t *sy2ptr)
 {
@@ -3570,7 +3570,7 @@ static void grouscan(int32_t dax1, int32_t dax2, int32_t sectnum, char dastat)
 //
 // parascan (internal)
 //
-static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum, char dastat, int32_t bunch)
+static void parascan(char dastat, int32_t bunch)
 {
     usectortype *sec;
     int32_t j, k, l, m, n, x, z, wallnum, nextsectnum, globalhorizbak;
@@ -3578,10 +3578,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum, char dastat, i
 
     int32_t logtilesizy, tsizy;
 
-    UNREFERENCED_PARAMETER(dax1);
-    UNREFERENCED_PARAMETER(dax2);
-
-    sectnum = thesector[bunchfirst[bunch]]; sec = (usectortype *)&sector[sectnum];
+    int32_t sectnum = thesector[bunchfirst[bunch]]; sec = (usectortype *)&sector[sectnum];
 
     globalhorizbak = globalhoriz;
     globvis = globalpisibility;
@@ -3883,6 +3880,7 @@ static void classicDrawBunches(int32_t bunch)
 
     uint8_t andwstat1 = 0xff, andwstat2 = 0xff;
 
+
     for (; z>=0; z=bunchp2[z]) //uplc/dplc calculation
     {
         andwstat1 &= wallmost(uplc,z,sectnum,(uint8_t)0);
@@ -3966,7 +3964,7 @@ static void classicDrawBunches(int32_t bunch)
             else if ((sec->ceilingstat&1) == 0)
                 ceilscan(xb1[bunchfirst[bunch]],xb2[bunchlast[bunch]],sectnum);
             else
-                parascan(xb1[bunchfirst[bunch]],xb2[bunchlast[bunch]],sectnum,0,bunch);
+                parascan(0,bunch);
         }
 
         if ((andwstat2&12) != 12)   //draw floors
@@ -3981,10 +3979,11 @@ static void classicDrawBunches(int32_t bunch)
             else if ((sec->floorstat&1) == 0)
                 florscan(xb1[bunchfirst[bunch]],xb2[bunchlast[bunch]],sectnum);
             else
-                parascan(xb1[bunchfirst[bunch]],xb2[bunchlast[bunch]],sectnum,1,bunch);
+                parascan(1,bunch);
         }
     }
 
+    int32_t gotswall, startsmostwallcnt, startsmostcnt;
 
     //DRAW WALLS SECTION!
     for (z=bunchfirst[bunch]; z>=0; z=bunchp2[z])
@@ -4011,10 +4010,9 @@ static void classicDrawBunches(int32_t bunch)
         const int32_t nextsectnum = wal->nextsector;
         const usectortype *const nextsec = nextsectnum>=0 ? (usectortype *)&sector[nextsectnum] : NULL;
 
-        int32_t gotswall = 0;
-
-        const int32_t startsmostwallcnt = smostwallcnt;
-        const int32_t startsmostcnt = smostcnt;
+        gotswall = 0;
+        startsmostwallcnt = smostwallcnt;
+        startsmostcnt = smostcnt;
 
         if (searchit == 2 && (searchx >= x1 && searchx <= x2))
         {
@@ -4806,7 +4804,7 @@ static void classicDrawSprite(int32_t snum)
 
     if ((cstat&48)==48)
         vtilenum = tilenum; // if the game wants voxels, it gets voxels
-    else if (usevoxels && tiletovox[tilenum] != -1 && !(spriteext[spritenum].flags&SPREXT_NOTMD))
+    else if (usevoxels && tiletovox[tilenum] != -1 && spritenum != -1 && !(spriteext[spritenum].flags&SPREXT_NOTMD))
     {
         vtilenum = tiletovox[tilenum];
         cstat |= 48;

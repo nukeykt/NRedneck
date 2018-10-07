@@ -4,13 +4,13 @@ Copyright (c) 1998-2008 Ken Silverman
 Ken Silverman's official web site: http://advsys.net/ken
 
 Features of KPLIB.C:
-	* Routines for decoding JPG/PNG/GIF/PCX/TGA/BMP/DDS/CEL.
-		See kpgetdim(), kprender(), and optional helper function: kpzload().
-	* Routines for reading files out of ZIP/GRP files. All ZIP/GRP functions start with "kz".
-	* Multi-platform support: Dos/Windows/Linux/Mac/etc..
-	* Compact code, all in a single source file. Yeah, bad design on my part... but makes life
-		  easier for everyone else - you simply add a single C file to your project, throw a few
-		  externs in there, add the function calls, and you're done!
+    * Routines for decoding JPG/PNG/GIF/PCX/TGA/BMP/DDS/CEL.
+        See kpgetdim(), kprender(), and optional helper function: kpzload().
+    * Routines for reading files out of ZIP/GRP files. All ZIP/GRP functions start with "kz".
+    * Multi-platform support: Dos/Windows/Linux/Mac/etc..
+    * Compact code, all in a single source file. Yeah, bad design on my part... but makes life
+          easier for everyone else - you simply add a single C file to your project, throw a few
+          externs in there, add the function calls, and you're done!
 
 Brief history:
 1998?: Wrote KPEG, a JPEG viewer for DOS
@@ -565,7 +565,6 @@ static inline int32_t Paeth686(int32_t const a, int32_t const b, int32_t c)
 
 static inline void rgbhlineasm(int32_t x, int32_t xr1, intptr_t p, int32_t ixstp)
 {
-    int32_t i;
     if (!trnsrgb)
     {
         for (; x>xr1; p+=ixstp,x-=3) B_BUF32((void *) p, (B_UNBUF32(&olinbuf[x]))|B_LITTLE32(0xff000000));
@@ -573,7 +572,7 @@ static inline void rgbhlineasm(int32_t x, int32_t xr1, intptr_t p, int32_t ixstp
     }
     for (; x>xr1; p+=ixstp,x-=3)
     {
-        i = (B_UNBUF32(&olinbuf[x]))|B_LITTLE32(0xff000000);
+        int32_t i = (B_UNBUF32(&olinbuf[x]))|B_LITTLE32(0xff000000);
         if (i == trnsrgb) i &= B_LITTLE32(0xffffff);
         B_BUF32((void *) p, i);
     }
@@ -597,7 +596,7 @@ static inline void pal8hlineasm(int32_t x, int32_t xr1, intptr_t p, int32_t ixst
 static int32_t filter1st, filterest;
 static void putbuf(const uint8_t *buf, int32_t leng)
 {
-    int32_t i, x;
+    int32_t i;
     intptr_t p;
 
     if (filt < 0)
@@ -611,7 +610,7 @@ static void putbuf(const uint8_t *buf, int32_t leng)
 
     while (i < leng)
     {
-        x = i+xplc; if (x > leng) x = leng;
+        int32_t x = i+xplc; if (x > leng) x = leng;
         switch (filt)
         {
         case 0:
@@ -1012,16 +1011,16 @@ static inline int32_t mulshr32(int32_t a, int32_t d)
 #elif defined(__GNUC__) && defined(__i386__) && !defined(NOASM)
 
 #define mulshr24(a,d) \
-	({ int32_t __a=(a), __d=(d); \
-		__asm__ __volatile__ ("imull %%edx; shrdl $24, %%edx, %%eax" \
-		: "+a" (__a), "+d" (__d) : : "cc"); \
-	 __a; })
+    ({ int32_t __a=(a), __d=(d); \
+        __asm__ __volatile__ ("imull %%edx; shrdl $24, %%edx, %%eax" \
+        : "+a" (__a), "+d" (__d) : : "cc"); \
+     __a; })
 
 #define mulshr32(a,d) \
-	({ int32_t __a=(a), __d=(d); \
-		__asm__ __volatile__ ("imull %%edx" \
-		: "+a" (__a), "+d" (__d) : : "cc"); \
-	 __d; })
+    ({ int32_t __a=(a), __d=(d); \
+        __asm__ __volatile__ ("imull %%edx" \
+        : "+a" (__a), "+d" (__d) : : "cc"); \
+     __d; })
 
 #else
 
@@ -1043,9 +1042,9 @@ static int32_t crmul[4096], cbmul[4096];
 
 static void initkpeg()
 {
-    int32_t i, j, x, y;
+    int32_t i, j, y;
 
-    x = 0;  //Back & forth diagonal pattern (aligning bytes for best compression)
+    int32_t x = 0;  //Back & forth diagonal pattern (aligning bytes for best compression)
     for (i=0; i<16; i+=2)
     {
         for (y=8-1; y>=0; y--)
@@ -1246,11 +1245,11 @@ static void yrbrend(int32_t x, int32_t y, int32_t *ldct)
 void (*kplib_yrbrend_func)(int32_t,int32_t,int32_t *) = yrbrend;
 
 #define KPEG_GETBITS(curbits, minbits, num, kfileptr, kfileend)\
-	while (curbits < minbits)\
-	{\
-		ch = *kfileptr++; num = (num<<8)+((int)ch); curbits += 8;\
-		if (ch == 255) { kfileptr++; if (kfileptr >= kfileend) { num <<= 8; curbits += 8; /*Hack to prevent read overrun on valid JPG by stuffing extra byte*/ } }\
-	}
+    while (curbits < minbits)\
+    {\
+        ch = *kfileptr++; num = (num<<8)+((int)ch); curbits += 8;\
+        if (ch == 255) { kfileptr++; if (kfileptr >= kfileend) { num <<= 8; curbits += 8; /*Hack to prevent read overrun on valid JPG by stuffing extra byte*/ } }\
+    }
 
 
 static int32_t kpegrend(const char *kfilebuf, int32_t kfilength,
@@ -2400,8 +2399,6 @@ static int32_t kzhashead[256], kzhashpos, kzlastfnam = -1, kzhashsiz, kzdirnamhe
 
 static int32_t kzcheckhashsiz(int32_t siz)
 {
-    int32_t i;
-
     if (!kzhashbuf) //Initialize hash table on first call
     {
         Bmemset(kzhashead,-1,sizeof(kzhashead));
@@ -2410,7 +2407,7 @@ static int32_t kzcheckhashsiz(int32_t siz)
     }
     if (kzhashpos+siz > kzhashsiz) //Make sure string fits in kzhashbuf
     {
-        i = kzhashsiz; do { i <<= 1; }
+        int32_t i = kzhashsiz; do { i <<= 1; }
         while (kzhashpos+siz > i);
         kzhashbuf = (char *)Brealloc(kzhashbuf,i); if (!kzhashbuf) return 0;
         kzhashsiz = i;
@@ -2572,7 +2569,7 @@ void kzsetfil(FILE *fil)
 intptr_t kzopen(const char *filnam)
 {
     FILE *fil;
-    int32_t i, j, fileoffs, fileleng;
+    int32_t i, fileoffs, fileleng;
     char tempbuf[46+260], *zipnam, iscomp;
 
     //kzfs.fil = 0;
@@ -2632,11 +2629,14 @@ intptr_t kzopen(const char *filnam)
     }
 
     //Finally, check mounted dirs
+
+    int const namlen = strlen(filnam);
+
     for (i=kzdirnamhead; i>=0; i=B_UNBUF32(&kzhashbuf[i]))
     {
         strcpy(tempbuf,&kzhashbuf[i+4]);
-        j = strlen(tempbuf);
-        if (strlen(filnam)+1+j >= sizeof(tempbuf)) continue; //don't allow int32_t filenames to buffer overrun
+        uint32_t const j = strlen(tempbuf);
+        if (namlen+1+j >= sizeof(tempbuf)) continue; //don't allow int32_t filenames to buffer overrun
         if ((j) && (tempbuf[j-1] != '/') && (tempbuf[j-1] != '\\') && (filnam[0] != '/') && (filnam[0] != '\\'))
 #if defined(_WIN32)
             strcat(tempbuf,"\\");

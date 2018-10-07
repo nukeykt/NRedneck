@@ -116,7 +116,7 @@ void VM_ScriptInfo(intptr_t const *ptr, int range)
 
     if (ptr == insptr)
     {
-        if (vm.spriteNum)
+        if (vm.pUSprite)
             initprintf("current actor: %d (%d)\n", vm.spriteNum, vm.pUSprite->picnum);
 
         initprintf("g_errorLineNum: %d, g_tw: %d\n", g_errorLineNum, g_tw);
@@ -6092,7 +6092,7 @@ void G_SaveMapState(void)
     Bmemcpy(&save->actor[0],&actor[0],sizeof(actor_t)*MAXSPRITES);
 
     save->g_cyclerCnt = g_cyclerCnt;
-    Bmemcpy(&save->g_cyclers[0],&g_cyclers[0],sizeof(g_cyclers));
+    Bmemcpy(save->g_cyclers, g_cyclers, sizeof(g_cyclers));
     Bmemcpy(&save->g_playerSpawnPoints[0],&g_playerSpawnPoints[0],sizeof(g_playerSpawnPoints));
     save->g_animWallCnt = g_animWallCnt;
     Bmemcpy(&save->SpriteDeletionQueue[0],&SpriteDeletionQueue[0],sizeof(SpriteDeletionQueue));
@@ -6230,7 +6230,7 @@ void G_RestoreMapState(void)
         Bmemcpy(&actor[0],&pSavedState->actor[0],sizeof(actor_t)*MAXSPRITES);
 
         g_cyclerCnt = pSavedState->g_cyclerCnt;
-        Bmemcpy(&g_cyclers[0],&pSavedState->g_cyclers[0],sizeof(g_cyclers));
+        Bmemcpy(g_cyclers, pSavedState->g_cyclers, sizeof(g_cyclers));
         Bmemcpy(&g_playerSpawnPoints[0],&pSavedState->g_playerSpawnPoints[0],sizeof(g_playerSpawnPoints));
         g_animWallCnt = pSavedState->g_animWallCnt;
         Bmemcpy(&SpriteDeletionQueue[0],&pSavedState->SpriteDeletionQueue[0],sizeof(SpriteDeletionQueue));

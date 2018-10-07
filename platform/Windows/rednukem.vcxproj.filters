@@ -297,8 +297,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="rednuke.exe.manifest">
-      <Filter>Resource Files</Filter>
-    </Manifest>
+    <Manifest Include="rednukem.exe.manifest" />
   </ItemGroup>
 </Project>

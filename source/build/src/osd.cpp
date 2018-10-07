@@ -508,9 +508,11 @@ static int32_t osdfunc_listsymbols(osdfuncparm_t const * const parm)
         else
             OSD_Printf("%sSymbol listing:\n", osd->draw.highlight);
 
+        int const parmlen = Bstrlen(parm->parms[0]);
+
         for (i=symbols; i!=NULL; i=i->next)
         {
-            if (i->func == OSD_UNALIASED || (parm->numparms == 1 && Bstrncmp(parm->parms[0], i->name, Bstrlen(parm->parms[0]))))
+            if (i->func == OSD_UNALIASED || (parm->numparms == 1 && Bstrncmp(parm->parms[0], i->name, parmlen)))
                 continue;
 
             {
@@ -706,7 +708,7 @@ void OSD_Init(void)
     };
 
     for (unsigned i=0; i<ARRAY_SIZE(cvars_osd); i++)
-        OSD_RegisterCvar(&cvars_osd[i], cvars_osd[i].flags & CVAR_FUNCPTR ? osdcmd_cvar_set_osd : osdcmd_cvar_set);
+        OSD_RegisterCvar(&cvars_osd[i], (cvars_osd[i].flags & CVAR_FUNCPTR) ? osdcmd_cvar_set_osd : osdcmd_cvar_set);
 
     OSD_RegisterFunction("alias", "alias: creates an alias for calling multiple commands", osdfunc_alias);
     OSD_RegisterFunction("clear", "clear: clears the console text buffer", osdfunc_clear);
@@ -1469,7 +1471,7 @@ void OSD_Draw(void)
         return;
 
     if (osdrowscur == 0)
-        OSD_ShowDisplay(osd->flags & OSD_DRAW ? 0 : 1);
+        OSD_ShowDisplay((osd->flags & OSD_DRAW) ? 0 : 1);
 
     if (osdrowscur == osd->draw.rows)
         osd->draw.scrolling = 0;
@@ -1723,20 +1725,18 @@ void OSD_DispatchQueued(void)
 
 static char *strtoken(char *s, char **ptrptr, int32_t *restart)
 {
-    char *p, *p2, *start;
-
     *restart = 0;
     if (!ptrptr) return NULL;
 
     // if s != NULL, we process from the start of s, otherwise
     // we just continue with where ptrptr points to
-    if (s) p = s;
-    else p = *ptrptr;
+
+    char *p = s ? s : *ptrptr;
 
     if (!p) return NULL;
 
     // eat up any leading whitespace
-    while (*p != 0 && *p != ';' && *p == ' ') p++;
+    while (*p == ' ') p++;
 
     // a semicolon is an end of statement delimiter like a \0 is, so we signal
     // the caller to 'restart' for the rest of the string pointed at by *ptrptr
@@ -1753,11 +1753,13 @@ static char *strtoken(char *s, char **ptrptr, int32_t *restart)
         return NULL;
     }
 
+    char *start;
+
     if (*p == '\"')
     {
         // quoted string
         start = ++p;
-        p2 = p;
+        char *p2 = p;
         while (*p != 0)
         {
             if (*p == '\"')
@@ -1985,13 +1987,15 @@ static osdsymbol_t *osd_addsymbol(const char *pszName)
 //
 // findsymbol() -- Finds a symbol, possibly partially named
 //
-static osdsymbol_t * osd_findsymbol(const char *pszName, osdsymbol_t *pSymbol)
+static osdsymbol_t * osd_findsymbol(const char * const pszName, osdsymbol_t *pSymbol)
 {
     if (!pSymbol) pSymbol = symbols;
     if (!pSymbol) return NULL;
 
+    int const nameLen = Bstrlen(pszName);
+
     for (; pSymbol; pSymbol=pSymbol->next)
-        if (pSymbol->func != OSD_UNALIASED && !Bstrncasecmp(pszName, pSymbol->name, Bstrlen(pszName))) return pSymbol;
+        if (pSymbol->func != OSD_UNALIASED && !Bstrncasecmp(pszName, pSymbol->name, nameLen)) return pSymbol;
 
     return NULL;
 }

@@ -50,7 +50,7 @@ static intptr_t *g_caseScriptPtr;
 static intptr_t previous_event;
 static int32_t g_numCases = 0, g_checkingCase = 0;
 static int32_t g_checkingSwitch = 0, g_currentEvent = -1;
-static int32_t g_labelsOnly = 0, g_skipKeywordCheck = 0, g_dynamicTileMapping = 0, g_dynamicSoundMapping = 0;
+static int32_t g_labelsOnly = 0, g_dynamicTileMapping = 0, g_dynamicSoundMapping = 0;
 static int32_t g_numBraces = 0;
 
 static int32_t C_ParseCommand(int32_t loop);
@@ -1856,7 +1856,7 @@ static void C_GetNextVarType(int32_t type)
 
     C_GetNextLabelName();
 
-    if (EDUKE32_PREDICT_FALSE(!g_skipKeywordCheck && hash_find(&h_keywords,label+(g_labelCnt<<6))>=0))
+    if (EDUKE32_PREDICT_FALSE(hash_find(&h_keywords,label+(g_labelCnt<<6))>=0))
     {
         g_errorCnt++;
         C_ReportError(ERROR_ISAKEYWORD);
@@ -1866,8 +1866,6 @@ static void C_GetNextVarType(int32_t type)
     C_SkipComments(); //skip comments and whitespace
     if (*textptr == '[')     //read of array as a gamevar
     {
-        int32_t labelNum = -1;
-
         f |= (MAXGAMEVARS<<2);
         textptr++;
         i=GetADefID(label+(g_labelCnt<<6));
@@ -1959,6 +1957,8 @@ static void C_GetNextVarType(int32_t type)
             C_GetNextLabelName();
             /*initprintf("found xxx label of \"%s\"\n",   label+(g_numLabels<<6));*/
 
+            int32_t labelNum = -1;
+
             switch (i - g_structVarIDs)
             {
             case STRUCT_SPRITE:
@@ -1996,10 +1996,7 @@ static void C_GetNextVarType(int32_t type)
             case STRUCT_PALDATA:
                 labelNum=C_GetLabelNameOffset(&h_paldata,Bstrtolower(label+(g_labelCnt<<6)));
                 break;
-            }
-
-            if (EDUKE32_PREDICT_FALSE(labelNum == -1))
-            {
+            default:
                 g_errorCnt++;
                 C_ReportError(ERROR_NOTAMEMBER);
                 return;
@@ -2142,7 +2139,7 @@ static int32_t C_GetNextValue(int32_t type)
     }
     tempbuf[l] = 0;
 
-    if (EDUKE32_PREDICT_FALSE(!g_skipKeywordCheck && hash_find(&h_keywords,tempbuf /*label+(g_numLabels<<6)*/)>=0))
+    if (EDUKE32_PREDICT_FALSE(hash_find(&h_keywords,tempbuf /*label+(g_numLabels<<6)*/)>=0))
     {
         g_errorCnt++;
         C_ReportError(ERROR_ISAKEYWORD);
@@ -5068,7 +5065,6 @@ DO_DEFSTATE:
                 g_checkingSwitch++; // allow nesting (if other things work)
                 C_GetNextVar();
 
-                intptr_t *tempscrptr= g_scriptPtr;
                 tempoffset = (unsigned)(g_scriptPtr-apScript);
                 BITPTR_CLEAR(g_scriptPtr-apScript);
                 *g_scriptPtr++=0; // leave spot for end location (for after processing)
@@ -5086,7 +5082,7 @@ DO_DEFSTATE:
                 g_scriptPtr+=j*2;
                 C_SkipComments();
                 g_scriptPtr-=j*2; // allocate buffer for the table
-                tempscrptr = (intptr_t *)(apScript+tempoffset);
+                intptr_t *tempscrptr = (intptr_t *)(apScript+tempoffset);
 
                 //AddLog(g_szBuf);
 
@@ -5188,7 +5184,7 @@ DO_DEFSTATE:
                 }
 
                 intptr_t tempoffset = 0;
-                intptr_t *tempscrptr = NULL;
+                intptr_t *tempscrptr = g_scriptPtr;
 
                 g_checkingCase++;
 repeatcase:
@@ -6083,7 +6079,7 @@ repeatcase:
             j = hash_find(&h_labels,tempbuf);
 
             k = *(g_scriptPtr-1);
-            if (EDUKE32_PREDICT_FALSE((unsigned)k >= MAXSOUNDS))
+            if (EDUKE32_PREDICT_FALSE((unsigned)k >= MAXSOUNDS-1))
             {
                 initprintf("%s:%d: error: exceeded sound limit of %d.\n",g_scriptFileName,g_lineNumber,MAXSOUNDS);
                 g_errorCnt++;
