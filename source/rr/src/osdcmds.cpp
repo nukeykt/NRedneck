@@ -181,14 +181,13 @@ static int32_t osdcmd_map(osdfuncparm_t const * const parm)
 
         if (maxwidth > 0)
         {
-            int32_t x = 0, count = 0;
+            int32_t x = 0;
             maxwidth += 3;
             OSD_Printf(OSDTEXT_RED "Map listing:\n");
             for (r=fnlist.findfiles; r; r=r->next)
             {
                 OSD_Printf("%-*s",maxwidth,r->name);
                 x += maxwidth;
-                count++;
                 if (x > OSD_GetCols() - maxwidth)
                 {
                     x = 0;

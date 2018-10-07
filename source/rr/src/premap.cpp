@@ -26,10 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "demo.h"
 #include "savegame.h"
 
-int16_t g_ambientLotag[64];
-int16_t g_ambientHitag[64];
-int32_t g_ambientCnt;
-
 static int32_t g_whichPalForPlayer = 9;
 
 static uint8_t precachehightile[2][MAXTILES>>3];
@@ -471,10 +467,10 @@ static void G_PrecacheSprites(void)
 
 static void G_DoLoadScreen(const char *statustext, int32_t percent)
 {
-    int32_t i=0;
-
     if (ud.recstat != 2)
     {
+        int32_t i = 0;
+
         //g_player[myconnectindex].ps->palette = palette;
         P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 1);    // JBF 20040308
 
@@ -763,9 +759,7 @@ void P_RandomSpawnPoint(int playerNum)
 {
     DukePlayer_t *const pPlayer = g_player[playerNum].ps;
 
-    int32_t  i = playerNum;
-    uint32_t dist;
-    uint32_t pdist = -1;
+    int32_t i = playerNum;
 
     if ((g_netServer || ud.multimode > 1) && !(g_gametypeFlags[ud.coop] & GAMETYPE_FIXEDRESPAWN))
     {
@@ -773,13 +767,14 @@ void P_RandomSpawnPoint(int playerNum)
 
         if (g_gametypeFlags[ud.coop] & GAMETYPE_TDMSPAWN)
         {
+            uint32_t pdist = -1;
             for (bssize_t j=0; j<ud.multimode; j++)
             {
                 if (j != playerNum && g_player[j].ps->team == pPlayer->team && sprite[g_player[j].ps->i].extra > 0)
                 {
                     for (bssize_t k=0; k<g_playerSpawnCnt; k++)
                     {
-                        dist = FindDistance2D(g_player[j].ps->pos.x - g_playerSpawnPoints[k].pos.x,
+                        uint32_t dist = FindDistance2D(g_player[j].ps->pos.x - g_playerSpawnPoints[k].pos.x,
                                               g_player[j].ps->pos.y - g_playerSpawnPoints[k].pos.y);
 
                         if (dist < pdist)
@@ -965,7 +960,6 @@ void P_ResetStatus(int playerNum)
     pPlayer->knuckle_incs       = 1;
     pPlayer->fist_incs          = 0;
     pPlayer->knee_incs          = 0;
-    pPlayer->jetpack_on         = 0;
     //pPlayer->reloading          = 0;
     pPlayer->movement_lock      = 0;
     pPlayer->frag_ps            = playerNum;

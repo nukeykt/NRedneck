@@ -3765,10 +3765,10 @@ CHECKINV1:
 
                 if (inventoryIcon || pPlayer->inv_amount[GET_FIRSTAID])
                 {
-                    static const int32_t i[7] = { QUOTE_MEDKIT, QUOTE_STEROIDS, QUOTE_HOLODUKE,
+                    static const int32_t invQuotes[7] = { QUOTE_MEDKIT, QUOTE_STEROIDS, QUOTE_HOLODUKE,
                         QUOTE_JETPACK, QUOTE_NVG, QUOTE_SCUBA, QUOTE_BOOTS };
-                    if (inventoryIcon>=1 && inventoryIcon<=7)
-                        P_DoQuote(i[inventoryIcon-1], pPlayer);
+                    if (inventoryIcon-1 < ARRAY_SSIZE(invQuotes))
+                        P_DoQuote(invQuotes[inventoryIcon-1], pPlayer);
                 }
             }
         }

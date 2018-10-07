@@ -69,11 +69,11 @@ void G_DoInterpolations(int smoothRatio)
     if (g_interpolationLock++)
         return;
 
-    int32_t odelta, ndelta = 0;
+    int32_t ndelta = 0;
 
     for (bssize_t i = 0, j = 0; i < g_interpolationCnt; ++i)
     {
-        odelta = ndelta;
+        int32_t const odelta = ndelta;
         bakipos[i] = *curipos[i];
         ndelta = (*curipos[i]) - oldipos[i];
         if (odelta != ndelta)
@@ -2609,35 +2609,6 @@ ACTOR_STATIC void P_HandleBeingSpitOn(DukePlayer_t * const ps)
         ps->loogiex[x] = krand()%xdim;
         ps->loogiey[x] = krand()%ydim;
     }
-}
-
-static void A_DoProjectileEffects(int spriteNum, const vec3_t *davect, int radiusDamage)
-{
-    projectile_t const * const pProj = &SpriteProjectile[spriteNum];
-
-    if (pProj->spawns >= 0)
-    {
-        int const newSpr = A_Spawn(spriteNum,pProj->spawns);
-
-        if (davect)
-            Bmemcpy(&sprite[newSpr],davect,sizeof(vec3_t));
-
-        if (pProj->sxrepeat > 4)
-            sprite[newSpr].xrepeat=pProj->sxrepeat;
-        if (pProj->syrepeat > 4)
-            sprite[newSpr].yrepeat=pProj->syrepeat;
-    }
-
-    if (pProj->isound >= 0)
-        A_PlaySound(pProj->isound,spriteNum);
-
-    if (!radiusDamage)
-        return;
-
-    spritetype *const pSprite = &sprite[spriteNum];
-    pSprite->extra = Proj_GetDamage(pProj);
-    int const dmg = pSprite->extra;
-    A_RadiusDamage(spriteNum, pProj->hitradius, dmg >> 2, dmg >> 1, dmg - (dmg >> 2), dmg);
 }
 
 static void G_WeaponHitCeilingOrFloor(int32_t i, spritetype *s, int *j)
@@ -5195,14 +5166,7 @@ ACTOR_STATIC void G_MoveActors(void)
                     else
                     {
                         // Control speed here
-                        if (locatorDist > 1524)
-                        {
-                            if (pSprite->xvel < 256) pSprite->xvel += 32;
-                        }
-                        else
-                        {
-                            pSprite->xvel = (pSprite->xvel > 0) ? pSprite->xvel - 16 : 0;
-                        }
+                        if (pSprite->xvel < 256) pSprite->xvel += 32;
                     }
 
                     if (pData[0] < 2) pData[2]++;

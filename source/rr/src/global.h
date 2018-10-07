@@ -192,6 +192,10 @@ G_EXTERN int32_t g_winderFlash;
 G_EXTERN int32_t g_winderTime;
 G_EXTERN int32_t g_brightness;
 
+G_EXTERN int16_t g_ambientLotag[64];
+G_EXTERN int16_t g_ambientHitag[64];
+G_EXTERN int32_t g_ambientCnt;
+
 G_EXTERN intptr_t *apScript;
 G_EXTERN intptr_t *g_scriptPtr;
 
@@ -222,7 +226,6 @@ G_EXTERN char g_soundlocks[MAXSOUNDS];
 G_EXTERN int32_t g_noEnemies;
 G_EXTERN int32_t g_restorePalette;
 G_EXTERN int32_t g_screenCapture;
-G_EXTERN projectile_t SpriteProjectile[MAXSPRITES];
 G_EXTERN sound_t g_sounds[MAXSOUNDS];
 G_EXTERN uint32_t everyothertime;
 G_EXTERN uint32_t g_moveThingsCount;

@@ -672,6 +672,9 @@ static void G_OROR_DupeSprites(const spritetype *sp)
     }
 }
 
+static int16_t SE40backupStat[MAXSECTORS];
+static int32_t SE40backupZ[MAXSECTORS];
+
 static void G_SE40(int32_t smoothratio)
 {
     if ((unsigned)ror_sprite < MAXSPRITES)
@@ -699,8 +702,6 @@ static void G_SE40(int32_t smoothratio)
         {
             int32_t renderz, picnum;
             // XXX: PK: too large stack allocation for my taste
-            int16_t backupstat[MAXSECTORS];
-            int32_t backupz[MAXSECTORS];
             int32_t i;
             int32_t pix_diff, newz;
             //                initprintf("drawing ror\n");
@@ -718,9 +719,9 @@ static void G_SE40(int32_t smoothratio)
 
                 for (i = 0; i < numsectors; i++)
                 {
-                    backupstat[i] = sector[i].ceilingstat;
-                    backupz[i] = sector[i].ceilingz;
-                    if (!ror_protectedsectors[i] || (ror_protectedsectors[i] && sp->lotag == 41))
+                    SE40backupStat[i] = sector[i].ceilingstat;
+                    SE40backupZ[i] = sector[i].ceilingz;
+                    if (!ror_protectedsectors[i] || sp->lotag == 41)
                     {
                         sector[i].ceilingstat = 1;
                         sector[i].ceilingz += newz;
@@ -740,9 +741,9 @@ static void G_SE40(int32_t smoothratio)
 
                 for (i = 0; i < numsectors; i++)
                 {
-                    backupstat[i] = sector[i].floorstat;
-                    backupz[i] = sector[i].floorz;
-                    if (!ror_protectedsectors[i] || (ror_protectedsectors[i] && sp->lotag == 41))
+                    SE40backupStat[i] = sector[i].floorstat;
+                    SE40backupZ[i] = sector[i].floorz;
+                    if (!ror_protectedsectors[i] || sp->lotag == 41)
                     {
                         sector[i].floorstat = 1;
                         sector[i].floorz = +newz;
@@ -769,8 +770,8 @@ static void G_SE40(int32_t smoothratio)
                 sector[sprite[sprite2].sectnum].ceilingpicnum = picnum;
                 for (i = 0; i < numsectors; i++)
                 {
-                    sector[i].ceilingstat = backupstat[i];
-                    sector[i].ceilingz = backupz[i];
+                    sector[i].ceilingstat = SE40backupStat[i];
+                    sector[i].ceilingz = SE40backupZ[i];
                 }
             }
             else
@@ -779,8 +780,8 @@ static void G_SE40(int32_t smoothratio)
 
                 for (i = 0; i < numsectors; i++)
                 {
-                    sector[i].floorstat = backupstat[i];
-                    sector[i].floorz = backupz[i];
+                    sector[i].floorstat = SE40backupStat[i];
+                    sector[i].floorz = SE40backupZ[i];
                 }
             }
         }
@@ -6562,11 +6563,11 @@ static int32_t S_DefineAudioIfSupported(char **fn, const char *name)
 #if !defined HAVE_FLAC || !defined HAVE_VORBIS
     const char *extension = Bstrrchr(name, '.');
 # if !defined HAVE_FLAC
-    if (!Bstrcasecmp(extension, ".flac"))
+    if (extension && !Bstrcasecmp(extension, ".flac"))
         return -2;
 # endif
 # if !defined HAVE_VORBIS
-    if (!Bstrcasecmp(extension, ".ogg"))
+    if (extension && !Bstrcasecmp(extension, ".ogg"))
         return -2;
 # endif
 #endif
@@ -8019,7 +8020,7 @@ int app_main(int argc, char const * const * argv)
     char *const setupFileName = Xstrdup(g_setupFileName);
     char *const p             = strtok(setupFileName, ".");
 
-    if (!Bstrcmp(g_setupFileName, SETUPFILENAME))
+    if (!p || !Bstrcmp(g_setupFileName, SETUPFILENAME))
         Bsprintf(tempbuf, "settings.cfg");
     else
         Bsprintf(tempbuf, "%s_settings.cfg", p);
@@ -8219,7 +8220,7 @@ MAIN_LOOP_RESTART:
                 if (ch != '\n')
                     buf[bufpos++] = ch;
 
-                if (ch == '\n' || bufpos >= sizeof(buf))
+                if (ch == '\n' || bufpos >= sizeof(buf)-1)
                 {
                     buf[bufpos] = 0;
                     OSD_Dispatch(buf);

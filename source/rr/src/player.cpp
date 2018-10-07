@@ -521,7 +521,7 @@ int A_Shoot(int const spriteNum, int const projecTile)
     vec3_t    startPos;
     int       vel;
 
-    if (pSprite->picnum == APLAYER)
+    if (pPlayer != NULL)
     {
         startPos            = *(vec3_t *)pPlayer;
         startPos.z          += pPlayer->pyoff + ZOFFSET6;
@@ -4661,8 +4661,6 @@ static void P_ProcessWeapon(int playerNum)
         }
         else
         {
-            int spriteNum;
-            
             switch (DYNAMICWEAPONMAP(pPlayer->curr_weapon))
             {
                 case HANDBOMB_WEAPON__STATIC:
@@ -4722,7 +4720,7 @@ static void P_ProcessWeapon(int playerNum)
                             if (wall[hitData.wall].overpicnum == BIGFORCE)
                                 break;
 
-                        spriteNum = headspritesect[hitData.sect];
+                        int spriteNum = headspritesect[hitData.sect];
                         while (spriteNum >= 0)
                         {
                             if (sprite[spriteNum].picnum == TRIPBOMB && klabs(sprite[spriteNum].z - hitData.pos.z) < ZOFFSET4 &&

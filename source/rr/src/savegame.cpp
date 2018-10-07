@@ -644,14 +644,6 @@ typedef struct dataspec_
     intptr_t cnt;
 } dataspec_t;
 
-typedef struct dataspec_gv_
-{
-    uint32_t flags;
-    void * ptr;
-    uint32_t size;
-    intptr_t cnt;
-} dataspec_gv_t;
-
 #define SV_DEFAULTCOMPRTHRES 8
 static uint8_t savegame_diffcompress;  // 0:none, 1:Ken's LZW in cache1d.c
 static uint8_t savegame_comprthres;
@@ -1079,8 +1071,6 @@ static uint32_t calcsz(const dataspec_t *spec)
 static void sv_prespriteextsave();
 static void sv_postspriteext();
 #endif
-static void sv_prescriptsave_once();
-static void sv_postscript_once();
 static void sv_postactordata();
 static void sv_preanimateptrsave();
 static void sv_postanimateptr();
@@ -1093,6 +1083,7 @@ static void sv_quoteredefload();
 static void sv_postquoteredef();
 static void sv_restsave();
 static void sv_restload();
+static void sv_rrrafog();
 
 #define SVARDATALEN \
     ((sizeof(g_player[0].user_name)+sizeof(g_player[0].pcolor)+sizeof(g_player[0].pteam) \
@@ -1192,7 +1183,6 @@ static const dataspec_t svgm_secwsp[] =
     { DS_NOCHK, &g_mirrorCount, sizeof(g_mirrorCount), 1 },
     { DS_NOCHK, &g_mirrorWall[0], sizeof(g_mirrorWall[0]), ARRAY_SIZE(g_mirrorWall) },
     { DS_NOCHK, &g_mirrorSector[0], sizeof(g_mirrorSector[0]), ARRAY_SIZE(g_mirrorSector) },
-
     { 0, &everyothertime, sizeof(everyothertime), 1 },
     { DS_END, 0, 0, 0 }
 };
@@ -1201,7 +1191,6 @@ static char svgm_script_string [] = "blK:scri";
 static const dataspec_t svgm_script[] =
 {
     { DS_STRING, (void *)svgm_script_string, 0, 1 },
-    { DS_NOCHK, &g_tile[0], sizeof(tiledata_t), MAXTILES },
     { 0, &actor[0], sizeof(actor_t), MAXSPRITES },
     { DS_SAVEFN|DS_LOADFN, (void *)&sv_postactordata, 0, 1 },
     { DS_END, 0, 0, 0 }
@@ -1233,6 +1222,77 @@ static const dataspec_t svgm_anmisc[] =
     { 0, &g_pskyidx, sizeof(g_pskyidx), 1 },  // DS_NOCHK?
     { 0, &g_earthquakeTime, sizeof(g_earthquakeTime), 1 },
 
+    // RR stuff
+    { 0, &g_spriteExtra[0], sizeof(g_spriteExtra[0]), MAXSPRITES },
+    { 0, &g_sectorExtra[0], sizeof(g_sectorExtra[0]), MAXSECTORS },
+
+    { 0, &g_jailDoorSecHitag[0], sizeof(g_jailDoorSecHitag[0]), ARRAY_SIZE(g_jailDoorSecHitag) },
+    { 0, &g_jailDoorSect[0], sizeof(g_jailDoorSect[0]), ARRAY_SIZE(g_jailDoorSect) },
+    { 0, &g_jailDoorOpen[0], sizeof(g_jailDoorOpen[0]), ARRAY_SIZE(g_jailDoorOpen) },
+    { 0, &g_jailDoorDir[0], sizeof(g_jailDoorDir[0]), ARRAY_SIZE(g_jailDoorDir) },
+    { 0, &g_jailDoorDrag[0], sizeof(g_jailDoorDrag[0]), ARRAY_SIZE(g_jailDoorDrag) },
+    { 0, &g_jailDoorDist[0], sizeof(g_jailDoorDist[0]), ARRAY_SIZE(g_jailDoorDist) },
+    { 0, &g_jailDoorSpeed[0], sizeof(g_jailDoorSpeed[0]), ARRAY_SIZE(g_jailDoorSpeed) },
+    { 0, &g_jailDoorSound[0], sizeof(g_jailDoorSound[0]), ARRAY_SIZE(g_jailDoorSound) },
+    { 0, &g_jailDoorCnt, sizeof(g_jailDoorCnt), 1 },
+
+    { 0, &g_shadedSector[0], sizeof(g_shadedSector[0]), MAXSECTORS },
+
+    { 0, &g_mineCartSect[0], sizeof(g_mineCartSect[0]), ARRAY_SIZE(g_mineCartSect) },
+    { 0, &g_mineCartChildSect[0], sizeof(g_mineCartChildSect[0]), ARRAY_SIZE(g_mineCartChildSect) },
+    { 0, &g_mineCartOpen[0], sizeof(g_mineCartOpen[0]), ARRAY_SIZE(g_mineCartOpen) },
+    { 0, &g_mineCartDir[0], sizeof(g_mineCartDir[0]), ARRAY_SIZE(g_mineCartDir) },
+    { 0, &g_mineCartDrag[0], sizeof(g_mineCartDrag[0]), ARRAY_SIZE(g_mineCartDrag) },
+    { 0, &g_mineCartDist[0], sizeof(g_mineCartDist[0]), ARRAY_SIZE(g_mineCartDist) },
+    { 0, &g_mineCartSpeed[0], sizeof(g_mineCartSpeed[0]), ARRAY_SIZE(g_mineCartSpeed) },
+    { 0, &g_mineCartSound[0], sizeof(g_mineCartSound[0]), ARRAY_SIZE(g_mineCartSound) },
+    { 0, &g_mineCartCnt, sizeof(g_mineCartCnt), 1 },
+
+    { 0, &g_ambientCnt, sizeof(g_ambientCnt), 1 },
+    { 0, &g_ambientHitag[0], sizeof(g_ambientHitag[0]), ARRAY_SIZE(g_ambientHitag) },
+    { 0, &g_ambientLotag[0], sizeof(g_ambientLotag[0]), ARRAY_SIZE(g_ambientLotag) },
+    
+    { 0, &g_ufoSpawn, sizeof(g_ufoSpawn), 1 },
+    { 0, &g_ufoCnt, sizeof(g_ufoCnt), 1 },
+    { 0, &g_hulkSpawn, sizeof(g_hulkSpawn), 1 },
+    { 0, &g_lastLevel, sizeof(g_lastLevel), 1 },
+
+    { 0, &g_torchSector[0], sizeof(g_torchSector[0]), ARRAY_SIZE(g_torchSector) },
+    { 0, &g_torchSectorShade[0], sizeof(g_torchSectorShade[0]), ARRAY_SIZE(g_torchSectorShade) },
+    { 0, &g_torchType[0], sizeof(g_torchType[0]), ARRAY_SIZE(g_torchType) },
+    { 0, &g_torchCnt, sizeof(g_torchCnt), 1 },
+
+    { 0, &g_lightninSector[0], sizeof(g_lightninSector[0]), ARRAY_SIZE(g_lightninSector) },
+    { 0, &g_lightninSectorShade[0], sizeof(g_lightninSectorShade[0]), ARRAY_SIZE(g_lightninSectorShade) },
+    { 0, &g_lightninCnt, sizeof(g_lightninCnt), 1 },
+
+    { 0, &g_geoSector[0], sizeof(g_geoSector[0]), ARRAY_SIZE(g_geoSector) },
+    { 0, &g_geoSectorWarp[0], sizeof(g_geoSectorWarp[0]), ARRAY_SIZE(g_geoSectorWarp) },
+    { 0, &g_geoSectorX[0], sizeof(g_geoSectorX[0]), ARRAY_SIZE(g_geoSectorX) },
+    { 0, &g_geoSectorY[0], sizeof(g_geoSectorY[0]), ARRAY_SIZE(g_geoSectorY) },
+    { 0, &g_geoSectorWarp2[0], sizeof(g_geoSectorWarp2[0]), ARRAY_SIZE(g_geoSectorWarp2) },
+    { 0, &g_geoSectorX2[0], sizeof(g_geoSectorX2[0]), ARRAY_SIZE(g_geoSectorX2) },
+    { 0, &g_geoSectorY2[0], sizeof(g_geoSectorY2[0]), ARRAY_SIZE(g_geoSectorY2) },
+    { 0, &g_geoSectorCnt, sizeof(g_geoSectorCnt), 1 },
+
+    { 0, &g_windTime, sizeof(g_windTime), 1 },
+    { 0, &g_windDir, sizeof(g_windDir), 1 },
+    { 0, &g_fakeBubbaCnt, sizeof(g_fakeBubbaCnt), 1 },
+    { 0, &g_mamaSpawnCnt, sizeof(g_mamaSpawnCnt), 1 },
+    { 0, &g_banjoSong, sizeof(g_banjoSong), 1 },
+    { 0, &g_bellTime, sizeof(g_bellTime), 1 },
+    { 0, &g_bellSprite, sizeof(g_bellSprite), 1 },
+
+    { 0, &g_changeEnemySize, sizeof(g_changeEnemySize), 1 },
+    { 0, &g_slotWin, sizeof(g_slotWin), 1 },
+    { 0, &g_ufoSpawnMinion, sizeof(g_ufoSpawnMinion), 1 },
+    { 0, &g_pistonSound, sizeof(g_pistonSound), 1 },
+    { 0, &g_chickenWeaponTimer, sizeof(g_chickenWeaponTimer), 1 },
+    { 0, &g_RAendLevel, sizeof(g_RAendLevel), 1 },
+    { 0, &g_RAendEpisode, sizeof(g_RAendEpisode), 1 },
+    { 0, &g_fogType, sizeof(g_fogType), 1 },
+    { DS_LOADFN, (void *)sv_rrrafog, 0, 1 },
+
     { DS_SAVEFN|DS_LOADFN|DS_NOCHK, (void *)sv_prequote, 0, 1 },
     { DS_SAVEFN, (void *)&sv_quotesave, 0, 1 },
     { DS_NOCHK, &savegame_quotedef, sizeof(savegame_quotedef), 1 },  // quotes can change during runtime, but new quote numbers cannot be allocated
@@ -1263,8 +1323,6 @@ static uint32_t svdiffsiz;
 static uint8_t *svdiff;
 
 #include "gamedef.h"
-
-#define SV_SKIPMASK (/*GAMEVAR_SYSTEM|*/ GAMEVAR_READONLY | GAMEVAR_PTR_MASK | /*GAMEVAR_NORESET |*/ GAMEVAR_SPECIAL)
 
 void sv_freemem()
 {
@@ -1775,7 +1833,8 @@ static void sv_restload()
     }
 #undef CPDAT
 
-    g_player[myconnectindex].ps->auto_aim = ud.config.AutoAim;
+    if (g_player[myconnectindex].ps)
+        g_player[myconnectindex].ps->auto_aim = ud.config.AutoAim;
 }
 
 #ifdef DEBUGGINGAIDS
@@ -1850,6 +1909,11 @@ int32_t sv_updatestate(int32_t frominit)
 #endif
 
     return 0;
+}
+
+static void sv_rrrafog()
+{
+    G_SetFog(g_fogType ? 2 : 0);
 }
 
 static void postloadplayer(int32_t savegamep)
