@@ -4684,6 +4684,43 @@ ACTOR_STATIC void G_MoveActors(void)
             pSprite->ang += (krand()&3)-6;
             break;
 
+        case RRTILE3190__STATICRR:
+        case RRTILE3191__STATICRR:
+        case RRTILE3192__STATICRR:
+        {
+            if (!g_chickenPlant) DELETE_SPRITE_AND_CONTINUE(spriteNum);
+            if (sector[SECT(spriteNum)].lotag == 903)
+                A_Fall(spriteNum);
+
+            vec3_t const vect = {
+                (pSprite->xvel*(sintable[(pSprite->ang + 512) & 2047])) >> 14,
+                (pSprite->xvel*(sintable[pSprite->ang & 2047])) >> 14,
+                pSprite->zvel
+            };
+            int const moveSprite = A_MoveSprite(spriteNum, &vect, CLIPMASK0);
+            switch (sector[SECT(spriteNum)].lotag)
+            {
+                case 901:
+                    sprite[spriteNum].picnum = RRTILE3191;
+                    break;
+                case 902:
+                    sprite[spriteNum].picnum = RRTILE3192;
+                    break;
+                case 903:
+                    if (SZ(spriteNum) >= sector[SECT(spriteNum)].floorz - ZOFFSET3) { DELETE_SPRITE_AND_CONTINUE(spriteNum); }
+                    break;
+                case 904:
+                    DELETE_SPRITE_AND_CONTINUE(spriteNum);
+                    break;
+            }
+            if (moveSprite & 49152)
+            {
+                if ((moveSprite & 49152) == 32768) { DELETE_SPRITE_AND_CONTINUE(spriteNum); }
+                else if ((moveSprite & 49152) == 49152) { DELETE_SPRITE_AND_CONTINUE(spriteNum); }
+            }
+            break;
+        }
+
         case RRTILE3120__STATICRR:
         case RRTILE3122__STATICRR:
         case RRTILE3123__STATICRR:
@@ -4705,7 +4742,7 @@ ACTOR_STATIC void G_MoveActors(void)
             }
             if (sector[pSprite->sectnum].lotag == 903)
             {
-                if (SZ(spriteNum) >= sector[SECT(sectNum)].floorz - (4 << 8))
+                if (SZ(spriteNum) >= sector[SECT(spriteNum)].floorz - (4 << 8))
                 {
                     DELETE_SPRITE_AND_CONTINUE(spriteNum);
                 }
@@ -6622,12 +6659,12 @@ jib_code:
 
             case BURNING2__STATIC:
             case FECES__STATIC:
-            case BURNING__STATIC:
             case SHRINKEREXPLOSION__STATIC:
             case EXPLOSION2BOT__STATIC:
             case LASERSITE__STATIC:
                 if (RR) break;
                 fallthrough__;
+            case BURNING__STATIC:
             case WATERBUBBLE__STATIC:
             case SMALLSMOKE__STATIC:
             case EXPLOSION2__STATIC:

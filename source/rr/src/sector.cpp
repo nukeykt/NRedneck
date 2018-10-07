@@ -3496,7 +3496,7 @@ default_case:
                     actor[spriteNum].timetosleep = SLEEPTIME;
                 }
 
-                if ((sprite[spriteNum].xrepeat < 24 || PN(spriteNum) == SHARK) && sprite[dmgSrc].picnum == SHRINKSPARK)
+                if (!RR && (sprite[spriteNum].xrepeat < 24 || PN(spriteNum) == SHARK) && sprite[dmgSrc].picnum == SHRINKSPARK)
                     return;
             }
 

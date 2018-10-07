@@ -5723,7 +5723,7 @@ rrcoolexplosion1:
         case BURNING2__STATIC:
             if (RR && pSprite->picnum == BURNING2) break;
             if (sprite[pSprite->owner].picnum != TREE1 && sprite[pSprite->owner].picnum != TREE2)
-                t->z = actor[t->owner].floorz;
+                t->z = sector[t->sectnum].floorz;
             t->shade = -127;
             fallthrough__;
         case SMALLSMOKE__STATIC:
