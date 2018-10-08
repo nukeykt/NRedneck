@@ -220,6 +220,7 @@ typedef struct {
     int16_t drug_stat[3];
     int32_t drug_aspect;
     uint8_t drug_mode, lotag800kill, sea_sick_stat;
+    int32_t drug_timer;
     int32_t sea_sick;
     uint8_t hurt_delay2, nocheat;
 

@@ -1129,7 +1129,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 
         if (RRRA && pPlayer->drug_mode > 0)
         {
-            if (!(pPlayer->gm & MODE_MENU) && !ud.pause_on)
+            while (pPlayer->drug_timer < totalclock && !(pPlayer->gm & MODE_MENU) && !ud.pause_on)
             {
                 int aspect;
                 if (pPlayer->drug_stat[0] == 0)
@@ -1196,6 +1196,8 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
                         P_UpdateScreenPal(pPlayer);
                     }
                 }
+
+                pPlayer->drug_timer += TICSPERFRAME / 2;
             }
             if (!r_usenewaspect)
                 renderSetAspect(pPlayer->drug_aspect, yxaspect);

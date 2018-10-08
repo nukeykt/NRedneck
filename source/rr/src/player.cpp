@@ -7786,6 +7786,7 @@ HORIZONLY:;
                 {
                     sprite[spriteNum].pal = 0;
                     pPlayer->drug_mode = 5;
+                    pPlayer->drug_timer = totalclock;
                     sprite[pPlayer->i].extra = pPlayer->max_player_health;
                 }
             }

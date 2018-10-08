@@ -2048,6 +2048,8 @@ static void postloadplayer(int32_t savegamep)
         actor[i].lightId = -1;
     }
 #endif
+    for (i=0; i<MAXPLAYERS; i++)
+        g_player[i].ps->drug_timer = 0;
 }
 
 ////////// END GENERIC SAVING/LOADING SYSTEM //////////

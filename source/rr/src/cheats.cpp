@@ -719,6 +719,7 @@ void G_DoCheats(void)
 
                 case CHEAT_RAAARON:
                     pPlayer->drug_mode = pPlayer->drug_mode ? 0 : 5;
+                    pPlayer->drug_timer = totalclock;
                     end_cheat(pPlayer);
                     KB_FlushKeyboardQueue();
                     return;
