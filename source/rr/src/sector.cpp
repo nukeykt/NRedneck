@@ -1487,7 +1487,7 @@ default_case:
                     sprite[spriteNum].picnum = MULTISWITCH;
             }
 
-            if (RRRA && spritePic >= MULTISWITCH && spritePic <= MULTISWITCH+3)
+            if (RRRA && spritePic >= MULTISWITCH2 && spritePic <= MULTISWITCH2+3)
             {
                 sprite[spriteNum].picnum++;
                 if (sprite[spriteNum].picnum > MULTISWITCH2+3)
@@ -1590,7 +1590,7 @@ default_case:
                 if (wall[wallNum].picnum > MULTISWITCH+3)
                     wall[wallNum].picnum = MULTISWITCH;
             }
-            if (RRRA && wall[wallNum].picnum >= MULTISWITCH && wall[wallNum].picnum <= MULTISWITCH+3)
+            if (RRRA && wall[wallNum].picnum >= MULTISWITCH2 && wall[wallNum].picnum <= MULTISWITCH2+3)
             {
                 wall[wallNum].picnum++;
                 if (wall[wallNum].picnum > MULTISWITCH2+3)
