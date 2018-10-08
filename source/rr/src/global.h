@@ -156,7 +156,7 @@ G_EXTERN int32_t g_mineCartDist[MAXMINECARTS];
 G_EXTERN int32_t g_mineCartDrag[MAXMINECARTS];
 G_EXTERN int32_t g_mineCartOpen[MAXMINECARTS];
 G_EXTERN int32_t g_mineCartSect[MAXMINECARTS];
-G_EXTERN int32_t g_mineCartCnt;
+G_EXTERN uint32_t g_mineCartCnt;
 
 G_EXTERN int32_t g_jailDoorSound[MAXJAILDOORS];
 G_EXTERN int32_t g_jailDoorDrag[MAXJAILDOORS];
@@ -166,16 +166,16 @@ G_EXTERN int32_t g_jailDoorDist[MAXJAILDOORS];
 G_EXTERN int32_t g_jailDoorDir[MAXJAILDOORS];
 G_EXTERN int32_t g_jailDoorOpen[MAXJAILDOORS];
 G_EXTERN int32_t g_jailDoorSect[MAXJAILDOORS];
-G_EXTERN int32_t g_jailDoorCnt;
+G_EXTERN uint32_t g_jailDoorCnt;
 
 G_EXTERN int32_t g_lightninSector[MAXLIGHTNINSECTORS];
 G_EXTERN int32_t g_lightninSectorShade[MAXLIGHTNINSECTORS];
-G_EXTERN int32_t g_lightninCnt;
+G_EXTERN uint32_t g_lightninCnt;
 
 G_EXTERN int32_t g_torchSector[MAXTORCHSECTORS];
 G_EXTERN int32_t g_torchSectorShade[MAXTORCHSECTORS];
 G_EXTERN int32_t g_torchType[MAXTORCHSECTORS];
-G_EXTERN int32_t g_torchCnt;
+G_EXTERN uint32_t g_torchCnt;
 
 G_EXTERN int32_t g_geoSectorWarp[MAXGEOSECTORS];
 G_EXTERN int32_t g_geoSectorWarp2[MAXGEOSECTORS];
@@ -184,7 +184,7 @@ G_EXTERN int32_t g_geoSectorX[MAXGEOSECTORS];
 G_EXTERN int32_t g_geoSectorY[MAXGEOSECTORS];
 G_EXTERN int32_t g_geoSectorX2[MAXGEOSECTORS];
 G_EXTERN int32_t g_geoSectorY2[MAXGEOSECTORS];
-G_EXTERN int32_t g_geoSectorCnt;
+G_EXTERN uint32_t g_geoSectorCnt;
 
 G_EXTERN int32_t g_thunderFlash;
 G_EXTERN int32_t g_thunderTime;
@@ -194,7 +194,7 @@ G_EXTERN int32_t g_brightness;
 
 G_EXTERN int16_t g_ambientLotag[64];
 G_EXTERN int16_t g_ambientHitag[64];
-G_EXTERN int32_t g_ambientCnt;
+G_EXTERN uint32_t g_ambientCnt;
 
 G_EXTERN intptr_t *apScript;
 G_EXTERN intptr_t *g_scriptPtr;

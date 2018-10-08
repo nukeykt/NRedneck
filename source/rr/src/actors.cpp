@@ -128,7 +128,7 @@ void A_RadiusDamage(int spriteNum, int blastRadius, int dmg1, int dmg2, int dmg3
                 G_WallSpriteDist((uwalltype *)&wall[wall[w2].point2], pSprite) < blastRadius)
         {
             if (((sector[sectorNum].ceilingz-pSprite->z)>>8) < blastRadius)
-                Sect_DamageCeiling(spriteNum, sectorNum);
+                Sect_DamageCeiling(sectorNum);
         }
 
         native_t w = startWall;
@@ -294,33 +294,6 @@ next_sprite:
             otherSprite = nextOther;
         }
     }
-}
-
-// Maybe do a projectile transport via an SE7.
-// <spritenum>: the projectile
-// <i>: the SE7
-// <fromunderp>: below->above change?
-static int32_t Proj_MaybeDoTransport(int32_t spriteNum, const uspritetype * const pSEffector, int32_t fromunderp, int32_t daz)
-{
-    if ((totalclock & UINT8_MAX) == actor[spriteNum].lasttransport)
-        return 0;
-
-    spritetype *const        pSprite = &sprite[spriteNum];
-    const uspritetype *const otherse = (uspritetype *)&sprite[pSEffector->owner];
-    actor[spriteNum].lasttransport   = (totalclock & UINT8_MAX);
-
-    pSprite->x += (otherse->x - pSEffector->x);
-    pSprite->y += (otherse->y - pSEffector->y);
-
-    // above->below
-    pSprite->z = (!fromunderp) ? sector[otherse->sectnum].ceilingz - daz + sector[pSEffector->sectnum].floorz
-                               : sector[otherse->sectnum].floorz - daz + sector[pSEffector->sectnum].ceilingz;
-    // below->above
-
-    actor[spriteNum].bpos = *(vec3_t *)&sprite[spriteNum];
-    changespritesect(spriteNum, otherse->sectnum);
-
-    return 1;
 }
 
 // Check whether sprite <s> is on/in a non-SE7 water sector.
@@ -655,7 +628,7 @@ void A_DoGutsDir(int spriteNum, int tileNum, int spawnCnt)
 
     for (bssize_t j=spawnCnt; j>0; j--)
     {
-        int const i = A_InsertSprite(s->sectnum, s->x, s->y, gutZ, tileNum, -32, repeat.x, repeat.y, krand() & 2047,
+        A_InsertSprite(s->sectnum, s->x, s->y, gutZ, tileNum, -32, repeat.x, repeat.y, krand() & 2047,
                                      256 + (krand() & 127), -512 - (krand() & 2047), spriteNum, 5);
     }
 }
@@ -690,31 +663,16 @@ void Sect_ToggleInterpolation(int sectNum, int setInterpolation)
     }
 }
 
-static int32_t move_rotfixed_sprite(int32_t spriteNum, int32_t pivotSpriteNum, int32_t pivotAngle)
-{
-    if ((ROTFIXSPR_STATNUMP(sprite[spriteNum].statnum) ||
-         ((sprite[spriteNum].statnum == STAT_ACTOR || sprite[spriteNum].statnum == STAT_ZOMBIEACTOR) &&
-          A_CheckSpriteFlags(spriteNum, SFLAG_ROTFIXED))) &&
-        actor[spriteNum].t_data[7] == (ROTFIXSPR_MAGIC | pivotSpriteNum))
-    {
-        rotatepoint(zerovec, *(vec2_t *)&actor[spriteNum].t_data[8], pivotAngle & 2047, (vec2_t *)&sprite[spriteNum].x);
-        sprite[spriteNum].x += sprite[pivotSpriteNum].x;
-        sprite[spriteNum].y += sprite[pivotSpriteNum].y;
-        return 0;
-    }
-
-    return 1;
-}
-
 void A_MoveSector(int spriteNum)
 {
     // T1,T2 and T3 are used for all the sector moving stuff!!!
 
     int32_t           playerDist;
     spritetype *const pSprite     = &sprite[spriteNum];
-    int const         playerNum   = A_FindPlayer(pSprite, &playerDist);
     int const         rotateAngle = T3(spriteNum);
     int               originIdx   = T2(spriteNum);
+    
+    A_FindPlayer(pSprite, &playerDist);
 
     pSprite->x += (pSprite->xvel * (sintable[(pSprite->ang + 512) & 2047])) >> 14;
     pSprite->y += (pSprite->xvel * (sintable[pSprite->ang & 2047])) >> 14;
@@ -2512,6 +2470,7 @@ DETONATE:
                 case CANWITHSOMETHING3__STATIC:
                 case CANWITHSOMETHING4__STATIC:
                     if (RR) goto next_sprite;
+                    fallthrough__;
                 case CANWITHSOMETHING__STATIC:
                     A_Fall(spriteNum);
                     if (A_IncurDamage(spriteNum) >= 0)
@@ -2529,6 +2488,7 @@ DETONATE:
 
                 case FLOORFLAME__STATIC:
                     if (RR) goto next_sprite;
+                    fallthrough__;
                 case EXPLODINGBARREL__STATIC:
                 case WOODENHORSE__STATIC:
                 case HORSEONSIDE__STATIC:
@@ -2655,7 +2615,7 @@ static int Proj_MaybeDamageCF(int spriteNum)
         if ((sector[s->sectnum].ceilingstat&1) && sector[s->sectnum].ceilingpal == 0)
             return 1;
 
-        Sect_DamageCeiling(spriteNum, s->sectnum);
+        Sect_DamageCeiling(s->sectnum);
     }
 
     return 0;
@@ -2843,8 +2803,8 @@ ACTOR_STATIC void G_MoveWeapons(void)
                 if (pSprite->sectnum < 0)
                     DELETE_SPRITE_AND_CONTINUE(spriteNum);
 
-                if (RR && g_sectorExtra[pSprite->sectnum] == 800)
-                    DELETE_SPRITE_AND_CONTINUE(spriteNum);
+                //if (RR && g_sectorExtra[pSprite->sectnum] == 800)
+                //    DELETE_SPRITE_AND_CONTINUE(spriteNum);
 
                 if ((moveSprite & 49152) != 49152 && pSprite->picnum != FREEZEBLAST)
                     G_WeaponHitCeilingOrFloor(spriteNum, pSprite, &moveSprite);
@@ -5228,6 +5188,7 @@ ACTOR_STATIC void G_MoveActors(void)
 
         case OOZ2__STATIC:
             if (RR) break;
+            fallthrough__;
         case OOZ__STATIC:
         {
             A_GetZLimits(spriteNum);
@@ -5339,8 +5300,8 @@ ACTOR_STATIC void G_MoveActors(void)
 
                 if ((TEST_SYNC_KEY(g_player[playerNum].inputBits->bits, SK_FIRE) || (pPlayer->quick_kick > 0)) && sprite[pPlayer->i].extra > 0)
                     if (pPlayer->quick_kick > 0 ||
-                        (pPlayer->curr_weapon != HANDREMOTE_WEAPON && playerNum, pPlayer->curr_weapon != HANDBOMB_WEAPON &&
-                        playerNum, pPlayer->curr_weapon != TRIPBOMB_WEAPON && pPlayer->ammo_amount[pPlayer->curr_weapon] >= 0))
+                        (pPlayer->curr_weapon != HANDREMOTE_WEAPON && pPlayer->curr_weapon != HANDBOMB_WEAPON &&
+                        pPlayer->curr_weapon != TRIPBOMB_WEAPON && pPlayer->ammo_amount[pPlayer->curr_weapon] >= 0))
                     {
                         for (bssize_t x = 0; x < 8; ++x)
                         {
@@ -5901,7 +5862,7 @@ DETONATEB:
                                     goto next_sprite;
                             }
 
-                            if (pPlayer->weapreccnt < MAX_WEAPON_RECS)
+                            if (pPlayer->weapreccnt < MAX_WEAPON_RECS-1)
                                 pPlayer->weaprecs[pPlayer->weapreccnt++] = (RR ? spriteNum : pSprite->picnum);
                         }
 
@@ -6147,7 +6108,7 @@ ACTOR_STATIC void G_MoveMisc(void)  // STATNUM 5
         if (pSprite->picnum == INNERJAW+1)
             switchPic--;
 
-        if ((pSprite->picnum == MONEY+1) || (!RR && (pSprite->picnum == MAIL+1) || (pSprite->picnum == PAPER+1)))
+        if ((pSprite->picnum == MONEY+1) || (!RR && (pSprite->picnum == MAIL+1 || pSprite->picnum == PAPER+1)))
         {
             actor[spriteNum].floorz = pSprite->z = getflorzofslope(pSprite->sectnum,pSprite->x,pSprite->y);
             if (RR && sector[pSprite->sectnum].lotag == 800)
@@ -7222,7 +7183,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
                     }
                 }
 
-                if (pSprite->xvel <= 64 && (RR || (pSector->floorstat&1) == 0 && (pSector->ceilingstat&1) == 0))
+                if (pSprite->xvel <= 64 && (RR || ((pSector->floorstat&1) == 0 && (pSector->ceilingstat&1) == 0)))
                     S_StopEnvSound(actor[spriteNum].lastv.x,spriteNum);
 
                 if ((pSector->floorz-pSector->ceilingz) < (108<<8))

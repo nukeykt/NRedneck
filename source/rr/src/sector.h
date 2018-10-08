@@ -133,7 +133,7 @@ int isanearoperator(int lotag);
 int isanunderoperator(int lotag);
 int P_ActivateSwitch(int playerNum, int nObject, int nSwitchType);
 void P_CheckSectors(int snum);
-void Sect_DamageCeiling(int const spriteNum, int const sectNum);
+void Sect_DamageCeiling(int const sectNum);
 int SetAnimation(int sectNum,int32_t *animPtr,int goalVal,int animVel);
 void G_DoFurniture(int wallNum, int sectNum, int playerNum);
 void G_DoTorch(void);

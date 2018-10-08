@@ -1343,7 +1343,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 
             int geoSector = 0;
 
-            for (size_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSector[gs]];
                 while (spriteNum != -1)
@@ -1367,7 +1367,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
             CAMERA(pos.x) += g_geoSectorX[geoSector];
             CAMERA(pos.y) += g_geoSectorY[geoSector];
                 
-            for (size_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSectorWarp[gs]];
                 while (spriteNum != -1)
@@ -1385,7 +1385,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 
             renderDrawMasks();
 
-            for (size_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSector[gs]];
                 while (spriteNum != -1)
@@ -1409,7 +1409,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
             CAMERA(pos.x) += g_geoSectorX2[geoSector];
             CAMERA(pos.y) += g_geoSectorY2[geoSector];
                 
-            for (size_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSectorWarp2[gs]];
                 while (spriteNum != -1)
@@ -1546,7 +1546,6 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 
 void G_DumpDebugInfo(void)
 {
-    static char const s_WEAPON[] = "WEAPON";
     int32_t j,x;
     //    FILE * fp=fopen("condebug.log","w");
 
@@ -3127,6 +3126,7 @@ default_case:
         case SBMOVE__STATICRR:
             if ((RRRA && pSprite->picnum == SBMOVE) || (!RRRA && (pSprite->picnum == SBSWIPE || pSprite->picnum == CHEERSTAYPUT))) goto default_case;
             pActor->actorstayput = pSprite->sectnum;
+            fallthrough__;
         case BOULDER__STATICRR:
         case BOULDER1__STATICRR:
         //case RAT__STATIC:
@@ -4527,6 +4527,7 @@ rr_badguy:
         case CANWITHSOMETHING3__STATIC:
         case CANWITHSOMETHING4__STATIC:
             if (RR) goto default_case;
+            fallthrough__;
         case CANWITHSOMETHING__STATIC:
         case RUBBERCAN__STATIC:
             pSprite->extra = 0;
@@ -4972,6 +4973,7 @@ default_case1:
             continue;
         case BURNING2__STATIC:
             if (RR) goto default_case2;
+            fallthrough__;
         case BURNING__STATIC:
             if (sprite[pSprite->owner].statnum == STAT_PLAYER)
             {

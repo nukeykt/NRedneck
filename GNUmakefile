@@ -527,6 +527,100 @@ duke3d_editor_miscdeps :=
 duke3d_game_orderonlydeps :=
 duke3d_editor_orderonlydeps :=
 
+#### Redneck Rampage
+
+rr := rr
+
+rr_game_ldflags :=
+rr_editor_ldflags :=
+
+rr_game_stripflags :=
+rr_editor_stripflags :=
+
+rr_root := $(source)/$(rr)
+rr_src := $(rr_root)/src
+rr_rsrc := $(rr_root)/rsrc
+rr_obj := $(obj)/$(rr)
+
+rr_cflags := -I$(rr_src)
+
+common_editor_deps := rr_common_editor engine_editor
+
+rr_game_deps := rr_common_midi audiolib mact
+rr_editor_deps := audiolib
+
+ifneq (0,$(NETCODE))
+    rr_game_deps += enet
+endif
+
+ifneq (0,$(LUNATIC))
+    rr_game_deps += lunatic lunatic_game lpeg
+    rr_editor_deps += lunatic lunatic_editor lpeg
+endif
+
+rr_game := rednukem
+rr_editor := rrmapster32
+
+ifneq (,$(APPBASENAME))
+    rr_game := $(APPBASENAME)
+endif
+
+rr_game_proper := Rednukem
+rr_editor_proper := RRMapster32
+
+rr_common_editor_objs := \
+    m32common.cpp \
+    m32def.cpp \
+    m32exec.cpp \
+    m32vars.cpp \
+
+rr_game_objs := \
+    game.cpp \
+    global.cpp \
+    actors.cpp \
+    gamedef.cpp \
+    gameexec.cpp \
+    gamevars.cpp \
+    player.cpp \
+    premap.cpp \
+    sector.cpp \
+    anim.cpp \
+    common.cpp \
+    config.cpp \
+    demo.cpp \
+    input.cpp \
+    menus.cpp \
+    namesdyn.cpp \
+    net.cpp \
+    savegame.cpp \
+    rts.cpp \
+    osdfuncs.cpp \
+    osdcmds.cpp \
+    grpscan.cpp \
+    sounds.cpp \
+    soundsdyn.cpp \
+    cheats.cpp \
+    sbar.cpp \
+    screentext.cpp \
+    screens.cpp \
+    cmdline.cpp \
+
+rr_editor_objs := \
+    astub.cpp \
+    common.cpp \
+    grpscan.cpp \
+    sounds_mapster32.cpp \
+
+rr_game_rsrc_objs :=
+rr_editor_rsrc_objs :=
+rr_game_gen_objs :=
+rr_editor_gen_objs :=
+
+rr_game_miscdeps :=
+rr_editor_miscdeps :=
+rr_game_orderonlydeps :=
+rr_editor_orderonlydeps :=
+
 ## Lunatic devel
 lunatic := lunatic
 lunatic_src := $(duke3d_src)/$(lunatic)
@@ -623,6 +717,7 @@ ifeq ($(PLATFORM),DARWIN)
 
     ifeq ($(STARTUP_WINDOW),1)
         duke3d_game_objs += GrpFile.game.mm GameListSource.game.mm startosx.game.mm
+        rr_game_objs += GrpFile.game.mm GameListSource.game.mm startosx.game.mm
     endif
 endif
 
@@ -631,12 +726,17 @@ ifeq ($(PLATFORM),WINDOWS)
     duke3d_game_objs += winbits.cpp
     duke3d_game_rsrc_objs += gameres.rc
     duke3d_editor_rsrc_objs += buildres.rc
+    rr_game_objs += winbits.cpp
+    rr_game_rsrc_objs += gameres.rc
+    rr_editor_rsrc_objs += buildres.rc
     ifeq ($(STARTUP_WINDOW),1)
         duke3d_game_objs += startwin.game.cpp
+        rr_game_objs += startwin.game.cpp
     endif
     ifeq ($(MIXERTYPE),WIN)
         LIBS += -ldsound
         duke3d_common_midi_objs := music.cpp midi.cpp mpu401.cpp
+        rr_common_midi_objs := music.cpp midi.cpp mpu401.cpp
     endif
 endif
 
@@ -648,13 +748,19 @@ ifeq (11,$(HAVE_GTK2)$(STARTUP_WINDOW))
     duke3d_game_objs += startgtk.game.cpp
     duke3d_game_gen_objs += game_banner.c
     duke3d_editor_gen_objs += build_banner.c
+    rr_game_objs += startgtk.game.cpp
+    rr_game_gen_objs += game_banner.c
+    rr_editor_gen_objs += build_banner.c
 endif
 ifeq ($(RENDERTYPE),SDL)
     duke3d_game_rsrc_objs += game_icon.c
     duke3d_editor_rsrc_objs += build_icon.c
+    rr_game_rsrc_objs += game_icon.c
+    rr_editor_rsrc_objs += build_icon.c
 endif
 ifeq ($(MIXERTYPE),SDL)
     duke3d_common_midi_objs := sdlmusic.cpp
+    rr_common_midi_objs := sdlmusic.cpp
 endif
 
 
@@ -791,6 +897,7 @@ COMPILERFLAGS += -I$(engine_inc) -I$(mact_inc) -I$(audiolib_inc) -I$(enet_inc) -
 games := \
     kenbuild \
     duke3d \
+    rr \
     sw \
 
 libraries := \
@@ -881,6 +988,7 @@ $(foreach i,$(games),$(foreach j,$(roles),$(eval $(call BUILDRULE,$i,$j))))
 include $(lpeg_root)/Dependencies.mak
 include $(engine_root)/Dependencies.mak
 include $(duke3d_root)/Dependencies.mak
+include $(rr_root)/Dependencies.mak
 include $(sw_root)/Dependencies.mak
 
 
@@ -998,7 +1106,7 @@ $(foreach i,$(components),$($i_obj)):
 
 ### Phonies
 
-clang-tools: $(filter %.c %.cpp,$(foreach i,$(call getdeps,duke3d,game),$(call expandsrcs,$i)))
+clang-tools: $(filter %.c %.cpp,$(foreach i,$(call getdeps,duke3d,rr,game),$(call expandsrcs,$i)))
 	echo $^ -- -x c++ $(CXXONLYFLAGS) $(COMPILERFLAGS) $(CWARNS) $(foreach i,$(components),$($i_cflags))
 
 $(addprefix clean,$(games)):

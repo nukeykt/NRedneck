@@ -601,7 +601,7 @@ void G_AnimateWalls(void)
         case SCREENBREAK6__STATIC:
         case SCREENBREAK7__STATIC:
         case SCREENBREAK8__STATIC:
-            if (animwall[animwallNum].tag >= 0 && (RR || wall[wallNum].extra != FEMPIC2 && wall[wallNum].extra != FEMPIC3))
+            if (animwall[animwallNum].tag >= 0 && (RR || (wall[wallNum].extra != FEMPIC2 && wall[wallNum].extra != FEMPIC3)))
                 wall[wallNum].picnum = animwall[animwallNum].tag;
             else
             {
@@ -1750,6 +1750,7 @@ default_case:
                         case 47:
                         case 48:
                             if (!RRRA) break;
+                            fallthrough__;
                         case SE_12_LIGHT_SWITCH:
                             sector[sprite[spriteNum].sectnum].floorpal = 0;
                             actor[spriteNum].t_data[0]++;
@@ -2328,9 +2329,8 @@ void A_DamageWall(int spriteNum, int wallNum, const vec3_t *vPos, int weaponNum)
     }
 }
 
-void Sect_DamageCeiling(int const spriteNum, int const sectNum)
+void Sect_DamageCeiling(int const sectNum)
 {
-    int16_t tileNum = sector[sectNum].ceilingpicnum;
     int16_t * const pPicnum = &sector[sectNum].ceilingpicnum;
 
     switch (DYNAMICTILEMAP(*pPicnum))
@@ -3549,32 +3549,14 @@ void G_AlignWarpElevators(void)
     }
 }
 
-
-static int P_CheckDetonatorSpecialCase(DukePlayer_t *const pPlayer, int weaponNum)
-{
-    if (weaponNum == HANDBOMB_WEAPON && pPlayer->ammo_amount[HANDBOMB_WEAPON] == 0)
-    {
-        int spriteNum = headspritestat[STAT_ACTOR];
-
-        while (spriteNum >= 0)
-        {
-            if (sprite[spriteNum].picnum == HEAVYHBOMB && sprite[spriteNum].owner == pPlayer->i)
-                return 1;
-
-            spriteNum = nextspritestat[spriteNum];
-        }
-    }
-
-    return 0;
-}
-
 void P_HandleSharedKeys(int playerNum)
 {
     DukePlayer_t *const pPlayer = g_player[playerNum].ps;
 
     if (pPlayer->cheat_phase == 1) return;
 
-    uint32_t playerBits = g_player[playerNum].inputBits->bits, weaponNum;
+    uint32_t playerBits = g_player[playerNum].inputBits->bits;
+    int32_t weaponNum;
 
     // 1<<0  =  jump
     // 1<<1  =  crouch
@@ -3971,7 +3953,7 @@ CHECKINV1:
                     playerBits |= BIT(SK_HOLSTER);
                     pPlayer->weapon_pos = WEAPON_POS_LOWER;
                 }
-                else if ((uint32_t)weaponNum < MAX_WEAPONS && (pPlayer->gotweapon & (1<<weaponNum)) && (uint32_t)pPlayer->curr_weapon != weaponNum)
+                else if ((uint32_t)weaponNum < MAX_WEAPONS && (pPlayer->gotweapon & (1<<weaponNum)) && pPlayer->curr_weapon != weaponNum)
                     switch (DYNAMICWEAPONMAP(weaponNum))
                     {
                     case SLINGBLADE_WEAPON__STATIC:
@@ -4266,7 +4248,7 @@ static int P_FindWall(DukePlayer_t *pPlayer, int *hitWall)
 }
 
 // returns 1 if sprite i should not be considered by neartag
-static int32_t our_neartag_blacklist(int32_t spriteNum)
+static int32_t our_neartag_blacklist(int32_t UNUSED(spriteNum))
 {
     return 0;
 }
@@ -4807,7 +4789,7 @@ void G_DoFurniture(int wallNum, int sectNum, int playerNum)
     endwall = startwall+sector[wall[wallNum].nextsector].wallnum;
 
     insideCheck = 1;
-    max_x = max_y = -2<<16;
+    max_x = max_y = -(2<<16);
     min_x = min_y = 2<<16;
     speed = sector[sectNum].hitag;
     if (speed > 16)
@@ -4892,10 +4874,10 @@ void G_DoFurniture(int wallNum, int sectNum, int playerNum)
 
 void G_DoTorch(void)
 {
-    int i, j;
+    int j;
     int startWall, endWall;
-    int randNum = krand()&8;
-    for (i = 0; i < g_torchCnt; i++)
+    int randNum = rand()&8;
+    for (bsize_t i = 0; i < g_torchCnt; i++)
     {
         int shade = g_torchSectorShade[i] - randNum;
         switch (g_torchType[i])
@@ -4903,11 +4885,17 @@ void G_DoTorch(void)
         case 0:
             sector[g_torchSector[i]].floorshade = shade;
             sector[g_torchSector[i]].ceilingshade = shade;
+            break;
         case 1:
-        case 4:
             sector[g_torchSector[i]].ceilingshade = shade;
             break;
         case 2:
+            sector[g_torchSector[i]].floorshade = shade;
+            break;
+        case 4:
+            sector[g_torchSector[i]].ceilingshade = shade;
+            break;
+        case 5:
             sector[g_torchSector[i]].floorshade = shade;
             break;
         }
@@ -4919,12 +4907,18 @@ void G_DoTorch(void)
             {
                 switch (g_torchType[i])
                 {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    wall[j].shade = shade;
-                    break;
+                    case 0:
+                        wall[j].shade = shade;
+                        break;
+                    case 1:
+                        wall[j].shade = shade;
+                        break;
+                    case 2:
+                        wall[j].shade = shade;
+                        break;
+                    case 3:
+                        wall[j].shade = shade;
+                        break;
                 }
             }
         }
@@ -4933,10 +4927,10 @@ void G_DoTorch(void)
 
 void G_DoJailDoor(void)
 {
-    int i, j;
+    int j;
     int32_t speed;
     int startWall, endWall;
-    for (i = 0; i < g_jailDoorCnt; i++)
+    for (bsize_t i = 0; i < g_jailDoorCnt; i++)
     {
         speed = g_jailDoorSpeed[i];
         if (speed < 2)
@@ -5049,11 +5043,11 @@ void G_DoJailDoor(void)
 
 void G_MoveMineCart(void)
 {
-    int i, j, nextj;
+    int j, nextj;
     int startWall, endWall;
     int32_t speed;
     int32_t max_x, min_x, max_y, min_y, cx, cy;
-    for (i = 0; i < g_mineCartCnt; i++)
+    for (bsize_t i = 0; i < g_mineCartCnt; i++)
     {
         speed = g_mineCartSpeed[i];
         if (speed < 2)
@@ -5163,7 +5157,7 @@ void G_MoveMineCart(void)
         }
         startWall = sector[g_mineCartChildSect[i]].wallptr;
         endWall = startWall + sector[g_mineCartChildSect[i]].wallnum - 1;
-        max_x = max_y = -2<<16;
+        max_x = max_y = -(2<<16);
         min_x = min_y = 2<<16;
         for (j = startWall; j <= endWall; j++)
         {
@@ -5197,10 +5191,10 @@ void G_MoveMineCart(void)
 void G_Thunder(void)
 {
     static int32_t brightness;
-    int i, j;
+    int j;
     int startWall, endWall;
     uint8_t shade;
-    i = 0;
+    bsize_t i = 0;
     if (!g_thunderFlash)
     {
         if ((gotpic[RRTILE2577>>3]&(1<<(RRTILE2577&7))))
@@ -5277,9 +5271,7 @@ void G_Thunder(void)
     }
     if (g_winderFlash == 1)
     {
-        if (i < 0)
-            i = 0;
-        else if (i >= MAXTORCHSECTORS)
+        if (i >= MAXTORCHSECTORS)
             i = MAXTORCHSECTORS - 1;
         shade = g_torchSectorShade[i]+(krand()&8);
         for (i = 0; i < g_lightninCnt; i++)

@@ -46,16 +46,11 @@ static int32_t g_checkingIfElse, g_processingState, g_lastKeyword = -1;
 // The pointer to the start of the case table in a switch statement.
 // First entry is 'default' code.
 static intptr_t *g_caseScriptPtr;
-static intptr_t previous_event;
-static int32_t g_numCases = 0, g_checkingCase = 0;
-static int32_t g_checkingSwitch = 0, g_currentEvent = -1;
-static int32_t g_labelsOnly = 0, g_dynamicTileMapping = 0, g_dynamicSoundMapping = 0;
+static int32_t g_labelsOnly = 0;
 static int32_t g_numBraces = 0;
 
 static int32_t C_ParseCommand(int32_t loop);
 static int32_t C_SetScriptSize(int32_t size);
-
-int32_t g_numXStrings = 0;
 
 static intptr_t g_parsingActorPtr;
 static char *textptr;
@@ -1030,71 +1025,6 @@ void C_InitQuotes(void)
     }
 }
 
-static void C_SetCfgName(const char *cfgname)
-{
-    if (Bstrcmp(g_setupFileName, cfgname) == 0) // no need to do anything if name is the same
-        return;
-
-    char temp[BMAX_PATH];
-    struct Bstat st;
-
-    int32_t fullscreen = ud.config.ScreenMode;
-    int32_t xdim = ud.config.ScreenWidth, ydim = ud.config.ScreenHeight, bpp = ud.config.ScreenBPP;
-    int32_t usemouse = ud.config.UseMouse, usejoy = ud.config.UseJoystick;
-#ifdef USE_OPENGL
-    int32_t glrm = glrendmode;
-#endif
-
-    if (Bstrcmp(g_setupFileName, SETUPFILENAME) != 0) // set to something else via -cfg
-        return;
-
-    if (Bstat(g_modDir, &st) < 0)
-    {
-        if (errno == ENOENT)     // path doesn't exist
-        {
-            if (Bmkdir(g_modDir, S_IRWXU) < 0)
-            {
-                OSD_Printf("Failed to create configuration file directory %s\n", g_modDir);
-                return;
-            }
-            else OSD_Printf("Created configuration file directory %s\n", g_modDir);
-        }
-        else
-        {
-            // another type of failure
-            return;
-        }
-    }
-    else if ((st.st_mode & S_IFDIR) != S_IFDIR)
-    {
-        // directory isn't a directory
-        return;
-    }
-
-    // XXX: Back up 'cfgname' as it may be the global 'tempbuf'.
-    Bstrncpyz(temp, cfgname, sizeof(temp));
-    CONFIG_WriteSetup(1);
-
-    if (g_modDir[0] != '/')
-        Bsnprintf(g_setupFileName, sizeof(g_setupFileName), "%s/%s", g_modDir, temp);
-    else
-        Bstrncpyz(g_setupFileName, temp, sizeof(g_setupFileName));
-
-    initprintf("Using config file \"%s\".\n", g_setupFileName);
-
-    CONFIG_ReadSetup();
-
-    ud.config.ScreenMode = fullscreen;
-    ud.config.ScreenWidth = xdim;
-    ud.config.ScreenHeight = ydim;
-    ud.config.ScreenBPP = bpp;
-    ud.config.UseMouse = usemouse;
-    ud.config.UseJoystick = usejoy;
-#ifdef USE_OPENGL
-    glrendmode = glrm;
-#endif
-}
-
 static inline void C_BitOrNextValue(int32_t *valptr)
 {
     C_GetNextValue(LABEL_DEFINE);
@@ -1119,8 +1049,6 @@ static int32_t C_ParseCommand(int32_t loop)
 
         if (EDUKE32_PREDICT_FALSE(g_scriptDebug))
             C_ReportError(-1);
-
-        int32_t const otw = g_lastKeyword;
 
         switch ((g_lastKeyword = tw = C_GetNextKeyword()))
         {
@@ -1202,14 +1130,6 @@ static int32_t C_ParseCommand(int32_t loop)
                 {
                     C_ReportError(ERROR_CLOSEBRACKET);
                     g_errorCnt++;
-                }
-
-                if (EDUKE32_PREDICT_FALSE(g_checkingSwitch > 0))
-                {
-                    C_ReportError(ERROR_NOENDSWITCH);
-                    g_errorCnt++;
-
-                    g_checkingSwitch = 0; // can't be checking anymore...
                 }
 
                 g_processingState = 0;
@@ -1932,11 +1852,6 @@ static int32_t C_ParseCommand(int32_t loop)
 
             if (EDUKE32_PREDICT_FALSE(g_numBraces < 0))
             {
-                if (g_checkingSwitch)
-                {
-                    C_ReportError(ERROR_NOENDSWITCH);
-                }
-
                 C_ReportError(-1);
                 initprintf("%s:%d: error: found more `}' than `{'.\n",g_scriptFileName,g_lineNumber);
                 g_errorCnt++;
@@ -2136,10 +2051,7 @@ static int32_t C_ParseCommand(int32_t loop)
             continue;
 
         case CON_DEFINEQUOTE:
-            if (tw == CON_DEFINEQUOTE)
-            {
-                g_scriptPtr--;
-            }
+            g_scriptPtr--;
 
             C_GetNextValue(LABEL_DEFINE);
 
@@ -2155,8 +2067,7 @@ static int32_t C_ParseCommand(int32_t loop)
                 C_AllocQuote(k);
             }
 
-            if (tw == CON_DEFINEQUOTE)
-                g_scriptPtr--;
+            g_scriptPtr--;
 
             i = 0;
 
@@ -2173,10 +2084,8 @@ static int32_t C_ParseCommand(int32_t loop)
                 break;
                 }
                 */
-                if (tw == CON_DEFINEQUOTE)
-                    *(apStrings[k]+i) = *textptr;
-                else
-                    *(apXStrings[g_numXStrings]+i) = *textptr;
+                *(apStrings[k]+i) = *textptr;
+
                 textptr++,i++;
                 if (EDUKE32_PREDICT_FALSE(i >= MAXQUOTELEN-1))
                 {
@@ -2187,18 +2096,8 @@ static int32_t C_ParseCommand(int32_t loop)
                 }
             }
 
-            if (tw == CON_DEFINEQUOTE)
-            {
-                if ((unsigned)k < MAXQUOTES)
-                    *(apStrings[k]+i) = '\0';
-            }
-            else
-            {
-                *(apXStrings[g_numXStrings]+i) = '\0';
-                BITPTR_CLEAR(g_scriptPtr-apScript);
-                *g_scriptPtr++=g_numXStrings;
-                g_numXStrings++;
-            }
+            if ((unsigned)k < MAXQUOTES)
+                *(apStrings[k]+i) = '\0';
             continue;
 
         case CON_DEFINESOUND:
@@ -2271,9 +2170,6 @@ static int32_t C_ParseCommand(int32_t loop)
 
             if (k > g_highestSoundIdx)
                 g_highestSoundIdx = k;
-
-            if (k >= 0 && k < MAXSOUNDS && g_dynamicSoundMapping && j >= 0 && (labeltype[j] & LABEL_DEFINE))
-                G_ProcessDynamicSoundMapping(label+(j<<6),k);
             continue;
 
         case CON_ENDA:
@@ -2293,20 +2189,6 @@ static int32_t C_ParseCommand(int32_t loop)
             continue;
 
         case CON_BREAK:
-            if (g_checkingSwitch)
-            {
-                if (EDUKE32_PREDICT_FALSE(otw == CON_BREAK))
-                {
-                    C_ReportError(-1);
-                    initprintf("%s:%d: warning: duplicate `break'.\n",g_scriptFileName, g_lineNumber);
-                    g_warningCnt++;
-                    g_scriptPtr--;
-                    continue;
-                }
-
-                g_checkingCase = 0;
-                return 1;
-            }
             continue;
 
         case CON_FALL:
@@ -2428,16 +2310,6 @@ static int32_t C_ParseCommand(int32_t loop)
     return 0;
 }
 
-/* Anything added with C_AddDefinition() cannot be overwritten in the CONs */
-static void C_AddDefinition(const char *lLabel,int32_t lValue,int32_t lType)
-{
-    Bstrcpy(label+(g_labelCnt<<6),lLabel);
-    labeltype[g_labelCnt] = lType;
-    hash_add(&h_labels,label+(g_labelCnt<<6),g_labelCnt,0);
-    labelcode[g_labelCnt++] = lValue;
-    g_defaultLabelCnt++;
-}
-
 extern int32_t g_numObituaries;
 extern int32_t g_numSelfObituaries;
 
@@ -2466,7 +2338,7 @@ void C_PrintStats(void)
 
     int i, j;
 
-    for (i=MAXQUOTES-1, j=g_numXStrings; i>=0; i--)
+    for (i=MAXQUOTES-1, j=0; i>=0; i--)
     {
         if (apStrings[i])
             j++;

@@ -434,7 +434,7 @@ static void G_PrecacheSprites(void)
     {
         if (RRRA)
         {
-            if (ud.volume_number == 0 && ud.volume_number == 4)
+            if (ud.volume_number == 0 && ud.level_number == 4)
                 tloadtile(RRTILE2577, 1);
         }
         else
@@ -1255,66 +1255,6 @@ static void resetprestat(int playerNum, int gameMode)
     }
 }
 
-// Tweak sprites contained in moving sectors with these SE lotags.
-#define FIXSPR_SELOTAGP(k) ((k) == SE_0_ROTATING_SECTOR || (k) == SE_6_SUBWAY || (k) == SE_14_SUBWAY_CAR)
-
-// Set up sprites in moving sectors that are to be fixed wrt a certain pivot
-// position and should not diverge from it due to roundoff error in the future.
-// Has to be after the spawning stuff.
-static void G_SetupRotfixedSprites(void)
-{
-    int spriteNum, nextSpriteNum;
-
-    for (SPRITES_OF_STAT_SAFE(STAT_EFFECTOR, spriteNum, nextSpriteNum))
-    {
-        if (FIXSPR_SELOTAGP(sprite[spriteNum].lotag))
-        {
-#ifdef YAX_ENABLE
-            int firstrun = 1;
-#endif
-            int sectSprite = headspritesect[sprite[spriteNum].sectnum];
-
-            do
-            {
-                const spritetype *const pSprite = &sprite[sectSprite];
-
-                // TRIPBOMB uses t_data[7] for its own purposes. Wouldn't be
-                // too useful with moving sectors anyway
-                if ((ROTFIXSPR_STATNUMP(pSprite->statnum) && pSprite->picnum != TRIPBOMB)
-                    || ((pSprite->statnum == STAT_ACTOR || pSprite->statnum == STAT_ZOMBIEACTOR)
-                        && A_CheckSpriteFlags(sectSprite, SFLAG_ROTFIXED)))
-                {
-                    int pivotSprite = spriteNum;
-
-                    if (sprite[spriteNum].lotag == 0)
-                        pivotSprite = sprite[spriteNum].owner;
-
-                    if (sectSprite != spriteNum && sectSprite != pivotSprite && pivotSprite >= 0 && pivotSprite < MAXSPRITES)
-                    {
-                        // let's hope we don't step on anyone's toes here
-                        actor[sectSprite].t_data[7] = ROTFIXSPR_MAGIC | pivotSprite;  // 'rs' magic + pivot SE sprite index
-                        actor[sectSprite].t_data[8] = pSprite->x - sprite[pivotSprite].x;
-                        actor[sectSprite].t_data[9] = pSprite->y - sprite[pivotSprite].y;
-                    }
-                }
-
-                sectSprite = nextspritesect[sectSprite];
-#ifdef YAX_ENABLE
-                if ((sectSprite < 0 && firstrun) &&
-                    (sprite[spriteNum].lotag == SE_6_SUBWAY || sprite[spriteNum].lotag == SE_14_SUBWAY_CAR))
-                {
-                    firstrun   = 0;
-                    sectSprite = actor[spriteNum].t_data[9];
-
-                    if (sectSprite >= 0)
-                        sectSprite = headspritesect[sectSprite];
-                }
-#endif
-            } while (sectSprite>=0);
-        }
-    }
-}
-
 static inline int G_CheckExitSprite(int spriteNum) { return ((uint16_t)sprite[spriteNum].lotag == UINT16_MAX && (sprite[spriteNum].cstat & 16)); }
 
 static void prelevel(char g)
@@ -1728,7 +1668,7 @@ static void prelevel(char g)
             case LOCKSWITCH1__STATIC:
             case POWERSWITCH2__STATIC:
             case RRTILE8464__STATICRR:
-                if (!RRRA && PN(i)-1+ii == RRTILE8464) break;
+                if (!RRRA && PN(i)-1+ii == (uint32_t)RRTILE8464) break;
                 // the lower code only for the 'on' state (*)
                 if (ii==0)
                 {
@@ -1795,6 +1735,7 @@ static void prelevel(char g)
             {
                 case FANSHADOW__STATIC:
                     if (RR) break;
+                    fallthrough__;
                 case FANSPRITE__STATIC:
                     wall->cstat |= 65;
                     animwall[g_animWallCnt].wallnum = i;

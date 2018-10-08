@@ -1287,7 +1287,6 @@ static int32_t osdcmd_printtimes(osdfuncparm_t const * const UNUSED(parm))
     UNREFERENCED_CONST_PARAMETER(parm);
 
     char buf[32];
-    int32_t maxlen = 0;
     int32_t haveac=0;
 
     for (int i=0; i<MAXTILES; i++)

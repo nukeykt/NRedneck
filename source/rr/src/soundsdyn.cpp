@@ -36,14 +36,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 int16_t DynamicSoundMap[MAXSOUNDS];
 
-struct dynitem
+struct sdynitem
 {
     const char *str;
     int32_t *dynvalptr;
     const int16_t staticval;
 };
 
-static struct dynitem g_dynSoundList[] =
+static struct sdynitem g_dynSoundList[] =
 {
     { "KICK_HIT", DVPTR(KICK_HIT), KICK_HIT__STATIC },
     { "PISTOL_RICOCHET", DVPTR(PISTOL_RICOCHET), PISTOL_RICOCHET__STATIC },
@@ -339,7 +339,7 @@ void G_ProcessDynamicSoundMapping(const char *szLabel, int32_t lValue)
     i = hash_find(&h_names,szLabel);
     if (i>=0)
     {
-        struct dynitem *di = &g_dynSoundList[i];
+        struct sdynitem *di = &g_dynSoundList[i];
 #ifdef DEBUGGINGAIDS
         if (g_scriptDebug && di->staticval != lValue)
             OSD_Printf("REMAP %s (%d) --> %d\n", di->str, di->staticval, lValue);

@@ -4911,7 +4911,7 @@ enum MenuTextFlags_t
     MT_RightSide = 1<<6,
 };
 
-static void Menu_GetFmt(const MenuFont_t *font, uint8_t const status, int32_t *s, int32_t *z)
+static void Menu_GetFmt(const MenuFont_t *font, uint8_t const status, int32_t *s)
 {
     if (status & MT_Selected)
         *s = sintable[(totalclock<<5)&2047]>>12;
@@ -4947,7 +4947,7 @@ static vec2_t Menu_Text(int32_t x, int32_t y, const MenuFont_t *font, const char
     else
         p = (status & MT_RightSide) ? font->pal_deselected_right : font->pal_deselected;
 
-    Menu_GetFmt(font, status, &s, &z);
+    Menu_GetFmt(font, status, &s);
 
     return G_ScreenText(font->tilenum, x, y, z, 0, 0, t, s, p, 2|8|16|ROTATESPRITE_FULL16, 0, font->emptychar.x, font->emptychar.y, font->between.x, ybetween, f, 0, ydim_upper, xdim-1, ydim_lower);
 }
@@ -5396,7 +5396,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                         int32_t s, p;
                         int32_t z = entry->font->cursorScale2;
-                        Menu_GetFmt(object->font, status|MT_RightSide, &s, &z);
+                        Menu_GetFmt(object->font, status|MT_RightSide, &s);
 
                         if (status & MT_Disabled)
                             p = ud.slidebar_paldisabled;
@@ -5496,7 +5496,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                         int32_t s, p;
                         int32_t z = entry->font->cursorScale2;
-                        Menu_GetFmt(object->font, status|MT_RightSide, &s, &z);
+                        Menu_GetFmt(object->font, status|MT_RightSide, &s);
 
                         if (status & MT_Disabled)
                             p = ud.slidebar_paldisabled;
@@ -5597,7 +5597,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
 
                         int32_t s, p;
                         int32_t z = entry->font->cursorScale2;
-                        Menu_GetFmt(object->font, status|MT_RightSide, &s, &z);
+                        Menu_GetFmt(object->font, status|MT_RightSide, &s);
 
                         if (status & MT_Disabled)
                             p = ud.slidebar_paldisabled;
@@ -7438,7 +7438,6 @@ void M_DisplayMenus(void)
             uint8_t p = CROSSHAIR_PAL;
             uint32_t o = 2;
 
-            auto const oyxaspect = yxaspect;
             int32_t alpha = CURSORALPHA;
 
             rotatesprite_fs_alpha(cursorpos.x, cursorpos.y, z, 0, a, 0, p, o, alpha);

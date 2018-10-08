@@ -129,18 +129,6 @@ static void VM_DeleteSprite(int const spriteNum, int const playerNum)
     A_DeleteSprite(spriteNum);
 }
 
-// May recurse, e.g. through EVENT_XXX -> ... -> EVENT_KILLIT
-// do not inline
-static void VM_DummySprite(void)
-{
-    static uspritetype dummy_sprite;
-    static actor_t dummy;
-
-    vm.pUSprite = &dummy_sprite;
-    vm.pActor = &dummy;
-    vm.pData = &dummy.t_data[0];
-}
-
 static int32_t VM_CheckSquished(void)
 {
     if (RR)
@@ -900,17 +888,9 @@ static void VM_AddInventory(DukePlayer_t * const pPlayer, int const itemNum, int
     }
 }
 
-static int32_t A_GetVerticalVel(actor_t const * const pActor)
-{
-    int32_t moveScriptOfs = AC_MOVE_ID(pActor->t_data);
-
-    return ((unsigned) moveScriptOfs < (unsigned) g_scriptSize - 1) ? apScript[moveScriptOfs + 1] : 0;
-}
-
 static int32_t A_GetWaterZOffset(int const spriteNum)
 {
     uspritetype const *const pSprite = (uspritetype *)&sprite[spriteNum];
-    actor_t const *const     pActor  = &actor[spriteNum];
 
     if (sector[pSprite->sectnum].lotag == ST_1_ABOVE_WATER)
     {
@@ -1139,93 +1119,6 @@ void G_GetTimeDate(int32_t * const pValues)
     pValues[5] = pTime->tm_year+1900;
     pValues[6] = pTime->tm_wday;
     pValues[7] = pTime->tm_yday;
-}
-
-static int G_StartTrackSlot(int const volumeNum, int const levelNum)
-{
-    if ((unsigned)volumeNum <= MAXVOLUMES && (unsigned)levelNum < MAXLEVELS)
-    {
-        int trackNum = MAXLEVELS*volumeNum + levelNum;
-
-        return S_TryPlaySpecialMusic(trackNum);
-    }
-
-    return 1;
-}
-
-static int G_StartTrackSlotWrap(int const volumeNum, int const levelNum)
-{
-    if (EDUKE32_PREDICT_FALSE(G_StartTrackSlot(volumeNum, levelNum)))
-    {
-        CON_ERRPRINTF("invalid level %d or null music for volume %d level %d\n", levelNum, volumeNum, levelNum);
-        return 1;
-    }
-
-    return 0;
-}
-
-static void G_ShowView(vec3_t vec, fix16_t a, fix16_t horiz, int32_t sect, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t unbiasedp)
-{
-    if (g_screenCapture)
-        return;
-
-    if (offscreenrendering)
-    {
-        videoClearViewableArea(0);
-        return;
-    }
-
-    if (x1 > x2)
-        swaplong(&x1, &x2);
-    if (y1 > y2)
-        swaplong(&y1, &y2);
-
-    if (!unbiasedp)
-    {
-        // The showview command has a rounding bias towards zero,
-        // e.g. floor((319*1680)/320) == 1674
-        x1 = scale(x1,xdim,320);
-        y1 = scale(y1,ydim,200);
-        x2 = scale(x2,xdim,320);
-        y2 = scale(y2,ydim,200);
-    }
-    else
-    {
-        // This will map the maximum 320-based coordinate to the
-        // maximum real screen coordinate:
-        // floor((319*1679)/319) == 1679
-        x1 = scale(x1,xdim-1,319);
-        y1 = scale(y1,ydim-1,199);
-        x2 = scale(x2,xdim-1,319);
-        y2 = scale(y2,ydim-1,199);
-    }
-
-    horiz = fix16_clamp(horiz, F16(HORIZ_MIN), F16(HORIZ_MAX));
-
-    int const onewaspect = newaspect_enable;
-    newaspect_enable = r_usenewaspect;
-    setaspect_new_use_dimen = 1;
-    videoSetViewableArea(x1,y1,x2,y2);
-    setaspect_new_use_dimen = 0;
-    newaspect_enable = onewaspect;
-
-    int const smoothratio = calc_smoothratio(totalclock, ototalclock);
-    G_DoInterpolations(smoothratio);
-    G_HandleMirror(vec.x, vec.y, vec.z, a, horiz, smoothratio);
-#ifdef POLYMER
-    if (videoGetRenderMode() == REND_POLYMER)
-        polymer_setanimatesprites(G_DoSpriteAnimations, vec.x, vec.y, fix16_to_int(a), smoothratio);
-#endif
-    yax_preparedrawrooms();
-    renderDrawRoomsQ16(vec.x, vec.y, vec.z, a, horiz, sect);
-    yax_drawrooms(G_DoSpriteAnimations, sect, 0, smoothratio);
-
-    display_mirror = 2;
-    G_DoSpriteAnimations(vec.x, vec.y, fix16_to_int(a), smoothratio);
-    display_mirror = 0;
-    renderDrawMasks();
-    G_RestoreInterpolations();
-    G_UpdateScreenArea();
 }
 
 void Screen_Play(void)
@@ -1582,7 +1475,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                         VM_CONDITIONAL(j < pPlayer->weapreccnt && vm.pSprite->owner == vm.spriteNum);
                         continue;
                     }
-                    else if (pPlayer->weapreccnt < MAX_WEAPON_RECS)
+                    else if (pPlayer->weapreccnt < MAX_WEAPON_RECS-1)
                     {
                         pPlayer->weaprecs[pPlayer->weapreccnt++] = vm.pSprite->picnum;
                         VM_CONDITIONAL(vm.pSprite->owner == vm.spriteNum);
@@ -1981,7 +1874,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                             int16_t const wallstart = sector[sectnum].wallptr;
                             int16_t const wallend = wallstart + sector[sectnum].wallnum;
                             int16_t const wallstart2 = sector[js->sectnum].wallptr;
-                            int16_t const wallend2 = wallstart2 + sector[js->sectnum].wallnum;
+                            //int16_t const wallend2 = wallstart2 + sector[js->sectnum].wallnum;
                             for (bssize_t wi = wallstart, wj = wallstart2; wi < wallend; wi++, wj++)
                             {
                                 wall[wi].picnum = wall[wj].picnum;
@@ -2602,6 +2495,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     case FEM9__STATIC:
                     case PODFEM1__STATIC:
                         if (RR) break;
+                        fallthrough__;
                     case FEM10__STATIC:
                     case NAKED1__STATIC:
                     case STATUE__STATIC:

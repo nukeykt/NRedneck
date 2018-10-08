@@ -1077,10 +1077,6 @@ static void sv_postanimateptr();
 static void sv_prequote();
 static void sv_quotesave();
 static void sv_quoteload();
-static void sv_prequoteredef();
-static void sv_quoteredefsave();
-static void sv_quoteredefload();
-static void sv_postquoteredef();
 static void sv_restsave();
 static void sv_restload();
 static void sv_rrrafog();
@@ -1091,7 +1087,6 @@ static void sv_rrrafog();
 
 static uint8_t savegame_quotedef[MAXQUOTES>>3];
 static char(*savegame_quotes)[MAXQUOTELEN];
-static char(*savegame_quoteredefs)[MAXQUOTELEN];
 static uint8_t savegame_restdata[SVARDATALEN];
 
 static char svgm_udnetw_string [] = "blK:udnt";
@@ -1299,11 +1294,6 @@ static const dataspec_t svgm_anmisc[] =
     { DS_DYNAMIC, &savegame_quotes, MAXQUOTELEN, MAXQUOTES },
     { DS_LOADFN, (void *)&sv_quoteload, 0, 1 },
 
-    { DS_NOCHK|DS_SAVEFN|DS_LOADFN, (void *)&sv_prequoteredef, 0, 1 },
-    { DS_NOCHK|DS_SAVEFN, (void *)&sv_quoteredefsave, 0, 1 },  // quote redefinitions replace quotes at runtime, but cannot be changed after CON compilation
-    { DS_NOCHK|DS_DYNAMIC|DS_CNT(g_numXStrings), &savegame_quoteredefs, MAXQUOTELEN, (intptr_t)&g_numXStrings },
-    { DS_NOCHK|DS_LOADFN, (void *)&sv_quoteredefload, 0, 1 },
-    { DS_NOCHK|DS_SAVEFN|DS_LOADFN, (void *)&sv_postquoteredef, 0, 1 },
     { DS_SAVEFN, (void *)&sv_restsave, 0, 1 },
     { 0, savegame_restdata, 1, sizeof(savegame_restdata) },  // sz/cnt swapped for kdfread
     { DS_LOADFN, (void *)&sv_restload, 0, 1 },
@@ -1760,34 +1750,6 @@ static void sv_quoteload()
             Bmemcpy(apStrings[i], savegame_quotes[i], MAXQUOTELEN);
         }
     }
-}
-
-static void sv_prequoteredef()
-{
-    // "+1" needed for dfwrite which doesn't handle the src==NULL && cnt==0 case
-    void *ptr = Xcalloc(g_numXStrings+1, MAXQUOTELEN);
-    savegame_quoteredefs = (char(*)[MAXQUOTELEN])ptr;
-}
-static void sv_quoteredefsave()
-{
-    int32_t i;
-    for (i=0; i<g_numXStrings; i++)
-        if (apXStrings[i])
-            Bmemcpy(savegame_quoteredefs[i], apXStrings[i], MAXQUOTELEN);
-}
-static void sv_quoteredefload()
-{
-    int32_t i;
-    for (i=0; i<g_numXStrings; i++)
-    {
-        if (!apXStrings[i])
-            apXStrings[i] = (char *)Xcalloc(1,MAXQUOTELEN);
-        Bmemcpy(apXStrings[i], savegame_quoteredefs[i], MAXQUOTELEN);
-    }
-}
-static void sv_postquoteredef()
-{
-    Bfree(savegame_quoteredefs), savegame_quoteredefs=NULL;
 }
 static void sv_restsave()
 {

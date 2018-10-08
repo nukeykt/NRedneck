@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "common_game.h"
 #include "grpscan.h"
 
-static void process_vaca13(int32_t crcval);
+//static void process_vaca13(int32_t crcval);
 static void process_vacapp15(int32_t crcval);
 
 // custom GRP support for the startup window, file format reflects the structure below
@@ -522,136 +522,6 @@ void FreeGroups(void)
     }
 
     FreeGameList();
-}
-
-static void process_vaca13(int32_t crcval)
-{
-    krename(crcval, 0, "ADDREE.VOC");
-    krename(crcval, 1, "BALLBOOM.VOC");
-    krename(crcval, 2, "BARMUSIC.VOC");
-    krename(crcval, 3, "BCHBALL.VOC");
-    krename(crcval, 4, "BOING.VOC");
-    krename(crcval, 5, "CHACHA.VOC");
-    krename(crcval, 6, "CHAINDRV.VOC");
-    krename(crcval, 7, "CHEAP01.VOC");
-    krename(crcval, 8, "CHEER.VOC");
-    krename(crcval, 9, "CHNSQRT.VOC");
-    krename(crcval, 10, "COCOANUT.VOC");
-    krename(crcval, 11, "CRUSH2.VOC");
-    krename(crcval, 12, "DEFLATE2.VOC");
-    krename(crcval, 13, "DRAGHURT.VOC");
-    krename(crcval, 14, "DRAGROAM.VOC");
-    krename(crcval, 15, "DRAGSHOT.VOC");
-    krename(crcval, 16, "DUKE01.VOC");
-    krename(crcval, 17, "ELEV1.VOC");
-    krename(crcval, 18, "GMEOVR05.VOC");
-    krename(crcval, 19, "GULLDIE.VOC");
-    krename(crcval, 20, "GULLHURT.VOC");
-    krename(crcval, 21, "GULLROAM.VOC");
-    krename(crcval, 22, "GULLSHIT.VOC");
-    krename(crcval, 23, "HELP04.VOC");
-    krename(crcval, 24, "ICECONCH.VOC");
-    krename(crcval, 25, "IDLEBOAT.VOC");
-    krename(crcval, 26, "KICKHEAD.VOC");
-    krename(crcval, 27, "LANI05.VOC");
-    krename(crcval, 28, "LANI08.VOC");
-    krename(crcval, 29, "LANIDUK2.VOC");
-    krename(crcval, 30, "MUSCLE01.VOC");
-    krename(crcval, 31, "MUSCLE04.VOC");
-    krename(crcval, 32, "MUZAK.VOC");
-    krename(crcval, 33, "PINEFALL.VOC");
-    krename(crcval, 34, "POINT07.VOC");
-    krename(crcval, 35, "POINT08.VOC");
-    krename(crcval, 36, "RADIO.VOC");
-    krename(crcval, 37, "RUIN01.VOC");
-    krename(crcval, 38, "SCREAM.VOC");
-    krename(crcval, 39, "SCREAM04.VOC");
-    krename(crcval, 40, "SCREAM9.VOC");
-    krename(crcval, 41, "SHIPHORN.VOC");
-    krename(crcval, 42, "SNGLGULL.VOC");
-    krename(crcval, 43, "SQRT4.VOC");
-    krename(crcval, 44, "SQUIRT1.VOC");
-    krename(crcval, 45, "SSCOOL1.VOC");
-    krename(crcval, 46, "SSCOOL2.VOC");
-    krename(crcval, 47, "SSCOOL3.VOC");
-    krename(crcval, 48, "SSDIE1.VOC");
-    krename(crcval, 49, "SSDIE2.VOC");
-    krename(crcval, 50, "SSNORM01.VOC");
-    krename(crcval, 51, "SSNORM02.VOC");
-    krename(crcval, 52, "SSNORM03.VOC");
-    krename(crcval, 53, "SSNORM04.VOC");
-    krename(crcval, 54, "SSNORM05.VOC");
-    krename(crcval, 55, "SSNORM06.VOC");
-    krename(crcval, 56, "SSNORM07.VOC");
-    krename(crcval, 57, "SSNORM08.VOC");
-    krename(crcval, 58, "SSNORM10.VOC");
-    krename(crcval, 59, "SSNORM11.VOC");
-    krename(crcval, 60, "SSNORM12.VOC");
-    krename(crcval, 61, "SSNORM13.VOC");
-    krename(crcval, 62, "SSNORM14.VOC");
-    krename(crcval, 63, "SSNORM15.VOC");
-    krename(crcval, 64, "SSNORM16.VOC");
-    krename(crcval, 65, "SSNORM17.VOC");
-    krename(crcval, 66, "SSNORM18.VOC");
-    krename(crcval, 67, "SSNORM19.VOC");
-    krename(crcval, 68, "SSNORM20.VOC");
-    krename(crcval, 69, "SSTAUNT1.VOC");
-    krename(crcval, 70, "SSTAUNT2.VOC");
-    krename(crcval, 71, "SSTAUNT3.VOC");
-    krename(crcval, 72, "SSTAUNT4.VOC");
-    krename(crcval, 73, "SSTAUNT5.VOC");
-    krename(crcval, 74, "SSTAUNT6.VOC");
-    krename(crcval, 75, "SSTAUNT7.VOC");
-    krename(crcval, 76, "SSTAUNT8.VOC");
-    krename(crcval, 77, "SURF.VOC");
-    krename(crcval, 78, "TAN01.VOC");
-    krename(crcval, 79, "TAN04.VOC");
-    krename(crcval, 80, "VINESNAP.VOC");
-    krename(crcval, 81, "VOODRUMS.VOC");
-    krename(crcval, 82, "WIND54.VOC");
-    krename(crcval, 83, "DOOMSDAY.MID");
-    krename(crcval, 84, "DUKE-O.MID");
-    krename(crcval, 85, "IRIEPRTY.MID");
-    krename(crcval, 86, "JUNGVEIN.MID");
-    krename(crcval, 87, "PRTYCRUZ.MID");
-    krename(crcval, 88, "SOL-MAN1.MID");
-    krename(crcval, 90, "CINEOV3.ANM");
-    krename(crcval, 91, "DUKETEAM.ANM");
-    krename(crcval, 92, "BEACHBAB.CON");
-    krename(crcval, 93, "BEACHBAL.CON");
-    krename(crcval, 94, "BEACHBTH.CON");
-    krename(crcval, 95, "DEFS.CON");
-    krename(crcval, 96, "DRAGON.CON");
-    krename(crcval, 97, "GAME.CON");
-    krename(crcval, 98, "SEAGULL.CON");
-    krename(crcval, 99, "SOUNDS.CON");
-    krename(crcval, 100, "USER.CON");
-    krename(crcval, 101, "DEMO1.DMO");
-    krename(crcval, 102, "DEMO2.DMO");
-    krename(crcval, 103, "DEMO3.DMO");
-    krename(crcval, 104, "VACA1.MAP");
-    krename(crcval, 105, "VACA2.MAP");
-    krename(crcval, 106, "VACA3.MAP");
-    krename(crcval, 107, "VACA4.MAP");
-    krename(crcval, 108, "VACA5.MAP");
-    krename(crcval, 109, "VACA6.MAP");
-    krename(crcval, 110, "VACA7.MAP");
-    krename(crcval, 111, "VACADM1.MAP");
-    krename(crcval, 112, "VACADM2.MAP");
-    krename(crcval, 113, "VACADM3.MAP");
-    krename(crcval, 114, "VACADM4.MAP");
-    krename(crcval, 115, "VACASL.MAP");
-    krename(crcval, 120, "TILES000.ART");
-    krename(crcval, 121, "TILES001.ART");
-    krename(crcval, 122, "TILES003.ART");
-    krename(crcval, 123, "TILES005.ART");
-    krename(crcval, 124, "TILES006.ART");
-    krename(crcval, 125, "TILES007.ART");
-    krename(crcval, 126, "TILES008.ART");
-    krename(crcval, 127, "TILES009.ART");
-    krename(crcval, 128, "TILES010.ART");
-    krename(crcval, 129, "TILES012.ART");
-    krename(crcval, 130, "TILES014.ART");
 }
 
 static void process_vacapp15(int32_t crcval)

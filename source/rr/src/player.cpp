@@ -733,7 +733,7 @@ growspark_rr:
                             return -1;
                         }
                         else
-                            Sect_DamageCeiling(spawnedSprite, hitData.sect);
+                            Sect_DamageCeiling(hitData.sect);
                     }
 
                     if (!RR || sector[hitData.sect].lotag != ST_1_ABOVE_WATER)
@@ -934,7 +934,7 @@ growspark_rr:
             if (hitData.wall == -1 && hitData.sprite == -1 && hitData.sect >= 0
                 && Zvel < 0 && (sector[hitData.sprite].ceilingstat & 1) == 0)
             {
-                Sect_DamageCeiling(otherSprite, hitData.sect);
+                Sect_DamageCeiling(hitData.sect);
             }
             else if (hitData.sprite >= 0)
                 A_DamageObject(hitData.sprite, otherSprite);
@@ -1293,6 +1293,7 @@ growspark_rr:
 
         case BOUNCEMINE__STATIC:
             if (RR) break;
+            fallthrough__;
         case MORTER__STATIC:
         case CHEERBOMB__STATICRR:
         {
@@ -3047,14 +3048,12 @@ void P_GetInputMotorcycle(int playerNum)
     static int32_t     lastControlInput = 0;  // MED
     DukePlayer_t *     pPlayer          = g_player[playerNum].ps;
     static input_t     staticInput;
-    static int32_t     dyaw;
 
     if ((pPlayer->gm & (MODE_MENU|MODE_TYPE)) || (ud.pause_on && !KB_KeyPressed(sc_Pause)))
     {
         if (!(pPlayer->gm&MODE_MENU))
             CONTROL_GetInput(&info[0]);
 
-        dyaw = 0;
         Bmemset(&localInput, 0, sizeof(input_t));
 
         localInput.bits    = (((int32_t)g_gameQuit) << SK_GAMEQUIT);
@@ -3110,10 +3109,6 @@ void P_GetInputMotorcycle(int playerNum)
 
     int const elapsedTics = totalclock-lastControlInput;
     lastControlInput = totalclock;
-
-
-    // JBF: Run key behaviour is selectable
-    int const playerRunning = (ud.runkey_mode) ? (BUTTON(gamefunc_Run) | ud.auto_run) : (ud.auto_run ^ BUTTON(gamefunc_Run));
 
     staticInput.svel = staticInput.fvel = staticInput.q16avel = staticInput.q16horz = 0;
 
@@ -3344,14 +3339,12 @@ void P_GetInputBoat(int playerNum)
     static int32_t     lastControlInput = 0;  // MED
     DukePlayer_t *     pPlayer          = g_player[playerNum].ps;
     static input_t     staticInput;
-    static int32_t     dyaw;
 
     if ((pPlayer->gm & (MODE_MENU|MODE_TYPE)) || (ud.pause_on && !KB_KeyPressed(sc_Pause)))
     {
         if (!(pPlayer->gm&MODE_MENU))
             CONTROL_GetInput(&info[0]);
 
-        dyaw = 0;
         Bmemset(&localInput, 0, sizeof(input_t));
 
         localInput.bits    = (((int32_t)g_gameQuit) << SK_GAMEQUIT);
@@ -3407,10 +3400,6 @@ void P_GetInputBoat(int playerNum)
 
     int const elapsedTics = totalclock-lastControlInput;
     lastControlInput = totalclock;
-
-
-    // JBF: Run key behaviour is selectable
-    int const playerRunning = (ud.runkey_mode) ? (BUTTON(gamefunc_Run) | ud.auto_run) : (ud.auto_run ^ BUTTON(gamefunc_Run));
 
     staticInput.svel = staticInput.fvel = staticInput.q16avel = staticInput.q16horz = 0;
 
@@ -3478,8 +3467,6 @@ void P_GetInputBoat(int playerNum)
 
     localInput.bits |= turnLeft << SK_AIM_DOWN;
     localInput.bits |= turnRight << SK_LOOK_LEFT;
-
-    int const moveBack = BUTTON(gamefunc_Move_Backward) && pPlayer->moto_speed <= 0;
 
     if (pPlayer->moto_speed != 0)
     {
@@ -6095,7 +6082,7 @@ void P_ProcessInput(int playerNum)
     {
         if (pPlayer->on_motorcycle && pSprite->extra > 0)
         {
-            int var64, var68, var6c, var70, var74, var78, var7c, var80;
+            int var64, var68, var6c, var74, var7c;
             int16_t var84;
             if (pPlayer->moto_speed < 0)
                 pPlayer->moto_speed = 0;
@@ -6161,27 +6148,22 @@ void P_ProcessInput(int playerNum)
                 var6c = 0;
             if (TEST_SYNC_KEY(playerBits, SK_AIM_DOWN))
             {
-                var70 = 1;
                 var74 = 1;
                 playerBits &= ~(1<<SK_AIM_DOWN);
             }
             else
             {
-                var70 = 0;
                 var74 = 0;
             }
             if (TEST_SYNC_KEY(playerBits, SK_LOOK_LEFT))
             {
-                var78 = 1;
                 var7c = 1;
                 playerBits &= ~(1<<SK_LOOK_LEFT);
             }
             else
             {
-                var78 = 0;
                 var7c = 0;
             }
-            var80 = 0;
             if (pPlayer->drink_amt > 88 && pPlayer->moto_drink == 0)
             {
                 var84 = krand() & 63;
@@ -6239,7 +6221,6 @@ void P_ProcessInput(int playerNum)
                     var88 = var7c;
                     var7c = var74;
                     var74 = var88;
-                    var80 = 1;
                 }
             }
             if (pPlayer->moto_speed != 0 && pPlayer->on_ground == 1)
@@ -6373,7 +6354,7 @@ void P_ProcessInput(int playerNum)
         }
         else if (pPlayer->on_boat && pSprite->extra > 0)
         {
-            int vara8, varac, varb0, varb4, varb8, varbc, varc0, varc4, varc8;
+            int vara8, varac, varb0, varb4, varbc, varc4;
             int16_t varcc;
             if (pPlayer->not_on_water)
             {
@@ -6448,7 +6429,6 @@ void P_ProcessInput(int playerNum)
             else varb4 = 0;
             if (TEST_SYNC_KEY(playerBits, SK_AIM_DOWN))
             {
-                varb8 = 1;
                 varbc = 1;
                 playerBits &= ~(1<<SK_AIM_DOWN);
                 if (!A_CheckSoundPlaying(pPlayer->i, 91) && pPlayer->moto_speed > 30 && !pPlayer->not_on_water)
@@ -6456,12 +6436,10 @@ void P_ProcessInput(int playerNum)
             }
             else
             {
-                varb8 = 0;
                 varbc = 0;
             }
             if (TEST_SYNC_KEY(playerBits, SK_LOOK_LEFT))
             {
-                varc0 = 1;
                 varc4 = 1;
                 playerBits &= ~(1<< SK_LOOK_LEFT);
                 if (!A_CheckSoundPlaying(pPlayer->i, 91) && pPlayer->moto_speed > 30 && !pPlayer->not_on_water)
@@ -6469,10 +6447,8 @@ void P_ProcessInput(int playerNum)
             }
             else
             {
-                varc0 = 0;
                 varc4 = 0;
             }
-            varc8 = 0;
             if (!pPlayer->not_on_water)
             {
                 if (pPlayer->drink_amt > 88 && pPlayer->moto_drink == 0)
@@ -6548,7 +6524,6 @@ void P_ProcessInput(int playerNum)
                     vard0 = varc4;
                     varc4 = varbc;
                     varbc = vard0;
-                    varc8 = 1;
                 }
             }
             if (pPlayer->moto_speed != 0 && pPlayer->on_ground == 1)

@@ -570,11 +570,6 @@ static int32_t G_GetInvOn(const DukePlayer_t *p)
     return 0x80000000;
 }
 
-static int32_t G_GetMorale(int32_t p_i, int32_t snum)
-{
-    return -1;
-}
-
 static inline void rotatesprite_althud(int32_t sx, int32_t sy, int32_t z, int16_t a, int16_t picnum, int8_t dashade, char dapalnum, int32_t dastat)
 {
     if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
@@ -605,7 +600,7 @@ void G_DrawStatusBar(int32_t snum)
 
     const int32_t SBY = (200-(tilesiz[BOTTOMSTATUSBAR].y >> (RR ? 1 : 0)));
 
-    const int32_t sb15 = sbarsc(32768), sb15h = sbarsc(49152), sb14h = sbarsc(24576);
+    const int32_t sb15 = sbarsc(32768), sb15h = sbarsc(49152);
     const int32_t sb16 = sbarsc(65536);
 
     static int32_t item_icons[8];
@@ -995,9 +990,7 @@ void G_DrawStatusBar(int32_t snum)
     }
 
     {
-        int32_t lAmount = G_GetMorale(p->i, snum);
-        if (lAmount == -1)
-            lAmount = p->inv_amount[GET_SHIELD];
+        int32_t lAmount = p->inv_amount[GET_SHIELD];
         if (sbar.inv_amount[GET_SHIELD] != lAmount)
         {
             sbar.inv_amount[GET_SHIELD] = lAmount;
