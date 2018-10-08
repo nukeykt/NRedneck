@@ -1005,7 +1005,7 @@ void P_ResetStatus(int playerNum)
             if (pPlayer->on_motorcycle)
             {
                 pPlayer->on_motorcycle = 0;
-                pPlayer->gotweapon &= (1 << MOTORCYCLE_WEAPON);
+                pPlayer->gotweapon &= ~(1 << MOTORCYCLE_WEAPON);
                 pPlayer->curr_weapon = SLINGBLADE_WEAPON;
             }
             pPlayer->lotag800kill = 0;
@@ -1024,7 +1024,7 @@ void P_ResetStatus(int playerNum)
             if (pPlayer->on_boat)
             {
                 pPlayer->on_boat = 0;
-                pPlayer->gotweapon &= (1 << BOAT_WEAPON);
+                pPlayer->gotweapon &= ~(1 << BOAT_WEAPON);
                 pPlayer->curr_weapon = SLINGBLADE_WEAPON;
             }
             pPlayer->not_on_water = 0;

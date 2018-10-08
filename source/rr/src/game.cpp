@@ -3249,9 +3249,9 @@ rr_badguy:
                 pSprite->yrepeat = 64;
                 pSprite->cstat = 2;
                 pSprite->cstat |= 512;
-                pSprite->x = (krand() & 2047) - 1024;
-                pSprite->y = (krand() & 2047) - 1024;
-                pSprite->z = (krand() & 2047) - 1024;
+                pSprite->x += (krand() & 2047) - 1024;
+                pSprite->y += (krand() & 2047) - 1024;
+                pSprite->z += (krand() & 2047) - 1024;
                 break;
             case MAMA__STATICRR:
                 if (!RRRA) break;

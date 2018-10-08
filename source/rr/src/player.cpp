@@ -3169,7 +3169,7 @@ void P_GetInputMotorcycle(int playerNum)
     localInput.extbits |= (g_player[playerNum].pteam != g_player[playerNum].ps->team)<<6;
 
 
-    int const turn = staticInput.q16avel;
+    int const turn = fix16_to_int(staticInput.q16avel);
     int const turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left) || turn < 0;
     int const turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right) || turn > 0;
 
@@ -3466,7 +3466,7 @@ void P_GetInputBoat(int playerNum)
     localInput.extbits |= (g_player[playerNum].pteam != g_player[playerNum].ps->team)<<6;
 
 
-    int const turn = staticInput.q16avel;
+    int const turn = fix16_to_int(staticInput.q16avel);
     int const turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left) || turn < 0;
     int const turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right) || turn > 0;
 
