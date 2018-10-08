@@ -25,14 +25,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 // Macros, some from SW source
 
+static FORCE_INLINE int32_t krand2(void)
+{
+    randomseed = (randomseed * 27584621ul) + 1ul;
+    return ((uint32_t) randomseed)>>16;
+}
+
 #define BGSTRETCH (ud.bgstretch ? 1024 : 0)
 
 #define WIN_IS_PRESSED ( KB_KeyPressed( sc_RightWin ) || KB_KeyPressed( sc_LeftWin ) )
 #define ALT_IS_PRESSED ( KB_KeyPressed( sc_RightAlt ) || KB_KeyPressed( sc_LeftAlt ) )
 #define SHIFTS_IS_PRESSED ( KB_KeyPressed( sc_RightShift ) || KB_KeyPressed( sc_LeftShift ) )
 
-#define RANDOMSCRAP(s, i) A_InsertSprite(s->sectnum,s->x+(krand()&255)-128,s->y+(krand()&255)-128,s->z-ZOFFSET3-(krand()&8191),\
-    SCRAP6+(krand()&15),-8,RR?16:48,RR?16:48,krand()&2047,(krand()&63)+64,-512-(krand()&2047),i,5)
+#define RANDOMSCRAP(s, i) A_InsertSprite(s->sectnum,s->x+(krand2()&255)-128,s->y+(krand2()&255)-128,s->z-ZOFFSET3-(krand2()&8191),\
+    SCRAP6+(krand2()&15),-8,RR?16:48,RR?16:48,krand2()&2047,(krand2()&63)+64,-512-(krand2()&2047),i,5)
+
+#define RANDOMSCRAP(s, i) \
+{ \
+    int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2(), r6 = krand2(), r7 = krand2(); \
+    A_InsertSprite(s->sectnum,s->x+(r7&255)-128,s->y+(r6&255)-128,s->z-ZOFFSET3-(r5&8191),\
+        SCRAP6+(r4&15),-8,RR?16:48,RR?16:48,r3&2047,(r2&63)+64,-512-(r1&2047),i,5); \
+}
 
 #define GTFLAGS(x) (g_gametypeFlags[ud.coop] & x)
 
@@ -52,7 +65,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TEST_SYNC_KEY(bits, sync_num) (!!TEST((bits), BIT(sync_num)))
 
 #define AFLAMABLE(X) (X==BOX||X==TREE1||X==TREE2||X==TIRE||X==CONE)
-#define rnd(X) ((krand()>>8)>=(255-(X)))
+#define rnd(X) ((krand2()>>8)>=(255-(X)))
 
 //
 // NETWORK - REDEFINABLE SHARED (SYNC) KEYS BIT POSITIONS

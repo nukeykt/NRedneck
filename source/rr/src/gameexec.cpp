@@ -173,7 +173,7 @@ static int32_t VM_CheckSquished(void)
 
 GAMEEXEC_STATIC GAMEEXEC_INLINE void P_ForceAngle(DukePlayer_t *pPlayer)
 {
-    int const nAngle = 128-(krand()&255);
+    int const nAngle = 128-(krand2()&255);
 
     pPlayer->q16horiz           += F16(64);
     pPlayer->return_to_center = 9;
@@ -202,7 +202,7 @@ int32_t A_Dodge(spritetype * const pSprite)
         {
             if (klabs((v.x * b.y) - (v.y * b.x)) < 65536 << 6)
             {
-                pSprite->ang -= 512+(krand()&1024);
+                pSprite->ang -= 512+(krand2()&1024);
                 return 1;
             }
         }
@@ -249,12 +249,12 @@ int A_FurthestVisiblePoint(int const spriteNum, uspritetype * const ts, vec2_t *
     const uspritetype *const pnSprite = (uspritetype *)&sprite[spriteNum];
 
     hitdata_t hit;
-    int const angincs = ((!g_netServer && ud.multimode < 2) && ud.player_skill < 3) ? 2048 / 2 : tabledivide32_noinline(2048, 1 + (krand() & 1));
+    int const angincs = ((!g_netServer && ud.multimode < 2) && ud.player_skill < 3) ? 2048 / 2 : tabledivide32_noinline(2048, 1 + (krand2() & 1));
 
-    for (native_t j = ts->ang; j < (2048 + ts->ang); j += (angincs-(krand()&511)))
+    for (native_t j = ts->ang; j < (2048 + ts->ang); j += (angincs-(krand2()&511)))
     {
         ts->z -= ZOFFSET2;
-        hitscan((const vec3_t *)ts, ts->sectnum, sintable[(j + 512) & 2047], sintable[j & 2047], 16384 - (krand() & 32767), &hit, CLIPMASK1);
+        hitscan((const vec3_t *)ts, ts->sectnum, sintable[(j + 512) & 2047], sintable[j & 2047], 16384 - (krand2() & 32767), &hit, CLIPMASK1);
         ts->z += ZOFFSET2;
 
         if (hit.sect < 0)
@@ -450,7 +450,7 @@ GAMEEXEC_STATIC void VM_AlterAng(int32_t const moveFlags)
             {
                 if (klabs(angDiff) < 256)
                 {
-                    int const angInc = 128-(krand()&256);
+                    int const angInc = 128-(krand2()&256);
                     vm.pSprite->ang += angInc;
                     if (A_GetHitscanRange(vm.spriteNum) < 844)
                         vm.pSprite->ang -= angInc;
@@ -980,7 +980,7 @@ static void VM_Fall(int const spriteNum, spritetype * const pSprite)
         {
             if (vm.pSprite->picnum != MINION && vm.pSprite->pal != 19)
             {
-                if ((krand()&3) == 1)
+                if ((krand2()&3) == 1)
                 {
                     vm.pActor->picnum = SHOTSPARK1;
                     vm.pActor->extra = 5;
@@ -1259,8 +1259,8 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 continue;
 
             case CON_IFCANSEETARGET:
-                tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - ((krand() & 41) << 8), vm.pSprite->sectnum, pPlayer->pos.x, pPlayer->pos.y,
-                            pPlayer->pos.z /*-((krand()&41)<<8)*/, sprite[pPlayer->i].sectnum);
+                tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - ((krand2() & 41) << 8), vm.pSprite->sectnum, pPlayer->pos.x, pPlayer->pos.y,
+                            pPlayer->pos.z /*-((krand2()&41)<<8)*/, sprite[pPlayer->i].sectnum);
                 VM_CONDITIONAL(tw);
                 if (tw)
                     vm.pActor->timetosleep = SLEEPTIME;
@@ -1286,7 +1286,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 if (DUKE && pPlayer->holoduke_on >= 0)
                 {
                     pSprite = (uspritetype *)&sprite[pPlayer->holoduke_on];
-                    tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - (krand() & (ZOFFSET5 - 1)), vm.pSprite->sectnum, pSprite->x, pSprite->y,
+                    tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - (krand2() & (ZOFFSET5 - 1)), vm.pSprite->sectnum, pSprite->x, pSprite->y,
                                 pSprite->z, pSprite->sectnum);
 
                     if (tw == 0)
@@ -1297,7 +1297,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     }
                 }
                 // can they see player, (or player's holoduke)
-                tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - (krand() & ((47 << 8))), vm.pSprite->sectnum, pSprite->x, pSprite->y,
+                tw = cansee(vm.pSprite->x, vm.pSprite->y, vm.pSprite->z - (krand2() & ((47 << 8))), vm.pSprite->sectnum, pSprite->x, pSprite->y,
                             pSprite->z - (RR ? (28 << 8) : (24 << 8)), pSprite->sectnum);
 
                 if (tw == 0)
@@ -1345,7 +1345,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 AC_CURFRAME(vm.pData)     = 0;
 
                 if (vm.pSprite->hitag & random_angle)
-                    vm.pSprite->ang = krand() & 2047;
+                    vm.pSprite->ang = krand2() & 2047;
                 continue;
 
             case CON_ACTION:
@@ -1379,10 +1379,10 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 
             case CON_SMACKSPRITE:
                 insptr++;
-                if (krand()&1)
-                    vm.pSprite->ang = (vm.pSprite->ang-(512+(krand()&511)))&2047;
+                if (krand2()&1)
+                    vm.pSprite->ang = (vm.pSprite->ang-(512+(krand2()&511)))&2047;
                 else
-                    vm.pSprite->ang = (vm.pSprite->ang+(512+(krand()&511)))&2047;
+                    vm.pSprite->ang = (vm.pSprite->ang+(512+(krand2()&511)))&2047;
                 continue;
 
             case CON_FAKEBUBBA:
@@ -1407,7 +1407,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
 
             case CON_RNDMOVE:
                 insptr++;
-                vm.pSprite->ang = krand()&2047;
+                vm.pSprite->ang = krand2()&2047;
                 vm.pSprite->xvel = 25;
                 continue;
 
@@ -1437,7 +1437,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 insptr++;
                 if (g_banjoSong == 0)
                 {
-                    switch (krand()&3)
+                    switch (krand2()&3)
                     {
                     case 3:
                         g_banjoSong = 262;
@@ -2044,7 +2044,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 AC_MOVE_ID(vm.pData) = *insptr++;
                 vm.pSprite->hitag    = *insptr++;
                 if (vm.pSprite->hitag & random_angle)
-                    vm.pSprite->ang = krand() & 2047;
+                    vm.pSprite->ang = krand2() & 2047;
                 continue;
 
             case CON_SPAWN:
@@ -2092,12 +2092,13 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     if ((unsigned)vm.pSprite->sectnum < MAXSECTORS)
                         for (native_t cnt = (*insptr) - 1; cnt >= 0; cnt--)
                         {
-                            int const tileOffset = ((RR || vm.pSprite->picnum == BLIMP) && debrisTile == SCRAP1) ? 0 : (krand() % 3);
+                            int const tileOffset = ((RR || vm.pSprite->picnum == BLIMP) && debrisTile == SCRAP1) ? 0 : (krand2() % 3);
 
-                            int const spriteNum = A_InsertSprite(vm.pSprite->sectnum, vm.pSprite->x + (krand() & 255) - 128,
-                                                                 vm.pSprite->y + (krand() & 255) - 128, vm.pSprite->z - (8 << 8) - (krand() & 8191),
-                                                                 debrisTile + tileOffset, vm.pSprite->shade, 32 + (krand() & 15), 32 + (krand() & 15),
-                                                                 krand() & 2047, (krand() & 127) + 32, -(krand() & 2047), vm.spriteNum, 5);
+                            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2(), r6 = krand2(), r7 = krand2(), r8 = krand2();
+                            int const spriteNum = A_InsertSprite(vm.pSprite->sectnum, vm.pSprite->x + (r8 & 255) - 128,
+                                                                 vm.pSprite->y + (r7 & 255) - 128, vm.pSprite->z - (8 << 8) - (r6 & 8191),
+                                                                 debrisTile + tileOffset, vm.pSprite->shade, 32 + (r5 & 15), 32 + (r4 & 15),
+                                                                 r3 & 2047, (r2 & 127) + 32, -(r1 & 2047), vm.spriteNum, 5);
 
                             sprite[spriteNum].yvel = ((RR || vm.pSprite->picnum == BLIMP) && debrisTile == SCRAP1) ? g_blimpSpawnItems[cnt % 14] : -1;
                             sprite[spriteNum].pal  = vm.pSprite->pal;

@@ -92,7 +92,7 @@ static void P_IncurDamage(DukePlayer_t * const pPlayer)
 
     if ((!RR && pPlayer->inv_amount[GET_SHIELD] > 0) || (RR && pPlayer->inv_amount[GET_STEROIDS] > 0 && pPlayer->inv_amount[GET_STEROIDS] < 400))
     {
-        int const shieldDamage = playerDamage * (20 + (krand()%30)) / 100;
+        int const shieldDamage = playerDamage * (20 + (krand2()%30)) / 100;
 
         playerDamage                     -= shieldDamage;
         if (!RR)
@@ -158,8 +158,8 @@ static void Proj_DoWaterTracers(vec3_t startPos, vec3_t const *endPos, int n, in
 
         if (sectNum < 0)
             break;
-
-        A_InsertSprite(sectNum, startPos.x, startPos.y, startPos.z, WATERBUBBLE, -32, 4 + (krand() & 3), 4 + (krand() & 3), krand() & 2047, 0, 0,
+        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2();
+        A_InsertSprite(sectNum, startPos.x, startPos.y, startPos.z, WATERBUBBLE, -32, 4 + (r3 & 3), 4 + (r2 & 3), r1 & 2047, 0, 0,
                        g_player[0].ps->i, 5);
     }
 }
@@ -332,7 +332,7 @@ int Proj_GetDamage(projectile_t const *pProj)
     int damage = pProj->extra;
 
     if (pProj->extra_rand > 0)
-        damage += (krand() % pProj->extra_rand);
+        damage += (krand2() % pProj->extra_rand);
 
     return damage;
 }
@@ -341,12 +341,12 @@ static void Proj_MaybeAddSpread(int doSpread, int32_t *zvel, int *shootAng, int 
 {
     if (doSpread)
     {
-        // Ranges <= 1 mean no spread at all. A range of 1 calls krand() though.
+        // Ranges <= 1 mean no spread at all. A range of 1 calls krand2() though.
         if (zRange > 0)
-            *zvel += (zRange >> 1) - krand() % zRange;
+            *zvel += (zRange >> 1) - krand2() % zRange;
 
         if (angRange > 0)
-            *shootAng += (angRange >> 1) - krand() % angRange;
+            *shootAng += (angRange >> 1) - krand2() % angRange;
     }
 }
 
@@ -354,12 +354,12 @@ static void Proj_MaybeAddSpreadSwapped(int doSpread, int32_t *zvel, int *shootAn
 {
     if (doSpread)
     {
-        // Ranges <= 1 mean no spread at all. A range of 1 calls krand() though.
+        // Ranges <= 1 mean no spread at all. A range of 1 calls krand2() though.
         if (angRange > 0)
-            *shootAng += (angRange >> 1) - krand() % angRange;
+            *shootAng += (angRange >> 1) - krand2() % angRange;
 
         if (zRange > 0)
-            *zvel += (zRange >> 1) - krand() % zRange;
+            *zvel += (zRange >> 1) - krand2() % zRange;
     }
 }
 
@@ -578,10 +578,10 @@ int A_Shoot(int const spriteNum, int const projecTile)
         case BLOODSPLAT2__STATIC:
         case BLOODSPLAT3__STATIC:
         case BLOODSPLAT4__STATIC:
-            shootAng += 64 - (krand() & 127);
+            shootAng += 64 - (krand2() & 127);
             if (playerNum < 0)
                 shootAng += 1024;
-            Zvel = 1024 - (krand() & 2047);
+            Zvel = 1024 - (krand2() & 2047);
             fallthrough__;
         case KNEE__STATIC:
         case SLINGBLADE__STATICRR:
@@ -625,7 +625,7 @@ growspark_rr:
                         sprite[spawnedSprite].ang
                         = (getangle(hitwal->x - wall[hitwal->point2].x, hitwal->y - wall[hitwal->point2].y) + 1536) & 2047;
                         *(vec3_t *)&sprite[spawnedSprite] = hitData.pos;
-                        sprite[spawnedSprite].cstat |= (krand() & 4);
+                        sprite[spawnedSprite].cstat |= (krand2() & 4);
                         A_SetSprite(spawnedSprite, CLIPMASK0);
                         setsprite(spawnedSprite, (vec3_t *)&sprite[spawnedSprite]);
                         if (PN(spriteNum) == OOZFILTER || (!RR && PN(spriteNum) == NEWBEAST))
@@ -645,7 +645,7 @@ growspark_rr:
                 {
                     int kneeSprite = A_InsertSprite(hitData.sect, hitData.pos.x, hitData.pos.y, hitData.pos.z,
                         (RRRA && projecTile == SLINGBLADE) ? SLINGBLADE : KNEE,-15,0,0,shootAng,32,0,spriteNum,4);
-                    sprite[kneeSprite].extra += (RRRA && projecTile == SLINGBLADE) ? 50 : (krand()&7);
+                    sprite[kneeSprite].extra += (RRRA && projecTile == SLINGBLADE) ? 50 : (krand2()&7);
 
                     if (playerNum >= 0)
                     {
@@ -707,10 +707,10 @@ growspark_rr:
             if (Proj_DoHitscan(spriteNum, 256 + 1, &startPos, Zvel, shootAng, &hitData))
                 return -1;
 
-            if (RR && projecTile == SHOTGUN && sector[hitData.sect].lotag == ST_1_ABOVE_WATER && (krand()&1) != 0)
+            if (RR && projecTile == SHOTGUN && sector[hitData.sect].lotag == ST_1_ABOVE_WATER && (krand2()&1) != 0)
                 return -1;
 
-            if ((krand() & 15) == 0 && sector[hitData.sect].lotag == ST_2_UNDERWATER)
+            if ((krand2() & 15) == 0 && sector[hitData.sect].lotag == ST_2_UNDERWATER)
                 Proj_DoWaterTracers(hitData.pos, &startPos, 8 - (ud.multimode >> 1), pSprite->sectnum);
 
             int spawnedSprite;
@@ -719,7 +719,7 @@ growspark_rr:
             {
                 spawnedSprite = A_InsertSprite(hitData.sect, hitData.pos.x, hitData.pos.y, hitData.pos.z, SHOTSPARK1, -15, 10, 10, shootAng, 0, 0, spriteNum, 4);
                 sprite[spawnedSprite].extra = G_DefaultActorHealth(projecTile);
-                sprite[spawnedSprite].extra += (krand()%6);
+                sprite[spawnedSprite].extra += (krand2()%6);
 
                 
                 if (hitData.wall == -1 && hitData.sprite == -1)
@@ -756,7 +756,7 @@ growspark_rr:
                         sprite[jibSprite].z += ZOFFSET6;
                         sprite[jibSprite].xvel    = 16;
                         sprite[jibSprite].xrepeat = sprite[jibSprite].yrepeat = 24;
-                        sprite[jibSprite].ang += 64 - (krand() & 127);
+                        sprite[jibSprite].ang += 64 - (krand2() & 127);
                     }
                     else
                     {
@@ -800,7 +800,7 @@ growspark_rr:
                             goto SKIPBULLETHOLE;
 
                         for (SPRITES_OF(STAT_MISC, decalSprite))
-                            if (sprite[decalSprite].picnum == BULLETHOLE && dist(&sprite[decalSprite], &sprite[spriteNum]) < (12 + (krand() & 7)))
+                            if (sprite[decalSprite].picnum == BULLETHOLE && dist(&sprite[decalSprite], &sprite[spriteNum]) < (12 + (krand2() & 7)))
                                 goto SKIPBULLETHOLE;
 
                         decalSprite = A_Spawn(spawnedSprite, BULLETHOLE);
@@ -837,7 +837,7 @@ growspark_rr:
                     A_DamageWall(spawnedSprite, hitData.wall, &hitData.pos, SHOTSPARK1);
             }
 
-            if ((krand() & 255) < 4)
+            if ((krand2() & 255) < 4)
                 S_PlaySound3D(PISTOL_RICOCHET, spawnedSprite, &hitData.pos);
 
             return -1;
@@ -888,9 +888,9 @@ growspark_rr:
             {
                 int const otherPlayer = A_FindPlayer(pSprite, NULL);
                 if (pSprite->picnum == VIXEN)
-                    shootAng -= krand()&16;
+                    shootAng -= krand2()&16;
                 else
-                    shootAng += 16 - (krand() & 31);
+                    shootAng += 16 - (krand2() & 31);
                 hitData.pos.x         = safeldist(g_player[otherPlayer].ps->i, pSprite);
                 Zvel                  = tabledivide32_noinline((g_player[otherPlayer].ps->opos.z - startPos.z + (3 << 8)) * vel, hitData.pos.x);
             }
@@ -900,13 +900,13 @@ growspark_rr:
             int const returnSprite = A_InsertSprite(spriteSectnum, startPos.x, startPos.y, startPos.z, projecTile, -127, spriteSize, spriteSize,
                                                     shootAng, vel, Zvel, spriteNum, 4);
 
-            sprite[returnSprite].extra += (krand() & 7);
+            sprite[returnSprite].extra += (krand2() & 7);
 
             sprite[returnSprite].cstat    = 128;
             sprite[returnSprite].clipdist = 4;
 
-            shootAng = pSprite->ang + 32 - (krand() & 63);
-            Zvel += 512 - (krand() & 1023);
+            shootAng = pSprite->ang + 32 - (krand2() & 63);
+            Zvel += 512 - (krand2() & 1023);
 
             return returnSprite;
         }
@@ -1000,14 +1000,14 @@ growspark_rr:
                 if (RR)
                 {
                     if (pSprite->picnum == HULK)
-                        shootAng -= krand()&31;
+                        shootAng -= krand2()&31;
                     else if (pSprite->picnum == VIXEN)
-                        shootAng -= krand()&16;
+                        shootAng -= krand2()&16;
                     else if (pSprite->picnum != UFOBEAM)
-                        shootAng += 16 - (krand() & 31);
+                        shootAng += 16 - (krand2() & 31);
                 }
                 else
-                    shootAng           += 16 - (krand() & 31);
+                    shootAng           += 16 - (krand2() & 31);
                 hitData.pos.x         = safeldist(g_player[otherPlayer].ps->i, pSprite);
                 Zvel                  = tabledivide32_noinline((g_player[otherPlayer].ps->opos.z - startPos.z + (3 << 8)) * vel, hitData.pos.x);
             }
@@ -1037,7 +1037,7 @@ growspark_rr:
             int const returnSprite = A_InsertSprite(spriteSectnum, startPos.x, startPos.y, startPos.z, projecTile, -127, spriteSize, spriteSize,
                                                     shootAng, vel, Zvel, spriteNum, 4);
 
-            sprite[returnSprite].extra += (krand() & 7);
+            sprite[returnSprite].extra += (krand2() & 7);
 
             if (!RR && projecTile == COOLEXPLOSION1)
             {
@@ -1049,15 +1049,15 @@ growspark_rr:
                     sprite[returnSprite].xvel = 1024;
                     A_SetSprite(returnSprite, CLIPMASK0);
                     sprite[returnSprite].xvel = saveXvel;
-                    sprite[returnSprite].ang += 128 - (krand() & 255);
+                    sprite[returnSprite].ang += 128 - (krand2() & 255);
                 }
             }
 
             sprite[returnSprite].cstat    = 128;
             sprite[returnSprite].clipdist = 4;
 
-            shootAng = pSprite->ang + 32 - (krand() & 63);
-            Zvel += 512 - (krand() & 1023);
+            shootAng = pSprite->ang + 32 - (krand2() & 63);
+            Zvel += 512 - (krand2() & 1023);
 
             if (RR && projecTile == FIRELASER)
                 sprite[returnSprite].xrepeat = sprite[returnSprite].yrepeat = 8;
@@ -1128,7 +1128,7 @@ growspark_rr:
                 Zvel = tabledivide32_noinline((g_player[otherSprite].ps->opos.z - startPos.z) * vel, safeldist(g_player[otherSprite].ps->i, pSprite));
 
                 if (A_CheckEnemySprite(pSprite) && (AC_MOVFLAGS(pSprite, &actor[spriteNum]) & face_player_smart))
-                    shootAng = pSprite->ang + (krand() & 31) - 16;
+                    shootAng = pSprite->ang + (krand2() & 31) - 16;
             }
 
             if (numplayers > 1 && g_netClient)
@@ -1156,11 +1156,11 @@ growspark_rr:
                 {
                     pReturn->lotag = targetSprite;
                     pReturn->hitag = 0;
-                    A_SpawnMultiple(returnSprite, MONEY, (krand()&3)+1);
+                    A_SpawnMultiple(returnSprite, MONEY, (krand2()&3)+1);
                 }
             }
 
-            pReturn->extra += (krand() & 7);
+            pReturn->extra += (krand2() & 7);
             if (projecTile != FREEZEBLAST)
                 pReturn->yvel = (playerNum >= 0 && otherSprite >= 0) ? otherSprite : -1;  // RPG_YVEL
             else
@@ -1180,7 +1180,7 @@ growspark_rr:
                 }
                 else if (!RR && PN(spriteNum) == BOSS3)
                 {
-                    if (krand() & 1)
+                    if (krand2() & 1)
                     {
                         pReturn->x -= sintable[shootAng & 2047] >> 6;
                         pReturn->y -= sintable[(shootAng + 1024 + 512) & 2047] >> 6;
@@ -1199,7 +1199,7 @@ growspark_rr:
                 {
                     pReturn->x -= sintable[shootAng & 2047] / 56;
                     pReturn->y -= sintable[(shootAng + 1024 + 512) & 2047] / 56;
-                    pReturn->ang -= 8 + (krand() & 255) - 128;
+                    pReturn->ang -= 8 + (krand2() & 255) - 128;
                     pReturn->xrepeat = 24;
                     pReturn->yrepeat = 24;
                 }
@@ -1213,8 +1213,8 @@ growspark_rr:
             else if (g_player[playerNum].ps->curr_weapon == DEVISTATOR_WEAPON)
             {
                 pReturn->extra >>= 2;
-                pReturn->ang += 16 - (krand() & 31);
-                pReturn->zvel += 256 - (krand() & 511);
+                pReturn->ang += 16 - (krand2() & 31);
+                pReturn->zvel += 256 - (krand2() & 511);
 
                 if (g_player[playerNum].ps->hbomb_hold_delay)
                 {
@@ -1798,14 +1798,14 @@ void P_DisplayWeapon(void)
                     weaponShade = 0;
                     if (*weaponFrame == 1)
                     {
-                        if ((krand()&1) == 1)
+                        if ((krand2()&1) == 1)
                             motoTile = MOTOHIT+1;
                         else
                             motoTile = MOTOHIT+2;
                     }
                     else if (*weaponFrame == 4)
                     {
-                        if ((krand()&1) == 1)
+                        if ((krand2()&1) == 1)
                             motoTile = MOTOHIT+3;
                         else
                             motoTile = MOTOHIT+4;
@@ -2067,7 +2067,7 @@ void P_DisplayWeapon(void)
                             G_DrawWeaponTileWithID(currentWeapon, weaponX + 210 - halfLookAng, weaponY + 222 - weaponYOffset,
                                                    RPGGUN2+7, weaponShade, weaponBits, weaponPal, 36700);
                         }
-                        else if ((krand() & 15) == 5)
+                        else if ((krand2() & 15) == 5)
                         {
                             A_PlaySound(327, pPlayer->i);
                             G_DrawWeaponTileWithID(currentWeapon, weaponX + 210 - halfLookAng, weaponY + 222 - weaponYOffset,
@@ -3632,10 +3632,10 @@ static int32_t P_DoCounters(int playerNum)
     {
         if (g_windTime > 0)
             g_windTime--;
-        if ((krand() & 127) == 8)
+        if ((krand2() & 127) == 8)
         {
-            g_windTime = 120+((krand()&63)<<2);
-            g_windDir = krand()&2047;
+            g_windTime = 120+((krand2()&63)<<2);
+            g_windDir = krand2()&2047;
         }
 
         if (g_bellTime > 0)
@@ -3694,9 +3694,9 @@ static int32_t P_DoCounters(int playerNum)
         if (pPlayer->eat_amt >= 100)
             pPlayer->eat_amt = 100;
 
-        if (pPlayer->eat_amt >= 31 && krand() < pPlayer->eat_amt)
+        if (pPlayer->eat_amt >= 31 && krand2() < pPlayer->eat_amt)
         {
-            switch (krand()&3)
+            switch (krand2()&3)
             {
                 case 0:
                     A_PlaySound(404, pPlayer->i);
@@ -4063,7 +4063,7 @@ void P_DropWeapon(int const playerNum)
     if ((unsigned)currentWeapon >= MAX_WEAPONS)
         return;
 
-    if (krand() & 1)
+    if (krand2() & 1)
         A_Spawn(pPlayer->i, WeaponPickupSprites[currentWeapon]);
     else
         switch (DYNAMICWEAPONMAP(currentWeapon))
@@ -4380,7 +4380,7 @@ static int P_CheckFloorDamage(DukePlayer_t *pPlayer, int floorTexture)
 
                     P_PalFrom(pPlayer, 32, 64, 64, 64);
 
-                    pSprite->extra -= 1 + (krand() & 3);
+                    pSprite->extra -= 1 + (krand2() & 3);
                     if (!A_CheckSoundPlaying(pPlayer->i, SHORT_CIRCUIT))
                         A_PlaySound(SHORT_CIRCUIT, pPlayer->i);
 
@@ -4400,7 +4400,7 @@ static int P_CheckFloorDamage(DukePlayer_t *pPlayer, int floorTexture)
                         A_PlaySound(DUKE_LONGTERM_PAIN, pPlayer->i);
 
                     P_PalFrom(pPlayer, 32, 0, 8, 0);
-                    pSprite->extra -= 1 + (krand() & 3);
+                    pSprite->extra -= 1 + (krand2() & 3);
 
                     return 0;
                 }
@@ -4418,7 +4418,7 @@ static int P_CheckFloorDamage(DukePlayer_t *pPlayer, int floorTexture)
                         A_PlaySound(DUKE_LONGTERM_PAIN, pPlayer->i);
 
                     P_PalFrom(pPlayer, 32, 8, 0, 0);
-                    pSprite->extra -= 1 + (krand() & 3);
+                    pSprite->extra -= 1 + (krand2() & 3);
 
                     return 0;
                 }
@@ -4471,7 +4471,8 @@ void P_FragPlayer(int playerNum)
         pPlayer->pos.z -= ZOFFSET2;
         pSprite->z -= ZOFFSET2;
 
-        pPlayer->dead_flag = (512 - ((krand() & 1) << 10) + (krand() & 255) - 512) & 2047;
+        int32_t const r1 = krand2(), r2 = krand2();
+        pPlayer->dead_flag = (512 - ((r2 & 1) << 10) + (r1 & 255) - 512) & 2047;
 
         if (pPlayer->dead_flag == 0)
             pPlayer->dead_flag++;
@@ -4533,12 +4534,12 @@ void P_FragPlayer(int playerNum)
 
             if (ud.obituaries)
             {
-                Bsprintf(tempbuf, apStrings[OBITQUOTEINDEX + (krand() % g_numObituaries)],
+                Bsprintf(tempbuf, apStrings[OBITQUOTEINDEX + (krand2() % g_numObituaries)],
                          &g_player[pPlayer->frag_ps].user_name[0], &g_player[playerNum].user_name[0]);
                 G_AddUserQuote(tempbuf);
             }
             else
-                krand();
+                krand2();
         }
         else
         {
@@ -4546,14 +4547,14 @@ void P_FragPlayer(int playerNum)
             {
                 pPlayer->fraggedself++;
                 if ((unsigned)pPlayer->wackedbyactor < MAXTILES && A_CheckEnemyTile(sprite[pPlayer->wackedbyactor].picnum))
-                    Bsprintf(tempbuf, apStrings[OBITQUOTEINDEX + (krand() % g_numObituaries)], "A monster",
+                    Bsprintf(tempbuf, apStrings[OBITQUOTEINDEX + (krand2() % g_numObituaries)], "A monster",
                              &g_player[playerNum].user_name[0]);
                 else if (actor[pPlayer->i].picnum == NUKEBUTTON)
                     Bsprintf(tempbuf, "^02%s^02 tried to leave", &g_player[playerNum].user_name[0]);
                 else
                 {
                     // random suicide death string
-                    Bsprintf(tempbuf, apStrings[SUICIDEQUOTEINDEX + (krand() % g_numSelfObituaries)],
+                    Bsprintf(tempbuf, apStrings[SUICIDEQUOTEINDEX + (krand2() % g_numSelfObituaries)],
                              &g_player[playerNum].user_name[0]);
                 }
             }
@@ -5737,7 +5738,7 @@ static void P_ProcessWeapon(int playerNum)
                 {
                     if (TEST_SYNC_KEY(playerBits, SK_FIRE))
                     {
-                        (*weaponFrame) = 1+(krand()&3);
+                        (*weaponFrame) = 1+(krand2()&3);
                     }
                     else
                     {
@@ -5942,7 +5943,7 @@ static void P_DoWater(int const playerNum, int const playerBits, int const floor
         pPlayer->vel.z = 0;
     }
 
-    if (pPlayer->scuba_on && (krand()&255) < 8)
+    if (pPlayer->scuba_on && (krand2()&255) < 8)
     {
         int const spriteNum = A_Spawn(pPlayer->i, WATERBUBBLE);
         int const q16ang      = fix16_to_int(pPlayer->q16ang);
@@ -6166,7 +6167,7 @@ void P_ProcessInput(int playerNum)
             }
             if (pPlayer->drink_amt > 88 && pPlayer->moto_drink == 0)
             {
-                var84 = krand() & 63;
+                var84 = krand2() & 63;
                 if (var84 == 1)
                     pPlayer->moto_drink = -10;
                 else if (var84 == 2)
@@ -6174,7 +6175,7 @@ void P_ProcessInput(int playerNum)
             }
             else if (pPlayer->drink_amt > 99 && pPlayer->moto_drink == 0)
             {
-                var84 = krand() & 31;
+                var84 = krand2() & 31;
                 if (var84 == 1)
                     pPlayer->moto_drink = -20;
                 else if (var84 == 2)
@@ -6226,8 +6227,8 @@ void P_ProcessInput(int playerNum)
             if (pPlayer->moto_speed != 0 && pPlayer->on_ground == 1)
             {
                 if (!pPlayer->moto_bump)
-                    if ((krand() & 3) == 2)
-                        pPlayer->moto_bump_target = (pPlayer->moto_speed>>4)*((krand()&7)-4);
+                    if ((krand2() & 3) == 2)
+                        pPlayer->moto_bump_target = (pPlayer->moto_speed>>4)*((krand2()&7)-4);
                 if (var74 || pPlayer->moto_drink < 0)
                 {
                     if (pPlayer->moto_drink < 0)
@@ -6250,9 +6251,9 @@ void P_ProcessInput(int playerNum)
                 }
                 else
                 {
-                    pPlayer->q16horiz = F16(100+((krand()&15)-7));
+                    pPlayer->q16horiz = F16(100+((krand2()&15)-7));
                     pPlayer->moto_turb--;
-                    pPlayer->moto_drink = (krand()&3)-2;
+                    pPlayer->moto_drink = (krand2()&3)-2;
                 }
             }
             else if (pPlayer->moto_bump_target > pPlayer->moto_bump)
@@ -6337,7 +6338,7 @@ void P_ProcessInput(int playerNum)
                 short var9c, vara0, vara4;
                 var9c = pPlayer->moto_speed;
                 vara0 = fix16_to_int(pPlayer->q16ang);
-                var84 = krand()&1;
+                var84 = krand2()&1;
                 if (var84 == 0)
                     vara4 = -10;
                 else if (var84 == 1)
@@ -6453,7 +6454,7 @@ void P_ProcessInput(int playerNum)
             {
                 if (pPlayer->drink_amt > 88 && pPlayer->moto_drink == 0)
                 {
-                    varcc = krand() & 63;
+                    varcc = krand2() & 63;
                     if (varcc == 1)
                         pPlayer->moto_drink = -10;
                     else if (varcc == 2)
@@ -6461,7 +6462,7 @@ void P_ProcessInput(int playerNum)
                 }
                 else if (pPlayer->drink_amt > 99 && pPlayer->moto_drink == 0)
                 {
-                    varcc = krand() & 31;
+                    varcc = krand2() & 31;
                     if (varcc == 1)
                         pPlayer->moto_drink = -20;
                     else if (varcc == 2)
@@ -6529,8 +6530,8 @@ void P_ProcessInput(int playerNum)
             if (pPlayer->moto_speed != 0 && pPlayer->on_ground == 1)
             {
                 if (!pPlayer->moto_bump)
-                    if ((krand() & 15) == 14)
-                        pPlayer->moto_bump_target = (pPlayer->moto_speed>>4)*((krand()&3)-2);
+                    if ((krand2() & 15) == 14)
+                        pPlayer->moto_bump_target = (pPlayer->moto_speed>>4)*((krand2()&3)-2);
                 if (varbc || pPlayer->moto_drink < 0)
                 {
                     if (pPlayer->moto_drink < 0)
@@ -6553,9 +6554,9 @@ void P_ProcessInput(int playerNum)
                 }
                 else
                 {
-                    pPlayer->q16horiz = F16(100+((krand()&15)-7));
+                    pPlayer->q16horiz = F16(100+((krand2()&15)-7));
                     pPlayer->moto_turb--;
-                    pPlayer->moto_drink = (krand()&3)-2;
+                    pPlayer->moto_drink = (krand2()&3)-2;
                 }
             }
             else if (pPlayer->moto_bump_target > pPlayer->moto_bump)
@@ -6943,7 +6944,7 @@ check_enemy_sprite:
                 pPlayer->rotscrnang += 24;
         }
         if (pPlayer->sea_sick < 250)
-            pPlayer->look_ang += (krand()&255)-128;
+            pPlayer->look_ang += (krand2()&255)-128;
     }
 
     int                  velocityModifier = TICSPERFRAME;
@@ -7088,7 +7089,7 @@ check_enemy_sprite:
                         if (yax_getbunch(pPlayer->cursectnum, YAX_FLOOR) < 0 || (sector[pPlayer->cursectnum].floorstat & 512))
 #endif
                         {
-                            switch (krand() & 3)
+                            switch (krand2() & 3)
                             {
                                 case 0: spriteNum  = A_Spawn(pPlayer->i, FOOTPRINTS); break;
                                 case 1: spriteNum  = A_Spawn(pPlayer->i, FOOTPRINTS2); break;
@@ -7160,7 +7161,7 @@ check_enemy_sprite:
                         else if (pPlayer->falling_counter > 9)
                         {
                             // Falling damage.
-                            pSprite->extra -= pPlayer->falling_counter - (krand() & 3);
+                            pSprite->extra -= pPlayer->falling_counter - (krand2() & 3);
 
                             if (pSprite->extra <= 0)
                                 A_PlaySound(SQUISHED, pPlayer->i);
@@ -7342,7 +7343,7 @@ check_enemy_sprite:
 
         if (RRRA && pPlayer->on_ground && trueFloorDist <= PHEIGHT+ZOFFSET2 && (floorPicnum == RRTILE7768 || floorPicnum == RRTILE7820))
         {
-            if ((krand() & 3) == 1)
+            if ((krand2() & 3) == 1)
             {
                 if (pPlayer->on_motorcycle)
                     pSprite->extra -= 2;
@@ -7412,7 +7413,7 @@ check_enemy_sprite:
                     break;
 
                     case ST_1_ABOVE_WATER:
-                        if ((krand() & 1) == 0 && (!RRRA || (!pPlayer->on_boat && !pPlayer->on_motorcycle && sector[pPlayer->cursectnum].lotag != 321)))
+                        if ((krand2() & 1) == 0 && (!RRRA || (!pPlayer->on_boat && !pPlayer->on_motorcycle && sector[pPlayer->cursectnum].lotag != 321)))
                             A_PlaySound(DUKE_ONWATER, pPlayer->i);
                         pPlayer->walking_snd_toggle = 1;
                         break;
@@ -7560,7 +7561,7 @@ HORIZONLY:;
                     var104 = 0;
                     var108 = getangle(wall[wall[wallNum].point2].x-wall[wallNum].x,wall[wall[wallNum].point2].y-wall[wallNum].y);
                     var10c = klabs(fix16_to_int(pPlayer->q16ang)-var108);
-                    switch (krand()&1)
+                    switch (krand2()&1)
                     {
                         case 0:
                             pPlayer->q16ang += F16(pPlayer->moto_speed>>1);
@@ -7611,7 +7612,7 @@ HORIZONLY:;
                     short var114, var118;
                     var114 = getangle(wall[wall[wallNum].point2].x-wall[wallNum].x,wall[wall[wallNum].point2].y-wall[wallNum].y);
                     var118 = klabs(fix16_to_int(pPlayer->q16ang)-var114);
-                    switch (krand()&1)
+                    switch (krand2()&1)
                     {
                         case 0:
                             pPlayer->q16ang += F16(pPlayer->moto_speed>>2);

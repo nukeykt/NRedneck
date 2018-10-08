@@ -114,7 +114,6 @@ extern const uint8_t  CheatFunctionIDs[];
 
 extern int32_t g_errorCnt;
 extern int32_t g_lineNumber;
-extern int32_t g_numXStrings;
 extern int32_t g_scriptVersion;
 extern int32_t g_totalLines;
 extern int32_t g_warningCnt;

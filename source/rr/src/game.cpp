@@ -1977,9 +1977,9 @@ default_case:
             if (spriteNum >= 0)
             {
                 setsprite(newSprite, (vec3_t *)&sprite[spriteNum]);
-                pSprite->xrepeat = pSprite->yrepeat = 8+(krand()&7);
+                pSprite->xrepeat = pSprite->yrepeat = 8+(krand2()&7);
             }
-            else pSprite->xrepeat = pSprite->yrepeat = 16+(krand()&15);
+            else pSprite->xrepeat = pSprite->yrepeat = 16+(krand2()&15);
 
             pSprite->shade = -16;
             pSprite->cstat |= 128;
@@ -2093,8 +2093,8 @@ default_case:
             if (spriteNum >= 0)
                 pSprite->ang = sprite[spriteNum].ang;
             pSprite->z -= 38<<8;
-            pSprite->zvel = 256-(krand()&511);
-            pSprite->xvel = 64-(krand()&127);
+            pSprite->zvel = 256-(krand2()&511);
+            pSprite->xvel = 64-(krand2()&127);
             changespritestat(newSprite, STAT_PROJECTILE);
             break;
         case NATURALLIGHTNING__STATIC:
@@ -2253,8 +2253,8 @@ default_case:
         case BLOODSPLAT3__STATIC:
         case BLOODSPLAT4__STATIC:
             pSprite->cstat |= 16;
-            pSprite->xrepeat = 7 + (krand() & 7);
-            pSprite->yrepeat = 7 + (krand() & 7);
+            pSprite->xrepeat = 7 + (krand2() & 7);
+            pSprite->yrepeat = 7 + (krand2() & 7);
             pSprite->z += (tilesiz[pSprite->picnum].y * pSprite->yrepeat) >> 2;
 
             if (spriteNum >= 0 && sprite[spriteNum].pal == 6)
@@ -2625,7 +2625,7 @@ default_case:
         case BULLETHOLE__STATIC:
             pSprite->xrepeat = 3;
             pSprite->yrepeat = 3;
-            pSprite->cstat   = 16 + (krand() & 12);
+            pSprite->cstat   = 16 + (krand2() & 12);
 
             A_AddToDeleteQueue(newSprite);
             changespritestat(newSprite, STAT_MISC);
@@ -2635,12 +2635,12 @@ default_case:
         case MAIL__STATIC:
         case PAPER__STATIC:
             if (RR && (pSprite->picnum == MAIL || pSprite->picnum == PAPER)) goto default_case;
-            pActor->t_data[0] = krand() & 2047;
+            pActor->t_data[0] = krand2() & 2047;
 
-            pSprite->cstat   = krand() & 12;
+            pSprite->cstat   = krand2() & 12;
             pSprite->xrepeat = 8;
             pSprite->yrepeat = 8;
-            pSprite->ang     = krand() & 2047;
+            pSprite->ang     = krand2() & 2047;
 
             changespritestat(newSprite, STAT_MISC);
             break;
@@ -2664,16 +2664,16 @@ default_case:
                     int const                 playerNum = P_Get(spriteNum);
                     const DukePlayer_t *const pPlayer   = g_player[playerNum].ps;
 
-                    shellAng = fix16_to_int(pPlayer->q16ang) - (krand() & 63) + 8;  // Fine tune
+                    shellAng = fix16_to_int(pPlayer->q16ang) - (krand2() & 63) + 8;  // Fine tune
 
-                    T1(newSprite) = krand() & 1;
+                    T1(newSprite) = krand2() & 1;
 
                     pSprite->z = (3 << 8) + pPlayer->pyoff + pPlayer->pos.z - (fix16_to_int((pPlayer->q16horizoff + pPlayer->q16horiz - F16(100))) << 4);
 
                     if (pSprite->picnum == SHOTGUNSHELL)
                         pSprite->z += (3 << 8);
 
-                    pSprite->zvel = -(krand() & 255);
+                    pSprite->zvel = -(krand2() & 255);
                 }
                 else
                 {
@@ -2744,7 +2744,7 @@ default_case:
             {
                 pSprite->ang = sprite[spriteNum].ang;
                 pSprite->shade = -64;
-                pSprite->cstat = 128|(krand()&4);
+                pSprite->cstat = 128|(krand2()&4);
             }
 
             if (pSprite->picnum == EXPLOSION2 || (!RR && pSprite->picnum == EXPLOSION2BOT))
@@ -2815,7 +2815,7 @@ default_case:
                 pSprite->ang = sprite[spriteNum].ang;
             }
 
-            pSprite->xrepeat = pSprite->yrepeat = RR ? (1+(krand()&7)) : 4;
+            pSprite->xrepeat = pSprite->yrepeat = RR ? (1+(krand2()&7)) : 4;
             changespritestat(newSprite, STAT_MISC);
             break;
 
@@ -2864,7 +2864,7 @@ default_case:
             break;
 
         case TRASH__STATIC:
-            pSprite->ang = krand()&2047;
+            pSprite->ang = krand2()&2047;
             pSprite->xrepeat = pSprite->yrepeat = 24;
             changespritestat(newSprite, STAT_STANDABLE);
             break;
@@ -2881,7 +2881,7 @@ default_case:
 
                 pSprite->shade = 32;
                 pSprite->ang   = getangle(g_player[0].ps->pos.x - pSprite->x, g_player[0].ps->pos.y - pSprite->y);
-                pSprite->xvel  = 48 - (krand() & 31);
+                pSprite->xvel  = 48 - (krand2() & 31);
 
                 A_SetSprite(newSprite, CLIPMASK0);
             }
@@ -2890,7 +2890,7 @@ default_case:
                 pSprite->z += ZOFFSET6;
                 T1(newSprite) = pSprite->z;
                 if (!RR)
-                    T2(newSprite) = krand()&127;
+                    T2(newSprite) = krand2()&127;
             }
             fallthrough__;
         case WATERDRIPSPLASH__STATIC:
@@ -3068,7 +3068,7 @@ default_case:
 
                 if (pSprite->picnum == RAT)
                 {
-                    pSprite->ang = krand()&2047;
+                    pSprite->ang = krand2()&2047;
                     pSprite->xrepeat = pSprite->yrepeat = 48;
                     pSprite->cstat = 0;
                 }
@@ -3251,9 +3251,9 @@ rr_badguy:
                 pSprite->yrepeat = 64;
                 pSprite->cstat = 2;
                 pSprite->cstat |= 512;
-                pSprite->x += (krand() & 2047) - 1024;
-                pSprite->y += (krand() & 2047) - 1024;
-                pSprite->z += (krand() & 2047) - 1024;
+                pSprite->x += (krand2() & 2047) - 1024;
+                pSprite->y += (krand2() & 2047) - 1024;
+                pSprite->z += (krand2() & 2047) - 1024;
                 break;
             case MAMA__STATICRR:
                 if (!RRRA) break;
@@ -3388,7 +3388,7 @@ rr_badguy:
 
                 if (pSprite->picnum == RAT)
                 {
-                    pSprite->ang = krand() & 2047;
+                    pSprite->ang = krand2() & 2047;
                     pSprite->xrepeat = pSprite->yrepeat = 48;
                     pSprite->cstat = 0;
                 }
@@ -3463,7 +3463,7 @@ rr_badguy:
 
             pSprite->yrepeat = oozSize;
             pSprite->xrepeat = 25 - (oozSize >> 1);
-            pSprite->cstat |= (krand() & 4);
+            pSprite->cstat |= (krand2() & 4);
 
             break;
         }
@@ -3587,7 +3587,7 @@ rr_badguy:
                     pSprite->zvel = -1024;
                 }
                 A_SetSprite(newSprite, CLIPMASK0);
-                pSprite->cstat = krand()&4;
+                pSprite->cstat = krand2()&4;
             }
             else
             {
@@ -4558,7 +4558,7 @@ rr_badguy:
             {
                 if (pSprite->picnum == EGG)
                     pSprite->clipdist = 24;
-                pSprite->cstat = 257|(krand()&4);
+                pSprite->cstat = 257|(krand2()&4);
                 changespritestat(newSprite, STAT_ZOMBIEACTOR);
             }
             break;
@@ -8482,7 +8482,7 @@ int G_DoMoveThings(void)
 
     if (ud.pause_on == 0)
     {
-        g_globalRandom = krand();
+        g_globalRandom = krand2();
         A_MoveDummyPlayers();//ST 13
     }
 
@@ -8543,9 +8543,10 @@ void A_SpawnWallGlass(int spriteNum, int wallNum, int glassCnt)
     {
         for (bssize_t j = glassCnt - 1; j >= 0; --j)
         {
-            int const a = SA(spriteNum) - 256 + (krand() & 511) + 1024;
+            int const a = SA(spriteNum) - 256 + (krand2() & 511) + 1024;
+            int32_t const r1 = krand2(), r2 = krand2();
             A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum), GLASSPIECES + (j % 3), -32, 36, 36, a,
-                           32 + (krand() & 63), 1024 - (krand() & 1023), spriteNum, 5);
+                           32 + (r2 & 63), 1024 - (r1 & 1023), spriteNum, 5);
         }
         return;
     }
@@ -8569,13 +8570,14 @@ void A_SpawnWallGlass(int spriteNum, int wallNum, int glassCnt)
         updatesector(v1.x,v1.y,&sect);
         if (sect >= 0)
         {
-            int z = sector[sect].floorz - (krand() & (klabs(sector[sect].ceilingz - sector[sect].floorz)));
+            int z = sector[sect].floorz - (krand2() & (klabs(sector[sect].ceilingz - sector[sect].floorz)));
 
             if (z < -ZOFFSET5 || z > ZOFFSET5)
-                z = SZ(spriteNum) - ZOFFSET5 + (krand() & ((64 << 8) - 1));
+                z = SZ(spriteNum) - ZOFFSET5 + (krand2() & ((64 << 8) - 1));
 
-            A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, GLASSPIECES + (j % 3), -32, 36, 36, SA(spriteNum) - 1024, 32 + (krand() & 63),
-                           -(krand() & 1023), spriteNum, 5);
+            int32_t const r1 = krand2(), r2 = krand2();
+            A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, GLASSPIECES + (j % 3), -32, 36, 36, SA(spriteNum) - 1024, 32 + (r2 & 63),
+                           -(r1 & 1023), spriteNum, 5);
         }
     }
 }
@@ -8586,9 +8588,10 @@ void A_SpawnWallPopcorn(int spriteNum, int wallNum, int glassCnt)
     {
         for (bssize_t j = glassCnt - 1; j >= 0; --j)
         {
-            int const a = SA(spriteNum) - 256 + (krand() & 511) + 1024;
+            int const a = SA(spriteNum) - 256 + (krand2() & 511) + 1024;
+            int32_t const r1 = krand2(), r2 = krand2();
             A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum), POPCORN, -32, 36, 36, a,
-                           32 + (krand() & 63), 1024 - (krand() & 1023), spriteNum, 5);
+                           32 + (r2 & 63), 1024 - (r1 & 1023), spriteNum, 5);
         }
         return;
     }
@@ -8612,13 +8615,14 @@ void A_SpawnWallPopcorn(int spriteNum, int wallNum, int glassCnt)
         updatesector(v1.x,v1.y,&sect);
         if (sect >= 0)
         {
-            int z = sector[sect].floorz - (krand() & (klabs(sector[sect].ceilingz - sector[sect].floorz)));
+            int z = sector[sect].floorz - (krand2() & (klabs(sector[sect].ceilingz - sector[sect].floorz)));
 
             if (z < -ZOFFSET5 || z > ZOFFSET5)
-                z = SZ(spriteNum) - ZOFFSET5 + (krand() & ((64 << 8) - 1));
+                z = SZ(spriteNum) - ZOFFSET5 + (krand2() & ((64 << 8) - 1));
 
-            A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, POPCORN, -32, 36, 36, SA(spriteNum) - 1024, 32 + (krand() & 63),
-                           -(krand() & 1023), spriteNum, 5);
+            int32_t const r1 = krand2(), r2 = krand2();
+            A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, POPCORN, -32, 36, 36, SA(spriteNum) - 1024, 32 + (r2 & 63),
+                           -(r1 & 1023), spriteNum, 5);
         }
     }
 }
@@ -8627,9 +8631,10 @@ void A_SpawnGlass(int spriteNum, int glassCnt)
 {
     for (; glassCnt>0; glassCnt--)
     {
+        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2();
         int const k
-        = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - ((krand() & 16) << 8), GLASSPIECES + (glassCnt % 3),
-                         krand() & 15, 36, 36, krand() & 2047, 32 + (krand() & 63), -512 - (krand() & 2047), spriteNum, 5);
+        = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - ((r5 & 16) << 8), GLASSPIECES + (glassCnt % 3),
+                         r4 & 15, 36, 36, r3 & 2047, 32 + (r2 & 63), -512 - (r1 & 2047), spriteNum, 5);
         sprite[k].pal = sprite[spriteNum].pal;
     }
 }
@@ -8649,8 +8654,9 @@ void A_SpawnCeilingGlass(int spriteNum, int sectNum, int glassCnt)
         {
             v1.x += v.x;
             v1.y += v.y;
-            A_InsertSprite(sectNum, v1.x, v1.y, sector[sectNum].ceilingz + ((krand() & 15) << 8), GLASSPIECES + (j % 3), -32, 36, 36,
-                           krand() & 2047, (krand() & 31), 0, spriteNum, 5);
+            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2();
+            A_InsertSprite(sectNum, v1.x, v1.y, sector[sectNum].ceilingz + ((r3 & 15) << 8), GLASSPIECES + (j % 3), -32, 36, 36,
+                           r2 & 2047, (r1 & 31), 0, spriteNum, 5);
         }
     }
 }
@@ -8661,10 +8667,11 @@ void A_SpawnRandomGlass(int spriteNum, int wallNum, int glassCnt)
     {
         for (bssize_t j = glassCnt - 1; j >= 0; j--)
         {
+            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2();
             int const k
-            = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (krand() & (63 << 8)), GLASSPIECES + (j % 3),
-                             -32, 36, 36, krand() & 2047, 32 + (krand() & 63), 1024 - (krand() & 2047), spriteNum, 5);
-            sprite[k].pal = krand() & 15;
+            = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (r4 & (63 << 8)), GLASSPIECES + (j % 3),
+                             -32, 36, 36, r3 & 2047, 32 + (r2 & 63), 1024 - (r1 & 2047), spriteNum, 5);
+            sprite[k].pal = krand2() & 15;
         }
         return;
     }
@@ -8681,14 +8688,15 @@ void A_SpawnRandomGlass(int spriteNum, int wallNum, int glassCnt)
 
         updatesector(v1.x, v1.y, &sectNum);
 
-        int z = sector[sectNum].floorz - (krand() & (klabs(sector[sectNum].ceilingz - sector[sectNum].floorz)));
+        int z = sector[sectNum].floorz - (krand2() & (klabs(sector[sectNum].ceilingz - sector[sectNum].floorz)));
 
         if (z < -ZOFFSET5 || z > ZOFFSET5)
-            z       = SZ(spriteNum) - ZOFFSET5 + (krand() & ((64 << 8) - 1));
+            z       = SZ(spriteNum) - ZOFFSET5 + (krand2() & ((64 << 8) - 1));
 
+        int32_t const r1 = krand2(), r2 = krand2();
         int const k = A_InsertSprite(SECT(spriteNum), v1.x, v1.y, z, GLASSPIECES + (j % 3), -32, 36, 36, SA(spriteNum) - 1024,
-                                     32 + (krand() & 63), -(krand() & 2047), spriteNum, 5);
-        sprite[k].pal = krand() & 7;
+                                     32 + (r2 & 63), -(r1 & 2047), spriteNum, 5);
+        sprite[k].pal = krand2() & 7;
     }
 }
 

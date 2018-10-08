@@ -763,7 +763,7 @@ void P_RandomSpawnPoint(int playerNum)
 
     if ((g_netServer || ud.multimode > 1) && !(g_gametypeFlags[ud.coop] & GAMETYPE_FIXEDRESPAWN))
     {
-        i = krand() % g_playerSpawnCnt;
+        i = krand2() % g_playerSpawnCnt;
 
         if (g_gametypeFlags[ud.coop] & GAMETYPE_TDMSPAWN)
         {

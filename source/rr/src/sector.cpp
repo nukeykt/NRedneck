@@ -591,7 +591,7 @@ void G_AnimateWalls(void)
         case SCREENBREAK11__STATIC:
         case SCREENBREAK12__STATIC:
         case SCREENBREAK13__STATIC:
-            if ((krand()&255) < 16)
+            if ((krand2()&255) < 16)
             {
                 animwall[animwallNum].tag = wall[wallNum].picnum;
                 wall[wallNum].picnum = SCREENBREAK6;
@@ -634,8 +634,8 @@ void G_AnimateWalls(void)
                 }
                 else
                 {
-                    if ((krand()&255) < 32)
-                        animwall[animwallNum].tag = 128<<(krand()&3);
+                    if ((krand2()&255) < 32)
+                        animwall[animwallNum].tag = 128<<(krand2()&3);
                     else wall[wallNum].overpicnum = W_FORCEFIELD+1;
                 }
             }
@@ -2147,7 +2147,7 @@ void A_DamageWall(int spriteNum, int wallNum, const vec3_t *vPos, int weaponNum)
         case SCREENBREAK8__STATIC:
             A_SpawnWallGlass(spriteNum, wallNum, 30);
             A_PlaySound(GLASS_HEAVYBREAK, spriteNum);
-            pWall->picnum = W_SCREENBREAK + (krand() % (RRRA ? 2: 3));
+            pWall->picnum = W_SCREENBREAK + (krand2() % (RRRA ? 2: 3));
             return;
 
         case W_TECHWALL5__STATIC:
@@ -2205,7 +2205,7 @@ void A_DamageWall(int spriteNum, int wallNum, const vec3_t *vPos, int weaponNum)
 
         case ATM__STATIC:
             pWall->picnum = ATMBROKE;
-            A_SpawnMultiple(spriteNum, MONEY, 1 + (krand() & 7));
+            A_SpawnMultiple(spriteNum, MONEY, 1 + (krand2() & 7));
             A_PlaySound(GLASS_HEAVYBREAK, spriteNum);
             break;
 
@@ -2314,7 +2314,7 @@ void A_DamageWall(int spriteNum, int wallNum, const vec3_t *vPos, int weaponNum)
                 if (pWall->shade > darkestWall)
                     darkestWall = pWall->shade;
 
-            int const random = krand() & 1;
+            int const random = krand2() & 1;
 
             for (bssize_t SPRITES_OF(STAT_EFFECTOR, i))
                 if (SHT(i) == wall[wallNum].lotag && SLT(i) == SE_3_RANDOM_LIGHTS_AFTER_SHOT_OUT)
@@ -2365,7 +2365,7 @@ void Sect_DamageCeiling(int const sectNum)
                 }
             }
 
-            int j = krand() & 1;
+            int j = krand2() & 1;
 
             for (bssize_t SPRITES_OF(STAT_EFFECTOR, i))
             {
@@ -3008,11 +3008,14 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
         A_SpawnWallGlass(spriteNum, -1, 10);
         PN(spriteNum)++;
         for (int k = 0; k < 6; k++)
-            A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - ZOFFSET3, SCRAP6 + (krand() & 15), -8, 48, 48, krand() & 2047, (krand() & 63) + 64, -(krand() & 4095) - (sprite[spriteNum].zvel >> 2), spriteNum, STAT_MISC);
+        {
+            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2();
+            A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - ZOFFSET3, SCRAP6 + (r4 & 15), -8, 48, 48, r3 & 2047, (r2 & 63) + 64, -(r1 & 4095) - (sprite[spriteNum].zvel >> 2), spriteNum, STAT_MISC);
+        }
         break;
     case BOWLINGBALL__STATICRR:
         sprite[dmgSrc].xvel = (sprite[spriteNum].xvel >> 1) + (sprite[spriteNum].xvel >> 2);
-        sprite[dmgSrc].ang -= (krand() & 16);
+        sprite[dmgSrc].ang -= (krand2() & 16);
         A_PlaySound(355, spriteNum);
         break;
     case OCEANSPRITE1__STATIC:
@@ -3040,20 +3043,20 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
         else if (RR && (sprite[dmgSrc].picnum == RRTILE3440 || sprite[dmgSrc].picnum == RRTILE3440+1))
         {
             sprite[dmgSrc].xvel = (sprite[spriteNum].xvel>>1)+(sprite[spriteNum].xvel>>2);
-            sprite[dmgSrc].ang -= ((SA(spriteNum)<<1)+krand())&64;
-            SA(spriteNum) = (SA(spriteNum)+krand())&16;
+            sprite[dmgSrc].ang -= ((SA(spriteNum)<<1)+krand2())&64;
+            SA(spriteNum) = (SA(spriteNum)+krand2())&16;
             A_PlaySound(355,spriteNum);
         }
         else if (RR && (sprite[dmgSrc].picnum == HENSTAND || sprite[dmgSrc].picnum == HENSTAND+1))
         {
             sprite[dmgSrc].xvel = (sprite[spriteNum].xvel>>1)+(sprite[spriteNum].xvel>>2);
-            sprite[dmgSrc].ang -= ((SA(spriteNum)<<1)+krand())&16;
-            SA(spriteNum) = (SA(spriteNum)+krand())&16;
+            sprite[dmgSrc].ang -= ((SA(spriteNum)<<1)+krand2())&16;
+            SA(spriteNum) = (SA(spriteNum)+krand2())&16;
             A_PlaySound(355,spriteNum);
         }
         else
         {
-            if (krand()&3)
+            if (krand2()&3)
             {
                 sprite[spriteNum].xvel = 164;
                 sprite[spriteNum].ang = sprite[dmgSrc].ang;
@@ -3121,9 +3124,10 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
         case HEAVYHBOMB__STATIC:
             for (bssize_t k=64; k>0; k--)
             {
+                int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2();
                 int newSprite =
-                    A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (krand() % (48 << 8)), SCRAP3 + (krand() & 3), -8, 48, 48,
-                        krand() & 2047, (krand() & 63) + 64, -(krand() & 4095) - (sprite[spriteNum].zvel >> 2), spriteNum, 5);
+                    A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (r5 % (48 << 8)), SCRAP3 + (r4 & 3), -8, 48, 48,
+                        r3 & 2047, (r2 & 63) + 64, -(r1 & 4095) - (sprite[spriteNum].zvel >> 2), spriteNum, 5);
                 sprite[newSprite].pal = 8;
             }
             //        case CACTUSBROKE:
@@ -3139,7 +3143,10 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
     case GENERICPOLE2__STATIC:
         if (RR) goto default_case;
         for (bssize_t k=6; k>0; k--)
-            A_InsertSprite(SECT(spriteNum),SX(spriteNum),SY(spriteNum),SZ(spriteNum)-ZOFFSET3,SCRAP1+(krand()&15),-8,48,48,krand()&2047,(krand()&63)+64,-(krand()&4095)-(sprite[spriteNum].zvel>>2),spriteNum,5);
+        {
+            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2();
+            A_InsertSprite(SECT(spriteNum),SX(spriteNum),SY(spriteNum),SZ(spriteNum)-ZOFFSET3,SCRAP1+(r4&15),-8,48,48,r3&2047,(r2&63)+64,-(r1&4095)-(sprite[spriteNum].zvel>>2),spriteNum,5);
+        }
         A_PlaySound(GLASS_HEAVYBREAK,spriteNum);
         A_DeleteSprite(spriteNum);
         break;
@@ -3174,8 +3181,11 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
         if (sprite[dmgSrc].extra != G_DefaultActorHealth(SHOTSPARK1))
         {
             for (bssize_t j=15; j>0; j--)
-                A_InsertSprite(SECT(spriteNum),SX(spriteNum),SY(spriteNum),sector[SECT(spriteNum)].floorz-ZOFFSET4-(j<<9),SCRAP1+(krand()&15),-8,64,64,
-                               krand()&2047,(krand()&127)+64,-(krand()&511)-256,spriteNum,5);
+            {
+                int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2();
+                A_InsertSprite(SECT(spriteNum),SX(spriteNum),SY(spriteNum),sector[SECT(spriteNum)].floorz-ZOFFSET4-(j<<9),SCRAP1+(r4&15),-8,64,64,
+                               r3&2047,(r2&127)+64,-(r1&511)-256,spriteNum,5);
+            }
             A_Spawn(spriteNum,EXPLOSION2);
             A_DeleteSprite(spriteNum);
         }
@@ -3214,7 +3224,7 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
     case RRTILE1824__STATICRR:
         if (RR && !RRRA && PN(spriteNum) == RRTILE1824) goto default_case;
         if (PN(spriteNum) == BOTTLE10)
-            A_SpawnMultiple(spriteNum, MONEY, 4+(krand()&3));
+            A_SpawnMultiple(spriteNum, MONEY, 4+(krand2()&3));
         else if (PN(spriteNum) == STATUE || PN(spriteNum) == STATUEFLASH)
         {
             A_SpawnRandomGlass(spriteNum,-1,40);
@@ -3224,7 +3234,7 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
             A_SpawnWallGlass(spriteNum,-1,40);
 
         A_PlaySound(GLASS_BREAKING,spriteNum);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_SpawnWallGlass(spriteNum,-1,8);
         A_DeleteSprite(spriteNum);
         break;
@@ -3288,7 +3298,7 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
 
     case TOILET__STATIC:
         PN(spriteNum) = TOILETBROKE;
-        CS(spriteNum) |= (krand()&1)<<2;
+        CS(spriteNum) |= (krand2()&1)<<2;
         CS(spriteNum) &= ~257;
         A_Spawn(spriteNum,TOILETWATER);
         A_PlaySound(GLASS_BREAKING,spriteNum);
@@ -3296,7 +3306,7 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
 
     case STALL__STATIC:
         PN(spriteNum) = STALLBROKE;
-        CS(spriteNum) |= (krand()&1)<<2;
+        CS(spriteNum) |= (krand2()&1)<<2;
         CS(spriteNum) &= ~257;
         A_Spawn(spriteNum,TOILETWATER);
         A_PlaySound(GLASS_HEAVYBREAK,spriteNum);
@@ -3308,7 +3318,7 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
 
         //            for(k=0;k<5;k++)
         //          {
-        //            j = A_InsertSprite(SECT,SX,SY,SZ-(krand()%(48<<8)),SCRAP3+(krand()&3),-8,48,48,krand()&2047,(krand()&63)+64,-(krand()&4095)-(sprite[i].zvel>>2),i,5);
+        //            j = A_InsertSprite(SECT,SX,SY,SZ-(krand2()%(48<<8)),SCRAP3+(krand2()&3),-8,48,48,krand2()&2047,(krand2()&63)+64,-(krand2()&4095)-(sprite[i].zvel>>2),i,5);
         //          sprite[j].pal = 2;
         //    }
         A_PlaySound(GLASS_HEAVYBREAK,spriteNum);
@@ -3387,21 +3397,21 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
         if (RR) goto default_case;
         sprite[spriteNum].extra -= sprite[dmgSrc].extra;
         if (sprite[spriteNum].extra > 0) break;
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT1);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT2);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT3);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT4);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT1);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT2);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT3);
-        SA(spriteNum) = krand()&2047;
+        SA(spriteNum) = krand2()&2047;
         A_Shoot(spriteNum,BLOODSPLAT4);
         A_DoGuts(spriteNum,JIBS1,1);
         A_DoGuts(spriteNum,JIBS2,2);
@@ -3465,7 +3475,7 @@ default_case:
                                 sprite[newSprite].pal = 6;
                             sprite[newSprite].xvel    = 16;
                             sprite[newSprite].xrepeat = sprite[newSprite].yrepeat = 24;
-                            sprite[newSprite].ang    += 32 - (krand() & 63);
+                            sprite[newSprite].ang    += 32 - (krand2() & 63);
                         }
 
                 int const damageOwner = sprite[dmgSrc].owner;
@@ -4383,7 +4393,7 @@ void P_CheckSectors(int playerNum)
                     if (A_CheckSoundPlaying(pPlayer->i,27) == 0 && A_CheckSoundPlaying(pPlayer->i,28) == 0 && A_CheckSoundPlaying(pPlayer->i,29) == 0
                         && A_CheckSoundPlaying(pPlayer->i,257) == 0 && A_CheckSoundPlaying(pPlayer->i,258) == 0)
                     {
-                        int snd = krand() % 5;
+                        int snd = krand2() % 5;
                         if (snd == 0)
                             A_PlaySound(27, pPlayer->i);
                         else if (snd == 1)
@@ -4532,7 +4542,7 @@ void P_CheckSectors(int playerNum)
                     else if (S_CheckSoundPlaying(nearSprite, 445) == 0 && S_CheckSoundPlaying(nearSprite, 446) == 0
                         && S_CheckSoundPlaying(nearSprite, 447) == 0 && soundPlayed == 0)
                     {
-                        if ((krand()%2) == 1)
+                        if ((krand2()%2) == 1)
                             A_PlaySound(446, nearSprite);
                         else
                             A_PlaySound(447, nearSprite);
@@ -4645,7 +4655,7 @@ void P_CheckSectors(int playerNum)
                 if (RR && !RRRA)
                     g_canSeePlayer = -1;
                 A_PlaySound(SHORT_CIRCUIT, pPlayer->i);
-                sprite[pPlayer->i].extra -= 2+(krand()&3);
+                sprite[pPlayer->i].extra -= 2+(krand2()&3);
 
                 P_PalFrom(pPlayer, 32, 48,48,64);
                 break;
@@ -4698,7 +4708,7 @@ void P_CheckSectors(int playerNum)
             {
                 if (RR && !RRRA)
                     g_canSeePlayer = -1;
-                A_PlaySound(((krand()&255) < 16) ? DUKE_SEARCH2 : DUKE_SEARCH, pPlayer->i);
+                A_PlaySound(((krand2()&255) < 16) ? DUKE_SEARCH2 : DUKE_SEARCH, pPlayer->i);
                 return;
             }
         }
@@ -5203,7 +5213,7 @@ void G_Thunder(void)
             if (waloff[RRTILE2577] != 0)
             {
                 g_visibility = 256;
-                if (krand() > 65000)
+                if (krand2() > 65000)
                 {
                     g_thunderTime = 256;
                     g_thunderFlash = 1;
@@ -5235,7 +5245,7 @@ void G_Thunder(void)
             gotpic[RRTILE2562>>3] &= ~(1<<(RRTILE2562&7));
             if (waloff[RRTILE2562] != 0)
             {
-                if (krand() > 65000)
+                if (krand2() > 65000)
                 {
                     g_winderTime = 256;
                     g_winderFlash = 1;
@@ -5263,7 +5273,7 @@ void G_Thunder(void)
     }
     if (g_thunderFlash == 1)
     {
-        brightness += krand()&4;
+        brightness += krand2()&4;
         g_visibility = 2048;
         if (brightness > 8)
             brightness = 0;
@@ -5273,7 +5283,7 @@ void G_Thunder(void)
     {
         if (i >= MAXTORCHSECTORS)
             i = MAXTORCHSECTORS - 1;
-        shade = g_torchSectorShade[i]+(krand()&8);
+        shade = g_torchSectorShade[i]+(krand2()&8);
         for (i = 0; i < g_lightninCnt; i++)
         {
             sector[g_lightninSector[i]].floorshade = g_lightninSectorShade[i] - shade;
