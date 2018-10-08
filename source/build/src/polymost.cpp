@@ -3165,7 +3165,7 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
         }
     }
 
-    if (glinfo.texnpot && r_npotwallmode == 2)
+    if (glinfo.texnpot && r_npotwallmode == 2 && (method & DAMETH_WALL) != 0)
     {
         int32_t size = tilesiz[globalpicnum].y;
         int32_t size2;
@@ -5718,11 +5718,11 @@ void polymost_drawmaskwall(int32_t damaskwallcnt)
     //   |   /
     // fsy1/
 
-    vec2f_t dpxy[4] = { { x0, csy[1] }, { x1, csy[3] }, { x1, fsy[3] }, { x0, fsy[1] } };
+    vec2f_t dpxy[16] = { { x0, csy[1] }, { x1, csy[3] }, { x1, fsy[3] }, { x0, fsy[1] } };
 
     //Clip to (x0,csy[0])-(x1,csy[2])
 
-    vec2f_t dp2[4];
+    vec2f_t dp2[8];
 
     int n2 = 0;
     t1 = -((dpxy[0].x - x0) * (csy[2] - csy[0]) - (dpxy[0].y - csy[0]) * (x1 - x0));
@@ -5740,7 +5740,7 @@ void polymost_drawmaskwall(int32_t damaskwallcnt)
         if (t0 >= 0)
             dp2[n2++] = dpxy[i];
 
-        else if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
+        if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
         {
             float const r = t0 / (t0 - t1);
             dp2[n2].x = (dpxy[j].x - dpxy[i].x) * r + dpxy[i].x;
@@ -5767,7 +5767,7 @@ void polymost_drawmaskwall(int32_t damaskwallcnt)
         if (t0 >= 0)
             dpxy[n++] = dp2[i];
 
-        else if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
+        if ((t0 >= 0) != (t1 >= 0) && (t0 <= 0) != (t1 <= 0))
         {
             float const r = t0 / (t0 - t1);
             dpxy[n].x = (dp2[j].x - dp2[i].x) * r + dp2[i].x;

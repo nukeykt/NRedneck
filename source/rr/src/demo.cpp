@@ -53,6 +53,26 @@ int32_t demoplay_showsync=1;
 
 static int32_t demo_synccompress=1, demorec_seeds=1, demo_hasseeds;
 
+char demo_legacy = 0;
+int32_t demo_reccnt_init = 0;
+
+#pragma pack(push,1)
+typedef struct {
+    int32_t reccnt;
+    int8_t version; // 117 for Duke 3d v1.5, 108 for RR(RA)
+    int8_t volume_number, level_number, player_skill, m_coop, m_ffire;
+    int16_t multimode, m_monsters_off;
+    int32_t m_respawn_monsters, m_respawn_items, m_respawn_inventory, playerai;
+    char user_name[16][32];
+} legacydemo_t;
+
+typedef struct {
+    int8_t avel, horz;
+    int16_t fvel, svel;
+    int32_t bits;
+} legacyinput_t;
+#pragma pack(pop)
+
 static void Demo_RestoreModes(int32_t menu)
 {
     if (menu)
@@ -88,16 +108,111 @@ static int32_t G_OpenDemoRead(int32_t g_whichDemo) // 0 = mine
     if (g_whichDemo == 1 && g_firstDemoFile[0])
     {
         demofnptr = g_firstDemoFile;
+        const int fileNameLen = Bstrlen(g_firstDemoFile);
+        if (fileNameLen >= 4 && !Bstrncasecmp(&g_firstDemoFile[fileNameLen - 4], ".dmo", 4))
+            demo_legacy = 1;
+        else
+            demo_legacy = 0;
     }
     else
     {
         Bsprintf(demofn, DEMOFN_FMT, g_whichDemo);
         demofnptr = demofn;
+        demo_legacy = 0;
     }
 
     g_demo_recFilePtr = kopen4loadfrommod(demofnptr, g_loadFromGroupOnly);
     if (g_demo_recFilePtr == -1)
-        return 0;
+    {
+        // Check for legacy demo
+        Bsprintf(demofn, LDEMOFN_FMT, g_whichDemo);
+        demofnptr = demofn;
+        demo_legacy = 1;
+        g_demo_recFilePtr = kopen4loadfrommod(demofnptr, g_loadFromGroupOnly);
+        if (g_demo_recFilePtr == -1)
+            return 0;
+    }
+
+    if (demo_legacy)
+    {
+        ud.reccnt = 0;
+
+        legacydemo_t demoHeader;
+        
+        if (kread(g_demo_recFilePtr, &demoHeader, sizeof(legacydemo_t)) != sizeof(legacydemo_t))
+        {
+            kclose(g_demo_recFilePtr); g_demo_recFilePtr = -1;
+            return 0;
+        }
+
+        demoHeader.reccnt = B_LITTLE32(demoHeader.reccnt);
+        demoHeader.multimode = B_LITTLE16(demoHeader.multimode);
+        demoHeader.m_monsters_off = B_LITTLE16(demoHeader.m_monsters_off);
+        demoHeader.m_respawn_monsters = B_LITTLE32(demoHeader.m_respawn_monsters);
+        demoHeader.m_respawn_items = B_LITTLE32(demoHeader.m_respawn_items);
+        demoHeader.m_respawn_inventory = B_LITTLE32(demoHeader.m_respawn_inventory);
+        demoHeader.playerai = B_LITTLE32(demoHeader.playerai);
+
+        ud.volume_number = demoHeader.volume_number;
+        ud.level_number = demoHeader.level_number;
+        ud.player_skill = demoHeader.player_skill;
+        ud.m_coop = demoHeader.m_coop;
+        ud.m_ffire = demoHeader.m_ffire;
+        ud.multimode = demoHeader.multimode;
+        ud.m_monsters_off = demoHeader.m_monsters_off;
+        ud.m_respawn_monsters = demoHeader.m_respawn_monsters;
+        ud.m_respawn_items = demoHeader.m_respawn_items;
+        ud.m_respawn_inventory = demoHeader.m_respawn_inventory;
+
+        for (bssize_t i = 0; i < demoHeader.multimode; i++)
+        {
+            Bstrncpy(g_player[i].user_name, demoHeader.user_name[i], 32);
+        }
+
+        if (DUKE && demoHeader.version == 117)
+        {
+            int32_t autoRun;
+            kread(g_demo_recFilePtr, &autoRun, sizeof(int32_t));
+            //ud.auto_run = autoRun;
+            kread(g_demo_recFilePtr, boardfilename, 128);
+            if (boardfilename[0] != 0)
+            {
+                ud.m_level_number = 7;
+                ud.m_volume_number = 0;
+            }
+        }
+        else if (RR && demoHeader.version == 108)
+        {
+            // no op
+        }
+        else
+        {
+            kclose(g_demo_recFilePtr); g_demo_recFilePtr = -1;
+            return 0;
+        }
+
+        for (bssize_t i = 0; i < ud.multimode; i++)
+        {
+            kread(g_demo_recFilePtr, &g_player[i].ps->aim_mode, 1);
+        }
+
+        g_demo_totalCnt = demoHeader.reccnt/ud.multimode;
+
+        i = g_demo_totalCnt/REALGAMETICSPERSEC;
+        OSD_Printf("demo %d duration: %d min %d sec\n", g_whichDemo, i/60, i%60);
+        g_demo_cnt = 1;
+
+        ud.god = ud.cashman = ud.eog = ud.showallmap = 0;
+        ud.noclip = ud.scrollmode = ud.overhead_on = 0; //= ud.pause_on = 0;
+
+        totalclock = ototalclock = lockclock = 0;
+
+        G_NewGame(ud.volume_number, ud.level_number, ud.player_skill);
+
+        demo_reccnt_init = ud.reccnt = demoHeader.reccnt;
+
+        return 1;
+    }
 
     Bassert(g_whichDemo >= 1);
     i = sv_loadsnapshot(g_demo_recFilePtr, -g_whichDemo, &saveh);
@@ -224,8 +339,8 @@ void Demo_SetFirst(const char *demostr)
 
     if (tailptr==demostr+Bstrlen(demostr) && (unsigned)i < MAXDEMOS)  // demo number passed
         Bsprintf(g_firstDemoFile, DEMOFN_FMT, i);
-    else  // demo file name passed
-        maybe_append_ext(g_firstDemoFile, sizeof(g_firstDemoFile), demostr, ".edm");
+    // else  // demo file name passed
+    //     maybe_append_ext(g_firstDemoFile, sizeof(g_firstDemoFile), demostr, ".edm");
 }
 
 
@@ -348,6 +463,28 @@ static int32_t Demo_ReadSync(int32_t errcode)
 
     ud.reccnt = i;
     return 0;
+}
+
+legacyinput_t recsynclegacy[RECSYNCBUFSIZ];
+
+static void Demo_ReadSyncLegacy(void)
+{
+    int32_t l = min(ud.reccnt, RECSYNCBUFSIZ) / ud.multimode;
+    
+    kdfread(recsynclegacy, sizeof(legacyinput_t)*ud.multimode, l, g_demo_recFilePtr);
+
+    for (bssize_t i = 0; i < l; i ++) {
+        for (int j = 0; j < ud.multimode; j++)
+        {
+            int32_t index = i * ud.multimode + j;
+            recsync[index].q16avel = F16(recsynclegacy[index].avel<<1);
+            recsync[index].q16horz = F16(recsynclegacy[index].horz>>1);
+            recsync[index].fvel = recsynclegacy[index].fvel;
+            recsync[index].svel = recsynclegacy[index].svel;
+            recsync[index].bits = recsynclegacy[index].bits;
+            recsync[index].extbits = 0;
+        }
+    }
 }
 
 ////////// DEMO PROFILING (TIMEDEMO MODE) //////////
@@ -519,6 +656,9 @@ RECHECK:
         g_player[myconnectindex].ps->gm &= ~MODE_GAME;
         g_player[myconnectindex].ps->gm |= MODE_DEMO;
 
+        if (demo_legacy)
+            G_EnterLevel(MODE_DEMO);
+
         lastsyncofs = ktell(g_demo_recFilePtr);
         initsyncofs = lastsyncofs;
         lastsynctic = g_demo_cnt;
@@ -569,36 +709,52 @@ RECHECK:
 
                 int32_t menu = g_player[myconnectindex].ps->gm&MODE_MENU;
 
-                if (g_demo_goalCnt > lastsynctic)
+                if (demo_legacy)
                 {
-                    // we can use a previous diff
-                    if (Demo_UpdateState(0)==0)
-                    {
-                        g_demo_cnt = lastsynctic;
-                        klseek(g_demo_recFilePtr, lastsyncofs, SEEK_SET);
-                        ud.reccnt = 0;
+                    klseek(g_demo_recFilePtr, initsyncofs, SEEK_SET);
+                    g_levelTextTime = 0;
 
-                        totalclock = ototalclock = lockclock = lastsyncclock;
-                    }
-                    else CORRUPT(-1);
+                    g_demo_cnt = 1;
+                    ud.reccnt = demo_reccnt_init;
+                    bigi = 0;
+
+                    totalclock = ototalclock = lockclock = 0;
+
+                    G_EnterLevel(MODE_DEMO);
                 }
                 else
                 {
-                    // update to initial state
-                    if (Demo_UpdateState(1) == 0)
+                    if (g_demo_goalCnt > lastsynctic)
                     {
-                        klseek(g_demo_recFilePtr, initsyncofs, SEEK_SET);
-                        g_levelTextTime = 0;
+                        // we can use a previous diff
+                        if (Demo_UpdateState(0)==0)
+                        {
+                            g_demo_cnt = lastsynctic;
+                            klseek(g_demo_recFilePtr, lastsyncofs, SEEK_SET);
+                            ud.reccnt = 0;
 
-                        g_demo_cnt = 1;
-                        ud.reccnt = 0;
-
-                        //                        ud.god = ud.cashman = ud.eog = ud.showallmap = 0;
-                        //                        ud.noclip = ud.scrollmode = ud.overhead_on = ud.pause_on = 0;
-
-                        totalclock = ototalclock = lockclock = 0;
+                            totalclock = ototalclock = lockclock = lastsyncclock;
+                        }
+                        else CORRUPT(-1);
                     }
-                    else CORRUPT(0);
+                    else
+                    {
+                        // update to initial state
+                        if (Demo_UpdateState(1) == 0)
+                        {
+                            klseek(g_demo_recFilePtr, initsyncofs, SEEK_SET);
+                            g_levelTextTime = 0;
+
+                            g_demo_cnt = 1;
+                            ud.reccnt = 0;
+
+                            //                        ud.god = ud.cashman = ud.eog = ud.showallmap = 0;
+                            //                        ud.noclip = ud.scrollmode = ud.overhead_on = ud.pause_on = 0;
+
+                            totalclock = ototalclock = lockclock = 0;
+                        }
+                        else CORRUPT(0);
+                    }
                 }
 
                 Demo_RestoreModes(menu);
@@ -611,93 +767,101 @@ RECHECK:
                 //                   || (ud.reccnt > REALGAMETICSPERSEC*2 && ud.pause_on)
                 || (g_demo_goalCnt>0 && g_demo_cnt<g_demo_goalCnt))
             {
-                if (ud.reccnt<=0)
+                if (demo_legacy)
                 {
-                    // Record count reached zero (or <0, corrupted), need
-                    // reading another chunk.
-
-                    char tmpbuf[4];
-
-                    if (ud.reccnt<0)
-                    {
-                        OSD_Printf("G_PlaybackDemo: ud.reccnt<0!\n");
-                        CORRUPT(1);
-                    }
-
-                    bigi = 0;
-                    //reread:
-                    if (kread(g_demo_recFilePtr, tmpbuf, 4) != 4)
-                        CORRUPT(2);
-
-                    if (Bmemcmp(tmpbuf, "sYnC", 4)==0)
-                    {
-                        int32_t err = Demo_ReadSync(3);
-                        if (err)
-                            CORRUPT(err);
-                    }
-
-                    else if (demo_hasdiffs && Bmemcmp(tmpbuf, "dIfF", 4)==0)
-                    {
-                        int32_t k = sv_readdiff(g_demo_recFilePtr);
-
-                        if (k)
-                        {
-                            OSD_Printf("sv_readdiff() returned %d.\n", k);
-                            CORRUPT(6);
-                        }
-                        else
-                        {
-                            lastsyncofs = ktell(g_demo_recFilePtr);
-                            lastsynctic = g_demo_cnt;
-                            lastsyncclock = totalclock;
-
-                            if (kread(g_demo_recFilePtr, tmpbuf, 4) != 4)
-                                CORRUPT(7);
-                            if (Bmemcmp(tmpbuf, "sYnC", 4))
-                                CORRUPT(8);
-
-                            {
-                                int32_t err = Demo_ReadSync(9);
-                                if (err)
-                                    CORRUPT(err);
-                            }
-
-                            if ((g_demo_goalCnt==0 && demoplay_diffs) ||
-                                (g_demo_goalCnt>0 && ud.reccnt/ud.multimode >= g_demo_goalCnt-g_demo_cnt))
-                            {
-                                Demo_UpdateState(0);
-                            }
-                        }
-                    }
-                    else if (Bmemcmp(tmpbuf, "EnD!", 4)==0)
-                        goto nextdemo;
-                    else CORRUPT(12);
-
-                    if (0)
-                    {
-corrupt:
-                        OSD_Printf(OSD_ERROR "Demo %d is corrupt (code %d).\n", g_whichDemo-1, corruptcode);
-nextdemo:
-                        Menu_Open(myconnectindex);
-nextdemo_nomenu:
-                        foundemo = 0;
-                        ud.reccnt = 0;
-                        kclose(g_demo_recFilePtr); g_demo_recFilePtr = -1;
-
-                        if (g_demo_goalCnt>0)
-                        {
-                            g_demo_goalCnt=0;
-                            ud.config.SoundToggle = g_demo_soundToggle;
-                        }
-
-                        if (Demo_IsProfiling())  // don't reset g_demo_profile if it's < 0
-                            Demo_FinishProfile();
-                        goto RECHECK;
-                    }
+                    if (bigi == 0 || bigi >= RECSYNCBUFSIZ)
+                        Demo_ReadSyncLegacy();
                 }
+                else
+                {
+                    if (ud.reccnt<=0)
+                    {
+                        // Record count reached zero (or <0, corrupted), need
+                        // reading another chunk.
 
-                if (demo_hasseeds)
-                    outofsync = ((uint8_t)(randomseed>>24) != g_demo_seedbuf[bigi]);
+                        char tmpbuf[4];
+
+                        if (ud.reccnt<0)
+                        {
+                            OSD_Printf("G_PlaybackDemo: ud.reccnt<0!\n");
+                            CORRUPT(1);
+                        }
+
+                        bigi = 0;
+                        //reread:
+                        if (kread(g_demo_recFilePtr, tmpbuf, 4) != 4)
+                            CORRUPT(2);
+
+                        if (Bmemcmp(tmpbuf, "sYnC", 4)==0)
+                        {
+                            int32_t err = Demo_ReadSync(3);
+                            if (err)
+                                CORRUPT(err);
+                        }
+
+                        else if (demo_hasdiffs && Bmemcmp(tmpbuf, "dIfF", 4)==0)
+                        {
+                            int32_t k = sv_readdiff(g_demo_recFilePtr);
+
+                            if (k)
+                            {
+                                OSD_Printf("sv_readdiff() returned %d.\n", k);
+                                CORRUPT(6);
+                            }
+                            else
+                            {
+                                lastsyncofs = ktell(g_demo_recFilePtr);
+                                lastsynctic = g_demo_cnt;
+                                lastsyncclock = totalclock;
+
+                                if (kread(g_demo_recFilePtr, tmpbuf, 4) != 4)
+                                    CORRUPT(7);
+                                if (Bmemcmp(tmpbuf, "sYnC", 4))
+                                    CORRUPT(8);
+
+                                {
+                                    int32_t err = Demo_ReadSync(9);
+                                    if (err)
+                                        CORRUPT(err);
+                                }
+
+                                if ((g_demo_goalCnt==0 && demoplay_diffs) ||
+                                    (g_demo_goalCnt>0 && ud.reccnt/ud.multimode >= g_demo_goalCnt-g_demo_cnt))
+                                {
+                                    Demo_UpdateState(0);
+                                }
+                            }
+                        }
+                        else if (Bmemcmp(tmpbuf, "EnD!", 4)==0)
+                            goto nextdemo;
+                        else CORRUPT(12);
+
+                        if (0)
+                        {
+corrupt:
+                            OSD_Printf(OSD_ERROR "Demo %d is corrupt (code %d).\n", g_whichDemo-1, corruptcode);
+nextdemo:
+                            Menu_Open(myconnectindex);
+nextdemo_nomenu:
+                            foundemo = 0;
+                            ud.reccnt = 0;
+                            kclose(g_demo_recFilePtr); g_demo_recFilePtr = -1;
+
+                            if (g_demo_goalCnt>0)
+                            {
+                                g_demo_goalCnt=0;
+                                ud.config.SoundToggle = g_demo_soundToggle;
+                            }
+
+                            if (Demo_IsProfiling())  // don't reset g_demo_profile if it's < 0
+                                Demo_FinishProfile();
+                            goto RECHECK;
+                        }
+                    }
+
+                    if (demo_hasseeds)
+                        outofsync = ((uint8_t)(randomseed>>24) != g_demo_seedbuf[bigi]);
+                }
 
                 for (TRAVERSE_CONNECT(j))
                 {

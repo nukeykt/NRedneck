@@ -4852,7 +4852,7 @@ void Menu_Open(size_t playerID)
 
 void Menu_Close(size_t playerID)
 {
-    if (g_player[playerID].ps->gm & MODE_GAME)
+    if (g_player[playerID].ps->gm & (MODE_GAME|MODE_DEMO))
     {
         // The following lines are here so that you cannot close the menu when no game is running.
         g_player[playerID].ps->gm &= ~MODE_MENU;

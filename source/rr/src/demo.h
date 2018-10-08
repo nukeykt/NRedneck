@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define demo_h_
 
 #define DEMOFN_FMT "edemo%03d.edm"
+#define LDEMOFN_FMT "demo%d.dmo"
 #define MAXDEMOS 1000
 
 extern FILE *g_demo_filePtr;

@@ -3654,7 +3654,7 @@ void P_HandleSharedKeys(int playerNum)
             KB_ClearKeyDown(sc_Pause);
             if (ud.pause_on)
                 ud.pause_on = 0;
-            else ud.pause_on = 1+(TEST_SYNC_KEY(playerBits, SK_RUN) != 0);
+            else ud.pause_on = 1+SHIFTS_IS_PRESSED;
             if (ud.pause_on)
             {
                 S_PauseMusic(1);

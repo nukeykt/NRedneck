@@ -3215,16 +3215,16 @@ void P_GetInputMotorcycle(int playerNum)
                 if (moveBack)
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(20);
+                        staticInput.q16avel += fix16_from_int(20*2);
                     else
-                        staticInput.q16avel += fix16_from_int(10);
+                        staticInput.q16avel += fix16_from_int(10*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(20);
+                        staticInput.q16avel -= fix16_from_int(20*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(10);
+                        staticInput.q16avel -= fix16_from_int(10*2);
                 }
             }
             else
@@ -3232,16 +3232,16 @@ void P_GetInputMotorcycle(int playerNum)
                 if (moveBack)
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(10);
+                        staticInput.q16avel += fix16_from_int(10*2);
                     else
-                        staticInput.q16avel += fix16_from_int(3);
+                        staticInput.q16avel += fix16_from_int(3*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(10);
+                        staticInput.q16avel -= fix16_from_int(10*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(3);
+                        staticInput.q16avel -= fix16_from_int(3*2);
                 }
             }
         }
@@ -3256,16 +3256,16 @@ void P_GetInputMotorcycle(int playerNum)
                 if (moveBack)
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(20);
+                        staticInput.q16avel -= fix16_from_int(20*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(10);
+                        staticInput.q16avel -= fix16_from_int(10*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(20);
+                        staticInput.q16avel += fix16_from_int(20*2);
                     else
-                        staticInput.q16avel += fix16_from_int(10);
+                        staticInput.q16avel += fix16_from_int(10*2);
                 }
             }
             else
@@ -3273,16 +3273,16 @@ void P_GetInputMotorcycle(int playerNum)
                 if (moveBack)
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(10);
+                        staticInput.q16avel -= fix16_from_int(10*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(3);
+                        staticInput.q16avel -= fix16_from_int(3*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(10);
+                        staticInput.q16avel += fix16_from_int(10*2);
                     else
-                        staticInput.q16avel += fix16_from_int(3);
+                        staticInput.q16avel += fix16_from_int(3*2);
                 }
             }
         }
@@ -3497,16 +3497,16 @@ void P_GetInputBoat(int playerNum)
                 if (pPlayer->not_on_water)
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(6);
+                        staticInput.q16avel -= fix16_from_int(6*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(3);
+                        staticInput.q16avel -= fix16_from_int(3*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(20);
+                        staticInput.q16avel -= fix16_from_int(20*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(10);
+                        staticInput.q16avel -= fix16_from_int(10*2);
                 }
             }
             else
@@ -3514,16 +3514,16 @@ void P_GetInputBoat(int playerNum)
                 if (pPlayer->not_on_water)
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(2);
+                        staticInput.q16avel -= fix16_from_int(2*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(1);
+                        staticInput.q16avel -= fix16_from_int(1*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel -= fix16_from_int(6);
+                        staticInput.q16avel -= fix16_from_int(6*2);
                     else
-                        staticInput.q16avel -= fix16_from_int(3);
+                        staticInput.q16avel -= fix16_from_int(3*2);
                 }
             }
         }
@@ -3541,16 +3541,16 @@ void P_GetInputBoat(int playerNum)
                 if (pPlayer->not_on_water)
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(6);
+                        staticInput.q16avel += fix16_from_int(6*2);
                     else
-                        staticInput.q16avel += fix16_from_int(3);
+                        staticInput.q16avel += fix16_from_int(3*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(20);
+                        staticInput.q16avel += fix16_from_int(20*2);
                     else
-                        staticInput.q16avel += fix16_from_int(10);
+                        staticInput.q16avel += fix16_from_int(10*2);
                 }
             }
             else
@@ -3558,16 +3558,16 @@ void P_GetInputBoat(int playerNum)
                 if (pPlayer->not_on_water)
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(2);
+                        staticInput.q16avel += fix16_from_int(2*2);
                     else
-                        staticInput.q16avel += fix16_from_int(1);
+                        staticInput.q16avel += fix16_from_int(1*2);
                 }
                 else
                 {
                     if (turn)
-                        staticInput.q16avel += fix16_from_int(6);
+                        staticInput.q16avel += fix16_from_int(6*2);
                     else
-                        staticInput.q16avel += fix16_from_int(3);
+                        staticInput.q16avel += fix16_from_int(3*2);
                 }
             }
         }
@@ -7922,13 +7922,15 @@ HORIZONLY:;
         pPlayer->q16horiz -= fix16_from_int(pPlayer->hard_landing<<4);
     }
 
+    pPlayer->q16horiz = fix16_clamp(pPlayer->q16horiz + g_player[playerNum].inputBits->q16horz, F16(HORIZ_MIN), F16(HORIZ_MAX));
+
+    if ((g_player[myconnectindex].ps->gm&MODE_DEMO) != 0) centerHoriz = 0;
+
     if (centerHoriz && (!RR || !pPlayer->recoil))
     {
         if (pPlayer->q16horiz > F16(95) && pPlayer->q16horiz < F16(105)) pPlayer->q16horiz = F16(100);
         if (pPlayer->q16horizoff > F16(-5) && pPlayer->q16horizoff < F16(5)) pPlayer->q16horizoff = 0;
     }
-
-    pPlayer->q16horiz = fix16_clamp(pPlayer->q16horiz + g_player[playerNum].inputBits->q16horz, F16(HORIZ_MIN), F16(HORIZ_MAX));
 
     //Shooting code/changes
 
