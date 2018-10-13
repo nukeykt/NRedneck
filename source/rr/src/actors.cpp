@@ -596,10 +596,11 @@ void A_DoGuts(int spriteNum, int tileNum, int spawnCnt)
 
     for (bssize_t j=spawnCnt; j>0; j--)
     {
-        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2(), r6 = krand2();
-        int const i = A_InsertSprite(pSprite->sectnum, pSprite->x + (r6 & 255) - 128,
-                                     pSprite->y + (r5 & 255) - 128, gutZ - (r4 & 8191), tileNum, -32, repeat.x,
-                                     repeat.y, r3 & 2047, 48 + (r2 & 31), -512 - (r1 & 2047), spriteNum, 5);
+        int32_t const ang = krand2() & 2047;
+        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2();
+        int const i = A_InsertSprite(pSprite->sectnum, pSprite->x + (r5 & 255) - 128,
+                                     pSprite->y + (r4 & 255) - 128, gutZ - (r3 & 8191), tileNum, -32, repeat.x,
+                                     repeat.y, ang, 48 + (r2 & 31), -512 - (r1 & 2047), spriteNum, 5);
 
         if (!RR && PN(i) == JIBS2)
         {
@@ -630,8 +631,9 @@ void A_DoGutsDir(int spriteNum, int tileNum, int spawnCnt)
 
     for (bssize_t j=spawnCnt; j>0; j--)
     {
-        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2();
-        A_InsertSprite(s->sectnum, s->x, s->y, gutZ, tileNum, -32, repeat.x, repeat.y, r3 & 2047,
+        int32_t const ang = krand2() & 2047;
+        int32_t const r1 = krand2(), r2 = krand2();
+        A_InsertSprite(s->sectnum, s->x, s->y, gutZ, tileNum, -32, repeat.x, repeat.y, ang,
                                      256 + (r2 & 127), -512 - (r1 & 2047), spriteNum, 5);
     }
 }
@@ -813,8 +815,8 @@ ACTOR_STATIC void G_MoveZombieActors(void)
                 {
                     if (A_CheckEnemySprite(pSprite))
                     {
-                        vec3_t p = { pPlayer->pos.x + 64 - (krand2() & 127),
-                                     pPlayer->pos.y + 64 - (krand2() & 127),
+                        vec3_t p = { pPlayer->opos.x + 64 - (krand2() & 127),
+                                     pPlayer->opos.y + 64 - (krand2() & 127),
                                      0 };
 
                         int16_t pSectnum = pPlayer->cursectnum;
@@ -835,19 +837,19 @@ ACTOR_STATIC void G_MoveZombieActors(void)
 
                         updatesector(s.x, s.y, &sectNum);
 
-                        if (sectNum == -1)
-                        {
-                            spriteNum = nextSprite;
-                            continue;
-                        }
+                        //if (sectNum == -1)
+                        //{
+                        //    spriteNum = nextSprite;
+                        //    continue;
+                        //}
                         canSeePlayer = 0;
                         if (!RR || pSprite->pal == 33 || A_CheckSpriteFlags(spriteNum, SFLAG_NOCANSEECHECK)
                             || (RRRA && pSprite->picnum == MINION && pSprite->pal == 8)
                             || (sintable[(pSprite->ang+512)&2047]*(p.x-s.x)+sintable[pSprite->ang&2047]*(p.y-s.y) >= 0))
                         {
-                            p.z = pPlayer->pos.z - (krand2() % ZOFFSET5);
+                            p.z = pPlayer->opos.z - (krand2() % ZOFFSET5);
                             s.z = pSprite->z - (krand2() % (52 << 8));
-                            canSeePlayer = cansee(s.x, s.y, s.z, sectNum, p.x, p.y, p.z, pSectnum);
+                            canSeePlayer = cansee(s.x, s.y, s.z, pSprite->sectnum, p.x, p.y, p.z, pPlayer->cursectnum);
                         }
                     }
                     else
@@ -3171,7 +3173,7 @@ static int P_Emerge(int const spriteNum, int const playerNum, DukePlayer_t * con
         A_PlaySound(DUKE_GASP, spriteNum);
 
         pPlayer->opos.z = pPlayer->pos.z = sector[otherSect].floorz - (7<<8);
-        pPlayer->vel.z = 0;
+        //pPlayer->vel.z = 0;
 //        ps->vel.z += 1024;
 
         if (!RR)
@@ -8621,7 +8623,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
                             || sprite[sectSprite].picnum == BOLT1 + 1
                             || sprite[sectSprite].picnum == BOLT1 + 2
                             || sprite[sectSprite].picnum == BOLT1 + 3
-                            || (RR && (sprite[sectSprite].picnum == SIDEBOLT1
+                            || (!RR && (sprite[sectSprite].picnum == SIDEBOLT1
                             || sprite[sectSprite].picnum == SIDEBOLT1 + 1
                             || sprite[sectSprite].picnum == SIDEBOLT1 + 2
                             || sprite[sectSprite].picnum == SIDEBOLT1 + 3))

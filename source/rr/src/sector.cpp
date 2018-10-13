@@ -566,7 +566,7 @@ void G_AnimateWalls(void)
                 wall[i].xpanning += 6;
         }
     }
-    for (bssize_t animwallNum = g_animWallCnt-1; animwallNum>=0; animwallNum--)
+    for (bssize_t animwallNum = 0; animwallNum < g_animWallCnt; animwallNum++)
     {
         int const wallNum = animwall[animwallNum].wallnum;
 
@@ -3180,7 +3180,7 @@ void A_DamageObject(int spriteNum, int const dmgSrc)
     case ANTENNA__STATIC:
         if (sprite[dmgSrc].extra != G_DefaultActorHealth(SHOTSPARK1))
         {
-            for (bssize_t j=15; j>0; j--)
+            for (bssize_t j=0; j<15; j++)
             {
                 int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2();
                 A_InsertSprite(SECT(spriteNum),SX(spriteNum),SY(spriteNum),sector[SECT(spriteNum)].floorz-ZOFFSET4-(j<<9),SCRAP1+(r4&15),-8,64,64,

@@ -260,8 +260,8 @@ int A_FurthestVisiblePoint(int const spriteNum, uspritetype * const ts, vec2_t *
         if (hit.sect < 0)
             continue;
 
-        int const d  = FindDistance2D(hit.pos.x - ts->x, hit.pos.y - ts->y);
-        int const da = FindDistance2D(hit.pos.x - pnSprite->x, hit.pos.y - pnSprite->y);
+        int const d  = klabs(hit.pos.x - ts->x) + klabs(hit.pos.y - ts->y);
+        int const da = klabs(hit.pos.x - pnSprite->x) + klabs(hit.pos.y - pnSprite->y);
 
         if (d < da)
         {
@@ -280,12 +280,10 @@ int A_FurthestVisiblePoint(int const spriteNum, uspritetype * const ts, vec2_t *
 static void VM_GetZRange(int const spriteNum, int32_t * const ceilhit, int32_t * const florhit, int const wallDist)
 {
     uspritetype *const pSprite = (uspritetype *)&sprite[spriteNum];
-
-    pSprite->z -= ZOFFSET;
-
-    getzrange((vec3_t *)pSprite, pSprite->sectnum, &actor[spriteNum].ceilingz, ceilhit, &actor[spriteNum].floorz, florhit, wallDist, CLIPMASK0);
-
-    pSprite->z += ZOFFSET;
+    vec3_t const tempVect = {
+        pSprite->x, pSprite->y, pSprite->z - ZOFFSET
+    };
+    getzrange(&tempVect, pSprite->sectnum, &actor[spriteNum].ceilingz, ceilhit, &actor[spriteNum].floorz, florhit, wallDist, CLIPMASK0);
 }
 
 void A_GetZLimits(int const spriteNum)
@@ -700,7 +698,7 @@ GAMEEXEC_STATIC void VM_Move(void)
                 {
                     if (vm.pSprite->z > vm.pActor->floorz)
                         vm.pSprite->z = vm.pActor->floorz;
-                    vm.pSprite->z += A_GetWaterZOffset(vm.spriteNum);
+                    //vm.pSprite->z += A_GetWaterZOffset(vm.spriteNum);
                 }
                 else if (vm.pSprite->zvel < 0)
                 {
@@ -896,7 +894,7 @@ static int32_t A_GetWaterZOffset(int const spriteNum)
     {
         if (RRRA)
         {
-            switch (DYNAMICTILEMAP(spriteNum))
+            switch (DYNAMICTILEMAP(pSprite->picnum))
             {
                 case HULKBOAT__STATICRR:
                     return (12<<8);
@@ -1253,6 +1251,8 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                             }
                         }
                     }
+                    VM_CONDITIONAL(0);
+                    continue;
                 }
                 VM_CONDITIONAL(1);
             }

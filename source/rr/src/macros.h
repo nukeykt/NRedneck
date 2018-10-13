@@ -37,9 +37,6 @@ static FORCE_INLINE int32_t krand2(void)
 #define ALT_IS_PRESSED ( KB_KeyPressed( sc_RightAlt ) || KB_KeyPressed( sc_LeftAlt ) )
 #define SHIFTS_IS_PRESSED ( KB_KeyPressed( sc_RightShift ) || KB_KeyPressed( sc_LeftShift ) )
 
-#define RANDOMSCRAP(s, i) A_InsertSprite(s->sectnum,s->x+(krand2()&255)-128,s->y+(krand2()&255)-128,s->z-ZOFFSET3-(krand2()&8191),\
-    SCRAP6+(krand2()&15),-8,RR?16:48,RR?16:48,krand2()&2047,(krand2()&63)+64,-512-(krand2()&2047),i,5)
-
 #define RANDOMSCRAP(s, i) \
 { \
     int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2(), r6 = krand2(), r7 = krand2(); \

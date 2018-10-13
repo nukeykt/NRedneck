@@ -1988,11 +1988,11 @@ default_case:
             {
                 if (sector[sprite[spriteNum].sectnum].lotag == ST_2_UNDERWATER)
                 {
-                    pSprite->z = getceilzofslope(sectNum, pSprite->x, pSprite->y) + (16 << 8);
+                    pSprite->z = getceilzofslope(pSprite->sectnum, pSprite->x, pSprite->y) + (16 << 8);
                     pSprite->cstat |= 8;
                 }
                 else if (sector[sprite[spriteNum].sectnum].lotag == ST_1_ABOVE_WATER)
-                    pSprite->z = getflorzofslope(sectNum, pSprite->x, pSprite->y);
+                    pSprite->z = getflorzofslope(pSprite->sectnum, pSprite->x, pSprite->y);
             }
 
             if (sector[sectNum].floorpicnum == FLOORSLIME || sector[sectNum].ceilingpicnum == FLOORSLIME)
@@ -2255,7 +2255,7 @@ default_case:
             pSprite->cstat |= 16;
             pSprite->xrepeat = 7 + (krand2() & 7);
             pSprite->yrepeat = 7 + (krand2() & 7);
-            pSprite->z += (tilesiz[pSprite->picnum].y * pSprite->yrepeat) >> 2;
+            pSprite->z -= ZOFFSET2;
 
             if (spriteNum >= 0 && sprite[spriteNum].pal == 6)
                 pSprite->pal = 6;
@@ -3523,7 +3523,7 @@ rr_badguy:
                 break;
             }
             pSprite->extra = 130;
-            pSprite->cstat |= 256; // Make it hitable
+            pSprite->cstat |= 257; // Make it hitable
 
             if ((!g_netServer && ud.multimode < 2) && pSprite->pal != 0)
             {

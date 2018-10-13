@@ -217,7 +217,7 @@ int32_t ldist(const void *s1, const void *s2)
 {
     vec2_t const *const sp1 = (vec2_t const *)s1;
     vec2_t const *const sp2 = (vec2_t const *)s2;
-    return sepldist(sp1->x - sp2->x, sp1->y - sp2->y);
+    return sepldist(sp1->x - sp2->x, sp1->y - sp2->y)+1;
 }
 
 int32_t dist(const void *s1, const void *s2)

@@ -53,7 +53,7 @@ int32_t demoplay_showsync=1;
 
 static int32_t demo_synccompress=1, demorec_seeds=1, demo_hasseeds;
 
-char demo_legacy = 0;
+char g_demo_legacy = 0;
 int32_t demo_reccnt_init = 0;
 
 #pragma pack(push,1)
@@ -110,15 +110,15 @@ static int32_t G_OpenDemoRead(int32_t g_whichDemo) // 0 = mine
         demofnptr = g_firstDemoFile;
         const int fileNameLen = Bstrlen(g_firstDemoFile);
         if (fileNameLen >= 4 && !Bstrncasecmp(&g_firstDemoFile[fileNameLen - 4], ".dmo", 4))
-            demo_legacy = 1;
+            g_demo_legacy = 1;
         else
-            demo_legacy = 0;
+            g_demo_legacy = 0;
     }
     else
     {
         Bsprintf(demofn, DEMOFN_FMT, g_whichDemo);
         demofnptr = demofn;
-        demo_legacy = 0;
+        g_demo_legacy = 0;
     }
 
     g_demo_recFilePtr = kopen4loadfrommod(demofnptr, g_loadFromGroupOnly);
@@ -127,13 +127,13 @@ static int32_t G_OpenDemoRead(int32_t g_whichDemo) // 0 = mine
         // Check for legacy demo
         Bsprintf(demofn, LDEMOFN_FMT, g_whichDemo);
         demofnptr = demofn;
-        demo_legacy = 1;
+        g_demo_legacy = 1;
         g_demo_recFilePtr = kopen4loadfrommod(demofnptr, g_loadFromGroupOnly);
         if (g_demo_recFilePtr == -1)
             return 0;
     }
 
-    if (demo_legacy)
+    if (g_demo_legacy)
     {
         ud.reccnt = 0;
 
@@ -656,7 +656,7 @@ RECHECK:
         g_player[myconnectindex].ps->gm &= ~MODE_GAME;
         g_player[myconnectindex].ps->gm |= MODE_DEMO;
 
-        if (demo_legacy)
+        if (g_demo_legacy)
             G_EnterLevel(MODE_DEMO);
 
         lastsyncofs = ktell(g_demo_recFilePtr);
@@ -709,7 +709,7 @@ RECHECK:
 
                 int32_t menu = g_player[myconnectindex].ps->gm&MODE_MENU;
 
-                if (demo_legacy)
+                if (g_demo_legacy)
                 {
                     klseek(g_demo_recFilePtr, initsyncofs, SEEK_SET);
                     g_levelTextTime = 0;
@@ -767,10 +767,13 @@ RECHECK:
                 //                   || (ud.reccnt > REALGAMETICSPERSEC*2 && ud.pause_on)
                 || (g_demo_goalCnt>0 && g_demo_cnt<g_demo_goalCnt))
             {
-                if (demo_legacy)
+                if (g_demo_legacy)
                 {
                     if (bigi == 0 || bigi >= RECSYNCBUFSIZ)
+                    {
+                        bigi = 0;
                         Demo_ReadSyncLegacy();
+                    }
                 }
                 else
                 {
@@ -1013,7 +1016,10 @@ nextdemo_nomenu:
                         rotatesprite(150<<16, 16<<16, 32768, 0, SLIDEBAR, 0, 0, 2+8+16+1024, (xdim*155)/320, 0, xdim-1, ydim-1);
 
                         j = (182<<16) - (tabledivide32_noinline((120*(g_demo_totalCnt-g_demo_cnt))<<4, g_demo_totalCnt)<<12);
-                        rotatesprite_fs(j, (16<<16)+(1<<15), 32768, 0, SLIDEBAR+1, 0, 0, 2+8+16+1024);
+                        if (RR)
+                            rotatesprite_fs(j, (15<<16)+(1<<15), 16384, 0, BIGALPHANUM-9, 0, 0, 2+8+16+1024);
+                        else
+                            rotatesprite_fs(j, (16<<16)+(1<<15), 32768, 0, SLIDEBAR+1, 0, 0, 2+8+16+1024);
 
                         j=(g_demo_totalCnt-g_demo_cnt)/REALGAMETICSPERSEC;
                         Bsprintf(buf, "-%02d:%02d%s", j/60, j%60, g_demo_paused ? "   ^15PAUSED" : "");

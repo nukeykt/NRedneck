@@ -309,9 +309,9 @@ static int GetAutoAimAng(int spriteNum, int playerNum, int projecTile, int zAdju
     if (returnSprite >= 0)
     {
         const uspritetype *const pSprite = (uspritetype *)&sprite[returnSprite];
-        int                      zCenter = 2 * (pSprite->yrepeat * tilesiz[pSprite->picnum].y) + zAdjust;
+        int                      zCenter = 2 * (pSprite->xrepeat * tilesiz[pSprite->picnum].y) + zAdjust;
 
-        if (aimFlags && !RR &&
+        if ((aimFlags&1) && !RR &&
             ((pSprite->picnum >= GREENSLIME && pSprite->picnum <= GREENSLIME + 7) || pSprite->picnum == ROTATEGUN))
             zCenter -= ZOFFSET3;
 
@@ -418,9 +418,9 @@ static void A_PreFireHitscan(const spritetype *pSprite, vec3_t * const srcVect, 
     const DukePlayer_t *pPlayer    = g_player[playerNum].ps;
     int const           playerDist = safeldist(pPlayer->i, pSprite);
 
-    *zvel = tabledivide32_noinline((pPlayer->pos.z - srcVect->z) << 8, playerDist);
-
     srcVect->z -= ZOFFSET6;
+
+    *zvel = tabledivide32_noinline((pPlayer->pos.z - srcVect->z) << 8, playerDist);
 
     if (pSprite->picnum == BOSS1)
         *shootAng = getangle(pPlayer->pos.x - srcVect->x, pPlayer->pos.y - srcVect->y);
@@ -622,8 +622,9 @@ growspark_rr:
                     if (hitwal->hitag == 0)
                     {
                         int const spawnedSprite = A_Spawn(spriteNum, projecTile);
+                        sprite[spawnedSprite].xvel = -12;
                         sprite[spawnedSprite].ang
-                        = (getangle(hitwal->x - wall[hitwal->point2].x, hitwal->y - wall[hitwal->point2].y) + 1536) & 2047;
+                        = (getangle(hitwal->x - wall[hitwal->point2].x, hitwal->y - wall[hitwal->point2].y) + 512) & 2047;
                         *(vec3_t *)&sprite[spawnedSprite] = hitData.pos;
                         sprite[spawnedSprite].cstat |= (krand2() & 4);
                         A_SetSprite(spawnedSprite, CLIPMASK0);
@@ -805,6 +806,7 @@ growspark_rr:
 
                         decalSprite = A_Spawn(spawnedSprite, BULLETHOLE);
 
+                        sprite[decalSprite].xvel = -1;
                         sprite[decalSprite].ang
                         = (getangle(hitWall->x - wall[hitWall->point2].x, hitWall->y - wall[hitWall->point2].y) + 512) & 2047;
 
@@ -5937,9 +5939,9 @@ static void P_DoWater(int const playerNum, int const playerBits, int const floor
     if (pPlayer->pos.z > (floorZ-(15<<8)))
         pPlayer->pos.z += ((floorZ-(15<<8))-pPlayer->pos.z)>>1;
 
-    if (pPlayer->pos.z < ceilZ)
+    if (pPlayer->pos.z < ceilZ+ZOFFSET6)
     {
-        pPlayer->pos.z = ceilZ;
+        pPlayer->pos.z = ceilZ+ZOFFSET6;
         pPlayer->vel.z = 0;
     }
 
@@ -6055,6 +6057,7 @@ static void P_HandlePal(DukePlayer_t *const pPlayer)
     pPlayer->pals.f--;
 }
 
+extern char g_demo_legacy;
 
 void P_ProcessInput(int playerNum)
 {
@@ -6702,15 +6705,27 @@ void P_ProcessInput(int playerNum)
         }
     }
 
-    if (pPlayer->q16horizoff > 0)
+    if (ud.recstat == 2 && g_demo_legacy)
     {
-        pPlayer->q16horizoff -= ((pPlayer->q16horizoff >> 3) + fix16_one);
-        pPlayer->q16horizoff = max(pPlayer->q16horizoff, 0);
+        int horizoff = fix16_to_int(pPlayer->q16horizoff);
+        if (horizoff > 0)
+            horizoff -= ((horizoff >> 3) + 1);
+        else if (horizoff < 0)
+            horizoff += (((-horizoff) >> 3) + 1);
+        pPlayer->q16horizoff = F16(horizoff);
     }
-    else if (pPlayer->q16horizoff < 0)
+    else
     {
-        pPlayer->q16horizoff += (((-pPlayer->q16horizoff) >> 3) + fix16_one);
-        pPlayer->q16horizoff = min(pPlayer->q16horizoff, 0);
+        if (pPlayer->q16horizoff > 0)
+        {
+            pPlayer->q16horizoff -= ((pPlayer->q16horizoff >> 3) + fix16_one);
+            pPlayer->q16horizoff = max(pPlayer->q16horizoff, 0);
+        }
+        else if (pPlayer->q16horizoff < 0)
+        {
+            pPlayer->q16horizoff += (((-pPlayer->q16horizoff) >> 3) + fix16_one);
+            pPlayer->q16horizoff = min(pPlayer->q16horizoff, 0);
+        }
     }
 
     if (highZhit >= 0 && (highZhit&49152) == 49152)
@@ -7290,7 +7305,7 @@ check_enemy_sprite:
 
         pPlayer->pos.z += pPlayer->vel.z;
 
-        if ((sectorLotag != ST_2_UNDERWATER || ceilZ != sector[pPlayer->cursectnum].ceilingz) && pPlayer->pos.z < (ceilZ+ZOFFSET6))
+        if (pPlayer->pos.z < (ceilZ+ZOFFSET6))
         {
             pPlayer->jumping_counter = 0;
             if (pPlayer->vel.z < 0)
@@ -7312,7 +7327,11 @@ check_enemy_sprite:
     {
         fix16_t const inputAng  = g_player[playerNum].inputBits->q16avel;
 
-        pPlayer->q16angvel     = (sectorLotag == ST_2_UNDERWATER) ? fix16_mul(inputAng - (inputAng >> 3), fix16_from_int(ksgn(velocityModifier)))
+        if (ud.recstat == 2 && g_demo_legacy)
+            pPlayer->q16angvel = (sectorLotag == ST_2_UNDERWATER) ? ((fix16_to_int(inputAng) - (fix16_to_int(inputAng) >> 3))*fix16_from_int(ksgn(velocityModifier)))
+                                                               : (fix16_to_int(inputAng) * fix16_from_int(ksgn(velocityModifier)));
+        else
+            pPlayer->q16angvel = (sectorLotag == ST_2_UNDERWATER) ? fix16_mul(inputAng - (inputAng >> 3), fix16_from_int(ksgn(velocityModifier)))
                                                                : fix16_mul(inputAng, fix16_from_int(ksgn(velocityModifier)));
         pPlayer->q16ang       += pPlayer->q16angvel;
         pPlayer->q16ang       &= 0x7FFFFFF;
@@ -7430,12 +7449,12 @@ check_enemy_sprite:
         pPlayer->vel.y += (((g_player[playerNum].inputBits->svel) * velocityModifier) << 6);
 
         int playerSpeedReduction = 0;
-
-        if (sectorLotag == ST_2_UNDERWATER)
-            playerSpeedReduction = 0x1400;
-        else if (!RRRA && ((pPlayer->on_ground && (TEST_SYNC_KEY(playerBits, SK_CROUCH)))
+        
+        if (!RRRA && ((pPlayer->on_ground && (TEST_SYNC_KEY(playerBits, SK_CROUCH)))
                   || (*weaponFrame > 10 && pPlayer->curr_weapon == KNEE_WEAPON)))
             playerSpeedReduction = 0x2000;
+        else if (sectorLotag == ST_2_UNDERWATER)
+            playerSpeedReduction = 0x1400;
 
         pPlayer->vel.x = mulscale16(pPlayer->vel.x, pPlayer->runspeed - playerSpeedReduction);
         pPlayer->vel.y = mulscale16(pPlayer->vel.y, pPlayer->runspeed - playerSpeedReduction);
@@ -7889,7 +7908,10 @@ HORIZONLY:;
     else if (pPlayer->return_to_center > 0 && !TEST_SYNC_KEY(playerBits, SK_LOOK_UP) && !TEST_SYNC_KEY(playerBits, SK_LOOK_DOWN))
     {
         pPlayer->return_to_center--;
-        pPlayer->q16horiz += F16(33)-fix16_div(pPlayer->q16horiz, F16(3));
+        if (ud.recstat == 2 && g_demo_legacy)
+            pPlayer->q16horiz += F16(33-fix16_to_int(pPlayer->q16horiz) / 3);
+        else
+            pPlayer->q16horiz += F16(33)-fix16_div(pPlayer->q16horiz, F16(3));
         centerHoriz++;
     }
 
@@ -7901,7 +7923,7 @@ HORIZONLY:;
 
     pPlayer->q16horiz = fix16_clamp(pPlayer->q16horiz + g_player[playerNum].inputBits->q16horz, F16(HORIZ_MIN), F16(HORIZ_MAX));
 
-    if ((g_player[myconnectindex].ps->gm&MODE_DEMO) != 0) centerHoriz = 0;
+    if (ud.recstat == 2 && g_demo_legacy) centerHoriz = !pPlayer->aim_mode;
 
     if (centerHoriz && (!RR || !pPlayer->recoil))
     {

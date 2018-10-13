@@ -7278,8 +7278,6 @@ LISTFN_STATIC int32_t insertspritestat(int16_t statnum)
     // make back-link of the new freelist head point to nil
     if (headspritestat[MAXSTATUS] >= 0)
         prevspritestat[headspritestat[MAXSTATUS]] = -1;
-    else
-        tailspritefree = -1;
 
     do_insertsprite_at_headofstat(blanktouse, statnum);
 
@@ -7341,15 +7339,8 @@ int32_t deletesprite(int16_t spritenum)
     sprite[spritenum].sectnum = MAXSECTORS;
 
     // insert at tail of status freelist
-    prevspritestat[spritenum] = tailspritefree;
-    nextspritestat[spritenum] = -1;
-    if (tailspritefree >= 0)
-        nextspritestat[tailspritefree] = spritenum;
-    else
-        headspritestat[MAXSTATUS] = spritenum;
-    sprite[spritenum].statnum = MAXSTATUS;
+    do_insertsprite_at_headofstat(spritenum, MAXSTATUS);
 
-    tailspritefree = spritenum;
     Numsprites--;
 
     return 0;
@@ -7908,7 +7899,6 @@ void initspritelists(void)
     prevspritestat[0] = -1;
     nextspritestat[MAXSPRITES-1] = -1;
 
-    tailspritefree = MAXSPRITES-1;
     Numsprites = 0;
 }
 
@@ -12563,7 +12553,7 @@ int32_t getceilzofslopeptr(const usectortype *sec, int32_t dax, int32_t day)
     if (i == 0) return sec->ceilingz;
 
     int const j = dmulscale3(d.x, day-w.y, -d.y, dax-w.x);
-    return sec->ceilingz + (scale(sec->ceilingheinum,j>>1,i)<<1);
+    return sec->ceilingz + scale(sec->ceilingheinum,j,i);
 }
 
 int32_t getflorzofslopeptr(const usectortype *sec, int32_t dax, int32_t day)
@@ -12580,7 +12570,7 @@ int32_t getflorzofslopeptr(const usectortype *sec, int32_t dax, int32_t day)
     if (i == 0) return sec->floorz;
 
     int const j = dmulscale3(d.x, day-w.y, -d.y, dax-w.x);
-    return sec->floorz + (scale(sec->floorheinum,j>>1,i)<<1);
+    return sec->floorz + scale(sec->floorheinum,j,i);
 }
 
 void getzsofslopeptr(const usectortype *sec, int32_t dax, int32_t day, int32_t *ceilz, int32_t *florz)
@@ -12599,9 +12589,9 @@ void getzsofslopeptr(const usectortype *sec, int32_t dax, int32_t day, int32_t *
 
     int const j = dmulscale3(d.x,day-wal->y, -d.y,dax-wal->x);
     if (sec->ceilingstat&2)
-        *ceilz += scale(sec->ceilingheinum,j>>1,i)<<1;
+        *ceilz += scale(sec->ceilingheinum,j,i);
     if (sec->floorstat&2)
-        *florz += scale(sec->floorheinum,j>>1,i)<<1;
+        *florz += scale(sec->floorheinum,j,i);
 }
 
 

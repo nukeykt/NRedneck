@@ -1634,9 +1634,9 @@ static void prelevel(char g)
     {
         if (sprite[i].statnum < MAXSTATUS && PN(i) == SECTOREFFECTOR && SLT(i) == SE_14_SUBWAY_CAR)
             A_Spawn(-1, i);
-        if (sprite[i].picnum == RRTILE19)
+        if (RR && sprite[i].picnum == RRTILE19)
             A_DeleteSprite(i);
-        if (sprite[i].picnum == RRTILE34)
+        if (RR && sprite[i].picnum == RRTILE34)
         {
             g_sectorExtra[sprite[i].sectnum] = sprite[i].lotag;
             A_DeleteSprite(i);
@@ -1668,7 +1668,7 @@ static void prelevel(char g)
             case LOCKSWITCH1__STATIC:
             case POWERSWITCH2__STATIC:
             case RRTILE8464__STATICRR:
-                if (!RRRA && PN(i)-1+ii == (uint32_t)RRTILE8464) break;
+                if (RR && !RRRA && PN(i)-1+ii == (uint32_t)RRTILE8464) break;
                 // the lower code only for the 'on' state (*)
                 if (ii==0)
                 {
