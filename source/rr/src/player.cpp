@@ -4234,7 +4234,7 @@ void P_CheckWeapon(DukePlayer_t *pPlayer)
 
     weaponNum = pPlayer->curr_weapon;
 
-    if ((pPlayer->gotweapon & (1<<weaponNum)) && (pPlayer->ammo_amount[weaponNum] > 0 || !(pPlayer->weaponswitch & 2)))
+    if ((pPlayer->gotweapon & (1<<weaponNum)) && pPlayer->ammo_amount[weaponNum] > 0)
         return;
 
     playerNum  = P_Get(pPlayer->i);
@@ -7937,7 +7937,7 @@ HORIZONLY:;
     {
         --pPlayer->show_empty_weapon;
 
-        if (!RR && pPlayer->show_empty_weapon == 0 && (pPlayer->weaponswitch & 2) && pPlayer->ammo_amount[pPlayer->curr_weapon] <= 0)
+        if (!RR && pPlayer->show_empty_weapon == 0)
         {
             if (pPlayer->last_full_weapon == GROW_WEAPON)
                 pPlayer->subweapon |= (1 << GROW_WEAPON);

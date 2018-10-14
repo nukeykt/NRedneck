@@ -194,6 +194,7 @@ static int32_t G_OpenDemoRead(int32_t g_whichDemo) // 0 = mine
         for (bssize_t i = 0; i < ud.multimode; i++)
         {
             kread(g_demo_recFilePtr, &g_player[i].ps->aim_mode, 1);
+            g_player[i].ps->auto_aim = 1;
         }
 
         g_demo_totalCnt = demoHeader.reccnt/ud.multimode;
@@ -479,9 +480,9 @@ static void Demo_ReadSyncLegacy(void)
             int32_t index = i * ud.multimode + j;
             recsync[index].q16avel = F16(recsynclegacy[index].avel<<1);
             recsync[index].q16horz = F16(recsynclegacy[index].horz>>1);
-            recsync[index].fvel = recsynclegacy[index].fvel;
-            recsync[index].svel = recsynclegacy[index].svel;
-            recsync[index].bits = recsynclegacy[index].bits;
+            recsync[index].fvel = B_LITTLE16(recsynclegacy[index].fvel);
+            recsync[index].svel = B_LITTLE16(recsynclegacy[index].svel);
+            recsync[index].bits = B_LITTLE32(recsynclegacy[index].bits);
             recsync[index].extbits = 0;
         }
     }
