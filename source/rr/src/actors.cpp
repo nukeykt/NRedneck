@@ -676,8 +676,6 @@ void A_MoveSector(int spriteNum)
     spritetype *const pSprite     = &sprite[spriteNum];
     int const         rotateAngle = T3(spriteNum);
     int               originIdx   = T2(spriteNum);
-    
-    A_FindPlayer(pSprite, &playerDist);
 
     pSprite->x += (pSprite->xvel * (sintable[(pSprite->ang + 512) & 2047])) >> 14;
     pSprite->y += (pSprite->xvel * (sintable[pSprite->ang & 2047])) >> 14;
@@ -5018,13 +5016,13 @@ ACTOR_STATIC void G_MoveActors(void)
                 pSprite->ang += 96;
                 pSprite->xvel = 128;
 
-                if (!A_SetSprite(spriteNum, CLIPMASK0) || pSprite->z > actor[spriteNum].floorz)
+                if (A_SetSprite(spriteNum, CLIPMASK0) != 1 || pSprite->z > actor[spriteNum].floorz)
                 {
                     for (bssize_t l = 0; l < 16; l++)
                         RANDOMSCRAP(pSprite, spriteNum);
 
-                    int const newSprite = A_Spawn(spriteNum, EXPLOSION2);
-                    A_PlaySound(LASERTRIP_EXPLODE, newSprite);
+                    //int const newSprite = A_Spawn(spriteNum, EXPLOSION2);
+                    A_PlaySound(LASERTRIP_EXPLODE, spriteNum);
                     if (RR)
                     {
                         if (RRRA && g_ufoSpawnMinion)
@@ -7809,7 +7807,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
                     }
                     for (SPRITES_OF(STAT_PLAYER, k))
                     {
-                        if (sprite[k].owner >= 0 && clipinsidebox((vec2_t *)&sprite[k], j, 144))
+                        if (sprite[k].owner >= 0 && clipinsidebox((vec2_t *)&sprite[k], j, 144) == 1)
                         {
                             pData[5] = 8;  // Delay
                             pData[2] -= l;

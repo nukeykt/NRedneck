@@ -2242,7 +2242,7 @@ default_case:
             fallthrough__;
         }
         case FECES__STATIC:
-            if (RR) goto default_case;
+            if (RR && pSprite->picnum == FECES) goto default_case;
             if (spriteNum >= 0)
                 pSprite->xrepeat = pSprite->yrepeat = 1;
             changespritestat(newSprite, STAT_MISC);
@@ -8631,10 +8631,12 @@ void A_SpawnGlass(int spriteNum, int glassCnt)
 {
     for (; glassCnt>0; glassCnt--)
     {
-        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2(), r5 = krand2();
+        int const a = krand2()&2047;
+        int const z = SZ(spriteNum)-((krand2()&16)<<8);
+        int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2();
         int const k
-        = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - ((r5 & 16) << 8), GLASSPIECES + (glassCnt % 3),
-                         r4 & 15, 36, 36, r3 & 2047, 32 + (r2 & 63), -512 - (r1 & 2047), spriteNum, 5);
+        = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), z, GLASSPIECES + (glassCnt % 3),
+                         r3 & 15, 36, 36, a, 32 + (r2 & 63), -512 - (r1 & 2047), spriteNum, 5);
         sprite[k].pal = sprite[spriteNum].pal;
     }
 }
@@ -8654,9 +8656,10 @@ void A_SpawnCeilingGlass(int spriteNum, int sectNum, int glassCnt)
         {
             v1.x += v.x;
             v1.y += v.y;
-            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2();
-            A_InsertSprite(sectNum, v1.x, v1.y, sector[sectNum].ceilingz + ((r3 & 15) << 8), GLASSPIECES + (j % 3), -32, 36, 36,
-                           r2 & 2047, (r1 & 31), 0, spriteNum, 5);
+            int const a = krand2()&2047;
+            int const z = sector[sectNum].ceilingz+((krand2()&15)<<8);
+            A_InsertSprite(sectNum, v1.x, v1.y, z, GLASSPIECES + (j % 3), -32, 36, 36,
+                           a, (krand2() & 31), 0, spriteNum, 5);
         }
     }
 }
@@ -8667,10 +8670,11 @@ void A_SpawnRandomGlass(int spriteNum, int wallNum, int glassCnt)
     {
         for (bssize_t j = glassCnt - 1; j >= 0; j--)
         {
-            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2(), r4 = krand2();
+            int const a = krand2() & 2047;
+            int32_t const r1 = krand2(), r2 = krand2(), r3 = krand2();
             int const k
-            = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (r4 & (63 << 8)), GLASSPIECES + (j % 3),
-                             -32, 36, 36, r3 & 2047, 32 + (r2 & 63), 1024 - (r1 & 2047), spriteNum, 5);
+            = A_InsertSprite(SECT(spriteNum), SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (r3 & (63 << 8)), GLASSPIECES + (j % 3),
+                             -32, 36, 36, a, 32 + (r2 & 63), 1024 - (r1 & 2047), spriteNum, 5);
             sprite[k].pal = krand2() & 15;
         }
         return;

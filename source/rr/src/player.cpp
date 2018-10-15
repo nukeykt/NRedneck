@@ -7098,6 +7098,7 @@ check_enemy_sprite:
 
                 if (spriteNum < 0)
                 {
+                    pPlayer->footprintcount--;
                     if (pPlayer->cursectnum >= 0 && sector[pPlayer->cursectnum].lotag == 0 &&
                         sector[pPlayer->cursectnum].hitag == 0)
 #ifdef YAX_ENABLE
@@ -7113,7 +7114,6 @@ check_enemy_sprite:
                             }
                             sprite[spriteNum].pal   = pPlayer->footprintpal;
                             sprite[spriteNum].shade = pPlayer->footprintshade;
-                            pPlayer->footprintcount--;
                         }
                 }
             }
@@ -7842,7 +7842,7 @@ HORIZONLY:;
 
     if (pPlayer->cursectnum >= 0 && ud.noclip == 0)
     {
-        int const squishPlayer = (pushmove((vec3_t *)pPlayer, &pPlayer->cursectnum, (!RR || pSprite->clipdist == 64) ? 128 : 16, (4L << 8), (4L << 8), CLIPMASK0) < 0 &&
+        int const squishPlayer = (pushmove((vec3_t *)pPlayer, &pPlayer->cursectnum, RR ? 16 : 164, (4L << 8), (4L << 8), CLIPMASK0) < 0 &&
                                  A_GetFurthestAngle(pPlayer->i, 8) < 512);
 
         if (squishPlayer || klabs(actor[pPlayer->i].floorz-actor[pPlayer->i].ceilingz) < (48<<8))
