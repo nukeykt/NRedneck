@@ -206,6 +206,7 @@ G_EXTERN int32_t g_windTime, g_windDir;
 G_EXTERN int16_t g_fakeBubbaCnt, g_mamaSpawnCnt, g_banjoSong, g_bellTime, g_bellSprite;
 G_EXTERN uint8_t g_spriteExtra[MAXSPRITES], g_sectorExtra[MAXSECTORS];
 G_EXTERN uint8_t g_changeEnemySize, g_slotWin, g_ufoSpawnMinion, g_pistonSound, g_chickenWeaponTimer, g_RAendLevel, g_RAendEpisode, g_fogType;
+G_EXTERN int32_t g_cdTrack;
 
 // XXX: I think this pragma pack is meaningless here.
 // MSDN (https://msdn.microsoft.com/en-us/library/2e70t5y1%28VS.80%29.aspx) says:

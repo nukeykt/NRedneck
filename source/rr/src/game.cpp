@@ -7852,6 +7852,7 @@ int app_main(int argc, char const * const * argv)
     {
         osdscale2 *= 0.5f;
         osdrscale2 = 1.f / osdscale2;
+        g_cdTrack = -1;
     }
 
     G_SetupCheats();

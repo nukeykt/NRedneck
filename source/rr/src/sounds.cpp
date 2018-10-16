@@ -186,7 +186,7 @@ void S_MenuSound(void)
         S_PlaySound(s);
 }
 
-static int32_t S_PlayMusic(const char *fn)
+static int32_t S_PlayMusic(const char *fn, int loop)
 {
     if (!ud.config.MusicToggle)
         return 0;
@@ -226,7 +226,7 @@ static int32_t S_PlayMusic(const char *fn)
 
     if (!Bmemcmp(MyMusicPtr, "MThd", 4))
     {
-        int32_t retval = MUSIC_PlaySong(MyMusicPtr, MyMusicSize, MUSIC_LoopSong);
+        int32_t retval = MUSIC_PlaySong(MyMusicPtr, MyMusicSize, loop);
 
         if (retval != MUSIC_Ok)
         {
@@ -248,7 +248,7 @@ static int32_t S_PlayMusic(const char *fn)
     else
     {
         int32_t const mvol = MASTER_VOLUME(ud.config.MusicVolume);
-        int MyMusicVoice = FX_Play(MyMusicPtr, MusicLen, 0, 0,
+        int MyMusicVoice = FX_Play(MyMusicPtr, MusicLen, loop ? 0 : -1, 0,
                                        0, mvol, mvol, mvol,
                                        FX_MUSIC_PRIORITY, MUSIC_ID);
 
@@ -282,10 +282,12 @@ static void S_SetMusicIndex(unsigned int m)
 
 int S_TryPlayLevelMusic(unsigned int m)
 {
+    if (RR)
+        return 1;
     char const * musicfn = g_mapInfo[m].musicfn;
     if (musicfn != NULL)
     {
-        if (!S_PlayMusic(musicfn))
+        if (!S_PlayMusic(musicfn, 1))
         {
             S_SetMusicIndex(m);
             return 0;
@@ -306,10 +308,12 @@ void S_PlayLevelMusicOrNothing(unsigned int m)
 
 int S_TryPlaySpecialMusic(unsigned int m)
 {
+    if (RR)
+        return 1;
     char const * musicfn = g_mapInfo[m].musicfn;
     if (musicfn != NULL)
     {
-        if (!S_PlayMusic(musicfn))
+        if (!S_PlayMusic(musicfn, 1))
         {
             S_SetMusicIndex(m);
             return 0;
@@ -317,6 +321,20 @@ int S_TryPlaySpecialMusic(unsigned int m)
     }
 
     return 1;
+}
+
+void S_PlayRRMusic(void)
+{
+    char fileName[16];
+    if (!RR)
+        return;
+    S_StopMusic();
+    g_cdTrack++;
+    if (g_cdTrack > 9 || g_cdTrack < 2)
+        g_cdTrack = 2;
+
+    Bsprintf(fileName, "track%.2d.ogg", g_cdTrack);
+    S_PlayMusic(fileName, 0);
 }
 
 void S_PlaySpecialMusicOrNothing(unsigned int m)
@@ -853,6 +871,9 @@ void S_Update(void)
 
     if ((g_player[myconnectindex].ps->gm & (MODE_GAME|MODE_DEMO)) == 0)
         return;
+
+    if (RR && MusicIsWaveform && MusicVoice >= 0 && !FX_SoundActive(MusicVoice))
+        S_PlayRRMusic();
 
     g_numEnvSoundsPlaying = 0;
 

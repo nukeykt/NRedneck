@@ -2495,6 +2495,9 @@ int G_EnterLevel(int gameMode)
         }
     }
 
+    if (RR && !(gameMode & MODE_DEMO))
+        S_PlayRRMusic();
+
     if (gameMode & (MODE_GAME|MODE_EOL))
     {
         for (TRAVERSE_CONNECT(i))
