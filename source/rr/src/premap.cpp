@@ -2620,8 +2620,8 @@ void G_SetFog(int fogtype)
         flut33 = palookupfog[33];
         flut23 = palookupfog[23];
         flut8 = palookupfog[8];
-        paletteMakeLookupTable(50, NULL, 12*4, 12*4, 12*4, 1);
-        paletteMakeLookupTable(51, NULL, 12*4, 12*4, 12*4, 1);
+        paletteMakeLookupTable(50, NULL, 12*4, 12*4, 12*4, 0);
+        paletteMakeLookupTable(51, NULL, 12*4, 12*4, 12*4, 0);
     }
     if (fogtype == 0)
     {
@@ -2661,6 +2661,12 @@ void G_SetFog(int fogtype)
                 fogtable[i].b = palookupfog[i].b * (1.f/255.f);
                 fogtable[i].a = 0;
             }
+            gltexinvalidatetype(INVALIDATE_ALL_NON_INDEXED);
+            uploadpalswap(0);
+            uploadpalswap(30);
+            uploadpalswap(33);
+            uploadpalswap(23);
+            uploadpalswap(8);
         }
     }
 }
