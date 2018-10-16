@@ -3165,10 +3165,18 @@ void P_GetInputMotorcycle(int playerNum)
     // used for changing team
     localInput.extbits |= (g_player[playerNum].pteam != g_player[playerNum].ps->team)<<6;
 
-
-    int const turn = fix16_to_int(staticInput.q16avel);
-    int const turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left) || turn < 0;
-    int const turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right) || turn > 0;
+    int const turn = staticInput.q16avel / 32;
+    int turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left);
+    int turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right);
+    int avelScale = F16(turnLeft || turnRight);
+    if (turn)
+    {
+        avelScale = fix16_max(avelScale, fix16_clamp(fix16_mul(turn, turn),0,F16(1)));
+        if (turn < 0)
+            turnLeft = 1;
+        else if (turn > 0)
+            turnRight = 1;
+    }
 
     staticInput.svel = staticInput.fvel = staticInput.q16avel = staticInput.q16horz = 0;
     
@@ -3296,6 +3304,8 @@ void P_GetInputMotorcycle(int playerNum)
 
     if (pPlayer->moto_underwater)
         pPlayer->moto_speed = 0;
+
+    staticInput.q16avel = fix16_mul(staticInput.q16avel, avelScale);
 
     staticInput.fvel += pPlayer->moto_speed;
 
@@ -3456,10 +3466,18 @@ void P_GetInputBoat(int playerNum)
     // used for changing team
     localInput.extbits |= (g_player[playerNum].pteam != g_player[playerNum].ps->team)<<6;
 
-
-    int const turn = fix16_to_int(staticInput.q16avel);
-    int const turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left) || turn < 0;
-    int const turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right) || turn > 0;
+    int const turn = staticInput.q16avel / 32;
+    int turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left);
+    int turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right);
+    int avelScale = F16(turnLeft || turnRight);
+    if (turn)
+    {
+        avelScale = fix16_max(avelScale, fix16_clamp(fix16_mul(turn, turn),0,F16(1)));
+        if (turn < 0)
+            turnLeft = 1;
+        else if (turn > 0)
+            turnRight = 1;
+    }
 
     staticInput.svel = staticInput.fvel = staticInput.q16avel = staticInput.q16horz = 0;
     
@@ -3581,6 +3599,8 @@ void P_GetInputBoat(int playerNum)
     }
 
     staticInput.fvel += pPlayer->moto_speed;
+
+    staticInput.q16avel = fix16_mul(staticInput.q16avel, avelScale);
 
     staticInput.fvel = clamp(staticInput.fvel, -15, 120);
     staticInput.svel = clamp(staticInput.svel, -MAXSVEL, MAXSVEL);
