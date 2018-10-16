@@ -876,6 +876,8 @@ nextdemo_nomenu:
 
                 g_demo_cnt++;
 
+                S_Update();
+
                 if (Demo_IsProfiling())
                 {
                     double t = timerGetHiTicks();
