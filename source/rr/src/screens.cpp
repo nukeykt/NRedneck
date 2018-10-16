@@ -2654,12 +2654,137 @@ void G_BonusScreen(int32_t bonusonly)
         g_vixenLevel = 0;
 }
 
+void G_PlayMapAnim(void)
+{
+    char *animFile;
+    if (ud.volume_number == 0)
+    {
+        switch (ud.level_number)
+        {
+            case 1:
+                animFile = (char*)"lvl1.anm";
+                break;
+            case 2:
+                animFile = (char*)"lvl2.anm";
+                break;
+            case 3:
+                animFile = (char*)"lvl3.anm";
+                break;
+            case 4:
+                animFile = (char*)"lvl4.anm";
+                break;
+            case 5:
+                animFile = (char*)"lvl5.anm";
+                break;
+            case 6:
+                animFile = (char*)"lvl6.anm";
+                break;
+            default:
+                animFile = (char*)"lvl7.anm";
+                break;
+        }
+    }
+    else
+    {
+        switch (ud.level_number)
+        {
+            case 1:
+                animFile = (char*)"lvl8.anm";
+                break;
+            case 2:
+                animFile = (char*)"lvl9.anm";
+                break;
+            case 3:
+                animFile = (char*)"lvl10.anm";
+                break;
+            case 4:
+                animFile = (char*)"lvl11.anm";
+                break;
+            case 5:
+                animFile = (char*)"lvl12.anm";
+                break;
+            case 6:
+                animFile = (char*)"lvl13.anm";
+                break;
+            default:
+                animFile = (char*)NULL;
+                break;
+        }
+    }
+
+    if (animFile == NULL)
+        return;
+
+    Anim_Play(animFile);
+}
+
+void G_ShowMapFrame(void)
+{
+    int frame = -1;
+
+    if (ud.volume_number == 0)
+    {
+        switch (ud.volume_number)
+        {
+        case 1:
+            frame = 0;
+            break;
+        case 2:
+            frame = 1;
+            break;
+        case 3:
+            frame = 2;
+            break;
+        case 4:
+            frame = 3;
+            break;
+        case 5:
+            frame = 4;
+            break;
+        case 6:
+            frame = 5;
+            break;
+        default:
+            frame = 6;
+            break;
+        }
+    }
+    else
+    {
+        switch (ud.volume_number)
+        {
+        case 1:
+            frame = 7;
+            break;
+        case 2:
+            frame = 8;
+            break;
+        case 3:
+            frame = 9;
+            break;
+        case 4:
+            frame = 10;
+            break;
+        case 5:
+            frame = 11;
+            break;
+        case 6:
+            frame = 12;
+            break;
+        default:
+            frame = -1;
+            break;
+        }
+    }
+    rotatesprite_fs(160<<16,100<<16,65536L,0,RRTILE8624+frame,0,0,10+64+128);
+}
 
 void G_BonusScreenRRRA(int32_t bonusonly)
 {
     int32_t gfx_offset;
     int32_t bonuscnt;
     int32_t clockpad = 2;
+    int32_t showMap = 0;
     char *lastmapname;
 
     if (g_networkMode == NET_DEDICATED_SERVER)
@@ -2680,8 +2805,13 @@ void G_BonusScreenRRRA(int32_t bonusonly)
             lastmapname = g_mapInfo[G_LastMapInfoIndex()].name;
     }
 
+    if ((g_lastLevel && ud.volume_number == 2) || g_vixenLevel)
+        lastmapname = (char*)"CLOSE ENCOUNTERS";
+    else if (g_turdLevel)
+        lastmapname = (char*)"SMELTING PLANT";
 
-    fadepal(0, 0, 0, 0, 252, 28);
+
+    fadepal(0, 0, 0, 0, 252, 4);
     videoSetViewableArea(0, 0, xdim-1, ydim-1);
     videoClearScreen(0L);
     videoNextPage();
@@ -2692,11 +2822,26 @@ void G_BonusScreenRRRA(int32_t bonusonly)
     FX_SetReverb(0L);
     CONTROL_BindsEnabled = 1; // so you can use your screenshot bind on the score screens
 
+    if (boardfilename[0] == 0 && numplayers < 2)
+    {
+        if ((ud.eog == 0 || ud.volume_number != 1) && ud.volume_number <= 1)
+        {
+            showMap = 1;
+            MUSIC_StopSong();
+            KB_FlushKeyboardQueue();
+
+            P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);
+            G_ShowMapFrame();
+            fadepal(0, 0, 0, 252, 0, -4);
+            P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);
+        }
+    }
+
     if (!bonusonly)
         G_BonusCutscenes();
 
     P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);   // JBF 20040308
-    G_FadePalette(0, 0, 0, 252);   // JBF 20031228
+    //G_FadePalette(0, 0, 0, 252);   // JBF 20031228
     KB_FlushKeyboardQueue();
     totalclock = 0;
     bonuscnt = 0;
@@ -2715,7 +2860,7 @@ void G_BonusScreenRRRA(int32_t bonusonly)
 
         videoNextPage();
         I_ClearAllInput();
-        fadepal(0, 0, 0, 252, 0, -28);
+        fadepal(0, 0, 0, 252, 0, -4);
         totalclock = 0;
 
         while (totalclock < TICRATE*10)
@@ -2736,26 +2881,35 @@ void G_BonusScreenRRRA(int32_t bonusonly)
             }
         }
 
-        fadepal(0, 0, 0, 0, 252, 28);
+        fadepal(0, 0, 0, 0, 252, 4);
     }
 
     if (bonusonly || (g_netServer || ud.multimode > 1)) return;
 
-    gfx_offset = (ud.volume_number==1) ? 5 : 0;
-    rotatesprite_fs(160<<16, 100<<16, 65536L, 0, BONUSSCREEN+gfx_offset, 0, 0, 2+8+64+128+BGSTRETCH);
+    gfx_offset = (ud.volume_number==0) ? RRTILE403 : RRTILE409;
+    gfx_offset += ud.level_number-1;
 
-    if (lastmapname)
-        menutext_center(20-6, lastmapname);
-    menutext_center(36-6, "Completed");
+    if (g_lastLevel || g_vixenLevel)
+        gfx_offset = RRTILE409+7;
 
-    gametext_center_shade(192, "Press any key or button to continue", quotepulseshade);
+    if (boardfilename[0])
+        gfx_offset = RRTILE403;
 
-    if (ud.config.MusicToggle)
-        S_PlaySound(BONUSMUSIC);
+    if (!showMap)
+    {
+        rotatesprite_fs(160<<16, 100<<16, 65536L, 0, gfx_offset, 0, 0, 2+8+64+128+BGSTRETCH);
+        if (lastmapname)
+            menutext(80,16, lastmapname);
+    }
 
-    videoNextPage();
+    menutext(15, 192, "Press any key to continue");
+
     I_ClearAllInput();
-    fadepal(0, 0, 0, 252, 0, -4);
+    if (!showMap)
+    {
+        videoNextPage();
+        fadepal(0, 0, 0, 252, 0, -4);
+    }
     bonuscnt = 0;
     totalclock = 0;
 
@@ -2771,7 +2925,21 @@ void G_BonusScreenRRRA(int32_t bonusonly)
             if (g_player[myconnectindex].ps->gm&MODE_EOL)
             {
                 videoClearScreen(0);
-                rotatesprite_fs(160<<16, 100<<16, 65536L, 0, BONUSSCREEN+gfx_offset, 0, 0, 2+8+64+128+BGSTRETCH);
+                if (showMap)
+                    G_ShowMapFrame();
+                else
+                    rotatesprite_fs(160<<16, 100<<16, 65536L, 0, gfx_offset, 0, 0, 2+8+64+128+BGSTRETCH);
+
+                if (showMap)
+                {
+                    if (bonuscnt == 7)
+                    {
+                        bonuscnt++;
+                        MUSIC_StopSong();
+                        G_PlayMapAnim();
+                        break;
+                    }
+                }
 
                 if (totalclock >= 1000000000 && totalclock < 1000000320)
                 {
@@ -2781,7 +2949,7 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                         if (bonuscnt == 6)
                         {
                             bonuscnt++;
-                            S_PlaySound(SHOTGUN_COCK);
+                            S_PlaySound(425);
                             switch (rand()&3)
                             {
                             case 0:
@@ -2802,11 +2970,9 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                     case 1:
                     case 4:
                     case 5:
-                        rotatesprite_fs(199<<16, 31<<16, 65536L, 0, BONUSSCREEN+3+gfx_offset, 0, 0, 2+8+16+64+128+BGSTRETCH);
                         break;
                     case 2:
                     case 3:
-                        rotatesprite_fs(199<<16, 31<<16, 65536L, 0, BONUSSCREEN+4+gfx_offset, 0, 0, 2+8+16+64+128+BGSTRETCH);
                         break;
                     }
                 }
@@ -2817,46 +2983,43 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                     {
                     case 1:
                     case 3:
-                        rotatesprite_fs(199<<16, 31<<16, 65536L, 0, BONUSSCREEN+1+gfx_offset, 0, 0, 2+8+16+64+128+BGSTRETCH);
                         break;
                     case 2:
-                        rotatesprite_fs(199<<16, 31<<16, 65536L, 0, BONUSSCREEN+2+gfx_offset, 0, 0, 2+8+16+64+128+BGSTRETCH);
                         break;
                     }
                 }
 
-                if (lastmapname)
-                    menutext_center(20-6, lastmapname);
-                menutext_center(36-6, "Completed");
+                if (lastmapname && !showMap)
+                    menutext(80, 16, lastmapname);
 
-                gametext_center_shade(192, "Press any key or button to continue", quotepulseshade);
+                menutext(15, 192, "Press any key to continue");
 
+                const int yystep = 16;
                 if (totalclock > (60*3))
                 {
-                    yy = zz = 59;
+                    yy = zz = 48;
 
-                    gametext(10, yy+9, "Your Time:");
+                    menutext(30, yy, "Yer Time:");
 
-                    yy+=10;
+                    yy+= yystep;
                     if (!(ud.volume_number == 0 && ud.last_level-1 == 7 && boardfilename[0]))
                     {
                         if (g_mapInfo[G_LastMapInfoIndex()].partime)
                         {
-                            gametext(10, yy+9, "Par Time:");
-                            yy+=10;
+                            menutext(30, yy, "Par Time:");
+                            yy+=yystep;
                         }
                         if (g_mapInfo[G_LastMapInfoIndex()].designertime)
                         {
-                            // EDuke 2.0 / NAM source suggests "Green Beret's Time:"
-                            gametext(10, yy+9, "3D Realms' Time:");
-                            yy+=10;
+                            menutext(30, yy, "Xatrix Time:");
+                            yy+=yystep;
                         }
 
                     }
                     if (ud.playerbest > 0)
                     {
-                        gametext(10, yy+9, (g_player[myconnectindex].ps->player_par > 0 && g_player[myconnectindex].ps->player_par < ud.playerbest) ? "Prev Best Time:" : "Your Best Time:");
-                        yy += 10;
+                        menutext(30, yy, (g_player[myconnectindex].ps->player_par > 0 && g_player[myconnectindex].ps->player_par < ud.playerbest) ? "Prev Best:" : "Yer Best:");
+                        yy += yystep;
                     }
 
                     if (bonuscnt == 0)
@@ -2868,52 +3031,52 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                         if (bonuscnt == 1)
                         {
                             bonuscnt++;
-                            S_PlaySound(PIPEBOMB_EXPLODE);
+                            S_PlaySound(404);
                         }
 
                         if (g_player[myconnectindex].ps->player_par > 0)
                         {
                             G_PrintYourTime();
-                            gametext_number((320>>2)+71, yy+9, tempbuf);
-                            if (g_player[myconnectindex].ps->player_par < ud.playerbest)
-                                gametext((320>>2)+89+(clockpad*24), yy+9, "New record!");
+                            menutext(191, yy, tempbuf);
+                            //if (g_player[myconnectindex].ps->player_par < ud.playerbest)
+                            //    menutext(191 + 30 + (clockpad*24), yy, "New record!");
                         }
                         else
-                            gametext_pal((320>>2)+71, yy+9, "Cheated!", 2);
-                        yy+=10;
+                            menutext(191, yy, "Cheated!");
+                        yy+=yystep;
 
                         if (!(ud.volume_number == 0 && ud.last_level-1 == 7 && boardfilename[0]))
                         {
                             if (g_mapInfo[G_LastMapInfoIndex()].partime)
                             {
                                 G_PrintParTime();
-                                gametext_number((320>>2)+71, yy+9, tempbuf);
-                                yy+=10;
+                                menutext(191, yy, tempbuf);
+                                yy+=yystep;
                             }
                             if (g_mapInfo[G_LastMapInfoIndex()].designertime)
                             {
                                 G_PrintDesignerTime();
-                                gametext_number((320>>2)+71, yy+9, tempbuf);
-                                yy+=10;
+                                menutext(191, yy, tempbuf);
+                                yy+=yystep;
                             }
                         }
 
                         if (ud.playerbest > 0)
                         {
                             G_PrintBestTime();
-                            gametext_number((320>>2)+71, yy+9, tempbuf);
-                            yy+=10;
+                            menutext(191, yy, tempbuf);
+                            yy+=yystep;
                         }
                     }
                 }
 
-                zz = yy += 5;
+                zz = yy += 16;
                 if (totalclock > (60*6))
                 {
-                    gametext(10, yy+9, "Enemies Killed:");
-                    yy += 10;
-                    gametext(10, yy+9, "Enemies Left:");
-                    yy += 10;
+                    menutext(30, yy, "Varmints Killed:");
+                    yy += yystep;
+                    menutext(30, yy, "Varmints Left:");
+                    yy += yystep;
 
                     if (bonuscnt == 2)
                     {
@@ -2928,34 +3091,34 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                         if (bonuscnt == 3)
                         {
                             bonuscnt++;
-                            S_PlaySound(PIPEBOMB_EXPLODE);
+                            S_PlaySound(422);
                         }
                         Bsprintf(tempbuf, "%-3d", g_player[myconnectindex].ps->actors_killed);
-                        gametext_number((320>>2)+70, yy+9, tempbuf);
-                        yy += 10;
+                        menutext(231,yy,tempbuf);
+                        yy += yystep;
                         if (ud.player_skill > 3)
                         {
-                            gametext((320>>2)+70, yy+9, "N/A");
-                            yy += 10;
+                            menutext(231,yy, "N/A");
+                            yy += yystep;
                         }
                         else
                         {
                             if ((g_player[myconnectindex].ps->max_actors_killed-g_player[myconnectindex].ps->actors_killed) < 0)
                                 Bsprintf(tempbuf, "%-3d", 0);
                             else Bsprintf(tempbuf, "%-3d", g_player[myconnectindex].ps->max_actors_killed-g_player[myconnectindex].ps->actors_killed);
-                            gametext_number((320>>2)+70, yy+9, tempbuf);
-                            yy += 10;
+                            menutext(231, yy, tempbuf);
+                            yy += yystep;
                         }
                     }
                 }
 
-                zz = yy += 5;
+                zz = yy += 0;
                 if (totalclock > (60*9))
                 {
-                    gametext(10, yy+9, "Secrets Found:");
-                    yy += 10;
-                    gametext(10, yy+9, "Secrets Missed:");
-                    yy += 10;
+                    menutext(30, yy, "Secrets Found:");
+                    yy += yystep;
+                    menutext(30, yy, "Secrets Missed:");
+                    yy += yystep;
                     if (bonuscnt == 4) bonuscnt++;
 
                     yy = zz;
@@ -2964,19 +3127,19 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                         if (bonuscnt == 5)
                         {
                             bonuscnt++;
-                            S_PlaySound(PIPEBOMB_EXPLODE);
+                            S_PlaySound(404);
                         }
                         Bsprintf(tempbuf, "%-3d", g_player[myconnectindex].ps->secret_rooms);
-                        gametext_number((320>>2)+70, yy+9, tempbuf);
-                        yy += 10;
+                        menutext(231, yy, tempbuf);
+                        yy += yystep;
 #if 0
                         // Always overwritten.
                         if (g_player[myconnectindex].ps->secret_rooms > 0)
                             Bsprintf(tempbuf, "%-3d%%", (100*g_player[myconnectindex].ps->secret_rooms/g_player[myconnectindex].ps->max_secret_rooms));
 #endif
                         Bsprintf(tempbuf, "%-3d", g_player[myconnectindex].ps->max_secret_rooms-g_player[myconnectindex].ps->secret_rooms);
-                        gametext_number((320>>2)+70, yy+9, tempbuf);
-                        yy += 10;
+                        menutext(231, yy, tempbuf);
+                        yy += yystep;
                         }
                     }
 
@@ -2986,6 +3149,7 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                 if (I_CheckAllInput() && totalclock >(60*2)) // JBF 20030809
                 {
                     I_ClearAllInput();
+
                     if (totalclock < (60*13))
                     {
                         KB_FlushKeyboardQueue();
@@ -2999,5 +3163,46 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                 break;
         }
     } while (1);
+    if (ud.eog)
+    {
+        fadepal(0, 0, 0, 0, 252, 4);
+        videoClearScreen(0L);
+        videoNextPage();
+        S_PlaySound(35);
+        G_FadePalette(0, 0, 0, 0);
+        P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);
+        while (1)
+        {
+            switch ((totalclock >> 4) & 1)
+            {
+            case 0:
+                rotatesprite(0,0,65536,0,RRTILE8677,0,0,2+8+16+64+128,0,0,xdim-1,ydim-1);
+                videoNextPage();
+                G_FadePalette(0, 0, 0, 0);
+                P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);
+                Net_GetPackets();
+                break;
+            case 1:
+                rotatesprite(0,0,65536,0,RRTILE8677+1,0,0,2+8+16+64+128,0,0,xdim-1,ydim-1);
+                videoNextPage();
+                G_FadePalette(0, 0, 0, 0);
+                P_SetGamePalette(g_player[myconnectindex].ps, BASEPAL, 8+2+1);
+                Net_GetPackets();
+                break;
+            }
+            if (!S_CheckSoundPlaying(-1,35)) break;
+        }
+    }
+    if (g_RAendEpisode)
+    {
+        g_RAendEpisode = 0;
+        ud.m_volume_number = ud.volume_number = 1;
+        ud.m_level_number = ud.level_number = 0;
+        ud.eog = 0;
+    }
+    if (g_turdLevel)
+        g_turdLevel = 0;
+    if (g_vixenLevel)
+        g_vixenLevel = 0;
 }
 

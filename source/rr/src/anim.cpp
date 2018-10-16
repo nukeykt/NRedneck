@@ -212,6 +212,19 @@ void Anim_Init(void)
         { "redneck.anm", anmsnd(redneck), 9 },
         { "xatlogo.anm", anmsnd(xatlogo), 9 },
         { "turdmov.anm", anmsnd(turdmov), 9 },
+        { "lvl1.anm", NULL, 0, 20 },
+        { "lvl2.anm", NULL, 0, 20 },
+        { "lvl3.anm", NULL, 0, 20 },
+        { "lvl4.anm", NULL, 0, 20 },
+        { "lvl5.anm", NULL, 0, 20 },
+        { "lvl6.anm", NULL, 0, 20 },
+        { "lvl7.anm", NULL, 0, 20 },
+        { "lvl8.anm", NULL, 0, 20 },
+        { "lvl9.anm", NULL, 0, 20 },
+        { "lvl10.anm", NULL, 0, 20 },
+        { "lvl11.anm", NULL, 0, 20 },
+        { "lvl12.anm", NULL, 0, 20 },
+        { "lvl13.anm", NULL, 0, 20 },
     };
 #undef anmsnd
 
