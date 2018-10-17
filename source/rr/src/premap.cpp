@@ -2451,7 +2451,7 @@ int G_EnterLevel(int gameMode)
     {
         for (bssize_t i = PISTOL_WEAPON; i < MAX_WEAPONS; i++)
             g_player[0].ps->ammo_amount[i] = 0;
-        g_player[0].ps->gotweapon &= ~(1<<KNEE_WEAPON);
+        g_player[0].ps->gotweapon &= (1<<KNEE_WEAPON);
     }
 
     pPlayer->q16ang = fix16_from_int(lbang);
@@ -2468,7 +2468,7 @@ int G_EnterLevel(int gameMode)
     {
         for (bssize_t i = PISTOL_WEAPON; i < MAX_WEAPONS; i++)
             g_player[0].ps->ammo_amount[i] = 0;
-        g_player[0].ps->gotweapon &= ~(1<<KNEE_WEAPON);
+        g_player[0].ps->gotweapon &= (1<<KNEE_WEAPON);
         g_player[0].ps->gotweapon |= (1<<SLINGBLADE_WEAPON);
         g_player[0].ps->ammo_amount[SLINGBLADE_WEAPON] = 1;
         g_player[0].ps->curr_weapon = SLINGBLADE_WEAPON;
