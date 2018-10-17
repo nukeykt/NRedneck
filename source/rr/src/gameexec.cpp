@@ -1955,7 +1955,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                         else
                         {
                             if (newHealth > 0)
-                                newHealth += *insptr;
+                                newHealth += (*insptr)*3;
                             if (newHealth > pPlayer->max_player_health && *insptr > 0)
                                 newHealth = pPlayer->max_player_health;
                         }
