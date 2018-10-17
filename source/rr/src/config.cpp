@@ -305,6 +305,24 @@ void CONFIG_SetDefaults(void)
 
     // JBF 20031211
 
+    if (RR)
+    {
+        Bstrcpy((char*)keydefaults[gamefunc_Holo_Duke<<1], "B");
+        Bstrcpy((char*)keydefaults[gamefunc_Jetpack<<1], "C");
+        Bstrcpy((char*)keydefaults[gamefunc_NightVision<<1], "Y");
+        Bstrcpy((char*)keydefaults[gamefunc_MedKit<<1], "R");
+        Bstrcpy((char*)keydefaults[gamefunc_Steroids<<1], "M");
+        Bstrcpy((char*)keydefaults[gamefunc_Show_Opponents_Weapon<<1], "V");
+
+        Bstrcpy((char*)oldkeydefaults[gamefunc_Holo_Duke<<1], "B");
+        Bstrcpy((char*)oldkeydefaults[gamefunc_Jetpack<<1], "C");
+        Bstrcpy((char*)oldkeydefaults[gamefunc_NightVision<<1], "Y");
+        Bstrcpy((char*)oldkeydefaults[gamefunc_MedKit<<1], "W");
+        Bstrcpy((char*)oldkeydefaults[gamefunc_Steroids<<1], "M");
+        Bstrcpy((char*)oldkeydefaults[gamefunc_Show_Opponents_Weapon<<1], "E");
+        Bstrcpy((char*)oldkeydefaults[gamefunc_Show_Console<<1], "V");
+    }
+
     CONFIG_SetDefaultKeys(keydefaults);
 
     memset(ud.config.MouseFunctions, -1, sizeof(ud.config.MouseFunctions));

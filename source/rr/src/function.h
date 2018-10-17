@@ -38,8 +38,8 @@ extern "C" {
 #define MAXGAMEFUNCLEN 32
 
 extern char gamefunctions[NUMGAMEFUNCTIONS][MAXGAMEFUNCLEN];
-extern const char keydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN];
-extern const char oldkeydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN];
+extern char keydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN];
+extern char oldkeydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN];
 
 enum GameFunction_t
    {

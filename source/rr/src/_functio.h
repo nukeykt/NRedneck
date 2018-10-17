@@ -102,7 +102,7 @@ char gamefunctions[NUMGAMEFUNCTIONS][MAXGAMEFUNCLEN] =
 
 #ifdef __SETUP__
 
-const char keydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN] =
+char keydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN] =
    {
    "W", "Kpad8",
    "S", "Kpad2",
@@ -166,7 +166,7 @@ const char keydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN] =
    "F9", "",
    };
 
-const char oldkeydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN] =
+char oldkeydefaults[NUMGAMEFUNCTIONS*2][MAXGAMEFUNCLEN] =
    {
    "Up", "Kpad8",
    "Down", "Kpad2",
