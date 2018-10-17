@@ -8569,7 +8569,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
             break;
 
         case 156:
-            if (RRRA) break;
+            if (!RRRA) break;
             fallthrough__;
         case SE_24_CONVEYOR:
         case SE_34:
