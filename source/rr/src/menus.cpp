@@ -120,7 +120,7 @@ static void Menu_DrawBackground(const vec2_t origin)
 
 static void Menu_DrawTopBar(const vec2_t origin)
 {
-    rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (19<<16), MF_Redfont.cursorScale2, 0,MENUBAR,16,0,10);
+    rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (19<<16), MF_Redfont.cursorScale3, 0,MENUBAR,16,0,10);
 }
 
 static void Menu_DrawTopBarCaption(const char *caption, const vec2_t origin)
@@ -202,16 +202,16 @@ they effectively stand in for curly braces as struct initializers.
 // common font types
 // tilenums are set after namesdyn runs
 
-//                                      emptychar x,y       between x,y         zoom                cursorLeft          cursorCenter        cursorScale         textflags
-//                                      tilenum             shade_deselected    shade_disabled      pal                 pal_selected        pal_deselected      pal_disabled
-MenuFont_t MF_Redfont =               { { 5<<16, 15<<16 },  { 0, 0 },           65536,              20<<16,             110<<16,            65536, 65536,       TEXT_BIGALPHANUM | TEXT_UPPERCASE,
-                                        -1,                 10,                 0,                  0,                  0,                  0,                  1,
+//                                      emptychar x,y       between x,y         zoom                cursorLeft          cursorCenter        cursorScale          textflags
+//                                      tilenum             shade_deselected    shade_disabled      pal                 pal_selected        pal_deselected       pal_disabled
+MenuFont_t MF_Redfont =               { { 5<<16, 15<<16 },  { 0, 0 },           65536,              20<<16,             110<<16,            65536, 65536, 65536, TEXT_BIGALPHANUM | TEXT_UPPERCASE,
+                                        -1,                 10,                 0,                  0,                  0,                  0,                   1,
                                         0,                  0,                  1 };
-MenuFont_t MF_Bluefont =              { { 5<<16, 7<<16 },   { 0, 0 },           65536,              10<<16,             110<<16,            32768, 65536,       0,
-                                        -1,                 10,                 0,                  0,                  10,                 10,                 16,
+MenuFont_t MF_Bluefont =              { { 5<<16, 7<<16 },   { 0, 0 },           65536,              10<<16,             110<<16,            32768, 65536, 65536, 0,
+                                        -1,                 10,                 0,                  0,                  10,                 10,                  16,
                                         0,                  0,                  16 };
-MenuFont_t MF_Minifont =              { { 4<<16, 5<<16 },   { 1<<16, 1<<16 },   65536,              10<<16,             110<<16,            32768, 65536,       0,
-                                        -1,                 10,                 0,                  0,                  2,                  2,                  0,
+MenuFont_t MF_Minifont =              { { 4<<16, 5<<16 },   { 1<<16, 1<<16 },   65536,              10<<16,             110<<16,            32768, 65536, 65536, 0,
+                                        -1,                 10,                 0,                  0,                  2,                  2,                   0,
                                         0,                  0,                  16 };
 
 
@@ -1910,15 +1910,19 @@ void Menu_Init(void)
         MF_Redfont.zoom = 32768;
         MF_Redfont.emptychar.x <<= 1;
         MF_Redfont.cursorScale = 13107;
+        MF_Redfont.cursorScale2 = 6553;
         //MF_Redfont.emptychar.y <<= 1;
         MF_Bluefont.zoom = 32768;
         MF_Bluefont.emptychar.x <<= 1;
         MF_Bluefont.cursorScale = 6553;
+        MF_Bluefont.cursorScale2 = 6553;
         //MF_Bluefont.emptychar.y <<= 1;
         MF_Minifont.zoom = 32768;
         MF_Minifont.emptychar.x <<= 1;
         MF_Minifont.cursorScale = 6553;
+        MF_Minifont.cursorScale2 = 6553;
         //MF_Minifont.emptychar.y <<= 1;
+        ME_SOUND_DUKETALK.name = "Leonard Talk:";
     }
 
     // prepare shareware
@@ -5233,7 +5237,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                     Menu_DrawCursorRight(origin.x + (MENU_MARGIN_CENTER<<16) - entry->font->cursorCenterPosition, y_internal, entry->font->cursorScale);
                 }
                 else
-                    Menu_DrawCursorLeft(origin.x + x + indent - entry->font->cursorLeftPosition, y_internal, entry->font->cursorScale);
+                    Menu_DrawCursorLeft(origin.x + x + indent - entry->font->cursorLeftPosition, y_internal, entry->font->cursorScale2);
             }
 
             if (entry->name != nullptr && entry->name[0] != '\0')
@@ -5416,7 +5420,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         MenuRangeInt32_t *object = (MenuRangeInt32_t*)entry->entry;
 
                         int32_t s, p;
-                        int32_t z = entry->font->cursorScale2;
+                        int32_t z = entry->font->cursorScale3;
                         Menu_GetFmt(object->font, status|MT_RightSide, &s);
 
                         if (status & MT_Disabled)
@@ -5516,7 +5520,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         MenuRangeFloat_t *object = (MenuRangeFloat_t*)entry->entry;
 
                         int32_t s, p;
-                        int32_t z = entry->font->cursorScale2;
+                        int32_t z = entry->font->cursorScale3;
                         Menu_GetFmt(object->font, status|MT_RightSide, &s);
 
                         if (status & MT_Disabled)
@@ -5617,7 +5621,7 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
                         MenuRangeDouble_t *object = (MenuRangeDouble_t*)entry->entry;
 
                         int32_t s, p;
-                        int32_t z = entry->font->cursorScale2;
+                        int32_t z = entry->font->cursorScale3;
                         Menu_GetFmt(object->font, status|MT_RightSide, &s);
 
                         if (status & MT_Disabled)
@@ -5864,7 +5868,7 @@ static void Menu_RunOptionList(Menu_t *cm, MenuEntry_t *entry, MenuOption_t *obj
                 Menu_DrawCursorRight(origin.x + (MENU_MARGIN_CENTER<<16) - object->options->font->cursorCenterPosition, y_internal, object->options->font->cursorScale);
             }
             else
-                Menu_DrawCursorLeft(origin.x + x - object->options->font->cursorLeftPosition, y_internal, object->options->font->cursorScale);
+                Menu_DrawCursorLeft(origin.x + x - object->options->font->cursorLeftPosition, y_internal, object->options->font->cursorScale2);
         }
 
         if (dodraw)

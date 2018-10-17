@@ -154,7 +154,7 @@ typedef struct MenuFont_t
 //    int32_t xspace, yline;
     vec2_t emptychar, between;
     int32_t zoom;
-    int32_t cursorLeftPosition, cursorCenterPosition, cursorScale, cursorScale2;
+    int32_t cursorLeftPosition, cursorCenterPosition, cursorScale, cursorScale2, cursorScale3;
     int32_t textflags;
     int16_t tilenum;
     // selected shade glows, deselected shade is used by Blood, disabled shade is used by SW
