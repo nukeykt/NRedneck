@@ -135,7 +135,7 @@ bool g_saveRequested;
 savebrief_t * g_quickload;
 
 menusave_t * g_menusaves;
-size_t g_nummenusaves;
+uint32_t g_nummenusaves;
 
 static menusave_t * g_internalsaves;
 static size_t g_numinternalsaves;
@@ -890,7 +890,6 @@ static void docmpsd(const void *ptr, void *dump, uint32_t size, uint32_t cnt, ui
         CPDATA(8);
 
     *diffvar = retdiff;
-    return;
 
 #undef CPELTS
 #undef CPSINGLEVAL
@@ -945,7 +944,6 @@ static void cmpspecdata(const dataspec_t *spec, uint8_t **dumpvar, uint8_t **dif
 
     *diffvar = diff;
     *dumpvar = dump;
-    return;
 }
 
 #define VALOFS(bits,p,ofs) (*(((UINT(bits) *)(p)) + (ofs)))

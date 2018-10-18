@@ -56,11 +56,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "m32script.h"
 #include "m32def.h"
 
-extern const char *s_buildRev;
-extern const char *s_buildTimestamp;
-
-extern int32_t globalpal;
-
 #include <signal.h>
 
 // Workaround for namespace pollution in <sys/stat.h> introduced in MinGW 4.8.
@@ -301,7 +296,7 @@ extern int32_t mskip;
 
 //extern int32_t fillsector(int16_t sectnum, char fillcolor);
 
-static int32_t osdcmd_quit(osdfuncparm_t const * const parm);
+static int32_t osdcmd_quit(osdfuncparm_t const * parm);
 
 
 #define M32_NUM_SPRITE_MODES (signed)ARRAY_SIZE(SpriteMode)
@@ -1743,6 +1738,7 @@ static int32_t sort_sounds(int32_t how)
     {
     case 'g':  // restore original order
         Bmemcpy(g_sndnum, g_definedsndnum, sizeof(int16_t)*n);
+        Bfree(dst);
         return 0;
     case 's':
         compare_sounds = compare_sounds_s;
@@ -1769,6 +1765,7 @@ static int32_t sort_sounds(int32_t how)
         compare_sounds = compare_sounds_5;
         break;
     default:
+        Bfree(dst);
         return -2;
     }
 
@@ -4361,7 +4358,7 @@ static void Keys3d(void)
 
     if (searchsector > -1 && searchsector < numsectors)
     {
-        char lines[8][64];
+        char lines[8][128];
         int32_t num=0;
         int32_t x,y,flags=0;
 
@@ -6401,7 +6398,7 @@ static void Keys3d(void)
 #endif
                 temppicnum = AIMED_SELOVR_WALL(picnum);
                 tempxrepeat = AIMED_SEL_WALL(xrepeat);
-                tempxrepeat = max(1, tempxrepeat);
+                tempxrepeat = max<int>(1, tempxrepeat);
                 tempyrepeat = AIMED_SEL_WALL(yrepeat);
                 tempxpanning = AIMED_SEL_WALL(xpanning);
                 tempypanning = AIMED_SEL_WALL(ypanning);
@@ -6607,13 +6604,13 @@ static void Keys3d(void)
             if (AIMING_AT_WALL_OR_MASK && eitherCTRL)  //Ctrl-shift Enter (auto-shade)
             {
                 int16_t daang;
-                int32_t dashade[2] = { 127, -128 };
+                int8_t dashade[2] = { 127, -128 };
 
                 i = searchwall;
                 do
                 {
-                    dashade[0] = min(dashade[0], wall[i].shade);
-                    dashade[1] = max(dashade[1], wall[i].shade);
+                    dashade[0] = min(dashade[0], TrackerCast(wall[i].shade));
+                    dashade[1] = max(dashade[1], TrackerCast(wall[i].shade));
 
                     i = wall[i].point2;
                 }
@@ -6857,8 +6854,8 @@ paste_ceiling_or_floor:
 
                 if (somethingintab == SEARCH_SPRITE)
                 {
-                    sprite[searchwall].xrepeat = max(tempxrepeat, 1);
-                    sprite[searchwall].yrepeat = max(tempyrepeat, 1);
+                    sprite[searchwall].xrepeat = max(tempxrepeat, 1u);
+                    sprite[searchwall].yrepeat = max(tempyrepeat, 1u);
                     sprite[searchwall].cstat = tempcstat;
                     sprite[searchwall].lotag = templotag;
                     sprite[searchwall].hitag = temphitag;
@@ -7321,8 +7318,8 @@ static void Keys2d(void)
                 if (yax_getbunch(i, YAX_FLOOR) < 0 /*&& yax_getbunch(i, YAX_CEILING) < 0*/)
                     continue;
 
-                loz = min(loz, sector[i].floorz);
-                hiz = max(hiz, sector[i].floorz);
+                loz = min(loz, TrackerCast(sector[i].floorz));
+                hiz = max(hiz, TrackerCast(sector[i].floorz));
 
                 // TODO: see if at least one sector point inside sceeen
                 j = (sector[i].floorz-pos.z)*zsign;
@@ -7378,8 +7375,8 @@ static void Keys2d(void)
 
             for (i=0; i<highlightsectorcnt; i++)
             {
-                damin = min(damin, sector[highlightsector[i]].ceilingz);
-                damax = max(damax, sector[highlightsector[i]].floorz);
+                damin = min(damin, TrackerCast(sector[highlightsector[i]].ceilingz));
+                damax = max(damax, TrackerCast(sector[highlightsector[i]].floorz));
             }
 
             if (damin < damax)
@@ -7574,7 +7571,7 @@ static void Keys2d(void)
                     if ((ppointhighlight&0xc000) == 16384 && (sprite[cursprite].cstat & 48))
                     {
                         uint8_t *repeat = (k==0) ? &sprite[cursprite].xrepeat : &sprite[cursprite].yrepeat;
-                        *repeat = max(4, changechar(*repeat, changedir, smooshy, 1));
+                        *repeat = max<uint8_t>(4, changechar(*repeat, changedir, smooshy, 1));
                         silentmessage("Sprite %d repeat: %d, %d", cursprite,
                                       TrackerCast(sprite[cursprite].xrepeat),
                                       TrackerCast(sprite[cursprite].yrepeat));
@@ -9061,6 +9058,7 @@ static int32_t osdcmd_do(osdfuncparm_t const * const parm)
     if (g_numCompilerErrors)
     {
 //        g_scriptPtr = script + oscrofs;  // handled in C_Compile()
+        Bfree(tp);
         return OSDCMD_OK;
     }
 
@@ -9261,9 +9259,8 @@ static int32_t parsegroupfiles(scriptfile *script);
 
 static void parsegroupfiles_include(const char *fn, scriptfile *script, const char *cmdtokptr)
 {
-    scriptfile *included;
+    scriptfile *included = scriptfile_fromfile(fn);
 
-    included = scriptfile_fromfile(fn);
     if (!included)
     {
         if (!Bstrcasecmp(cmdtokptr,"null"))

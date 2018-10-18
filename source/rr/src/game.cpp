@@ -350,7 +350,7 @@ void G_OffBoat(DukePlayer_t *pPlayer)
     }
 }
 
-extern int32_t g_doQuickSave;
+
 
 void G_GameExit(const char *msg)
 {
@@ -5247,11 +5247,6 @@ default_case1:
                     uspritetype *const playerTyping = t;
 
                     playerTyping->statnum = TSPR_TEMP;
-                    playerTyping->yrepeat = (t->yrepeat >> 3);
-
-                    if (playerTyping->yrepeat < 4)
-                        playerTyping->yrepeat = 4;
-
                     playerTyping->cstat   = 0;
                     playerTyping->picnum  = RESPAWNMARKERGREEN;
                     playerTyping->z       = (pSprite->owner >= 0) ? (g_player[playerNum].ps->pos.z - (20 << 8)) : (pSprite->z - (96 << 8));
@@ -6506,10 +6501,10 @@ FAKE_F3:
             nonsharedtimer += timerOffset;
 
             if (BUTTON(gamefunc_Enlarge_Screen))
-                g_player[myconnectindex].ps->zoom += mulscale6(timerOffset, max(g_player[myconnectindex].ps->zoom, 256));
+                g_player[myconnectindex].ps->zoom += mulscale6(timerOffset, max<int>(g_player[myconnectindex].ps->zoom, 256));
 
             if (BUTTON(gamefunc_Shrink_Screen))
-                g_player[myconnectindex].ps->zoom -= mulscale6(timerOffset, max(g_player[myconnectindex].ps->zoom, 256));
+                g_player[myconnectindex].ps->zoom -= mulscale6(timerOffset, max<int>(g_player[myconnectindex].ps->zoom, 256));
 
             g_player[myconnectindex].ps->zoom = clamp(g_player[myconnectindex].ps->zoom, 48, 2048);
         }
@@ -6645,7 +6640,7 @@ static void parsedefinitions_game_include(const char *fileName, scriptfile *pScr
     }
 }
 
-static void parsedefinitions_game_animsounds(scriptfile *pScript, char * blockEnd, char const * fileName, dukeanim_t * animPtr)
+static void parsedefinitions_game_animsounds(scriptfile *pScript, const char * blockEnd, char const * fileName, dukeanim_t * animPtr)
 {
     Bfree(animPtr->sounds);
 
@@ -7038,7 +7033,7 @@ void G_UpdateAppTitle(void)
     }
 }
 
-static void G_FreeHashAnim(const char *UNUSED(string), intptr_t key)
+static void G_FreeHashAnim(const char * /*string*/, intptr_t key)
 {
     Bfree((void *)key);
 }

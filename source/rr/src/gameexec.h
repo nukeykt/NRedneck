@@ -46,9 +46,9 @@ extern uint32_t g_actorCalls[MAXTILES];
 extern double g_actorTotalMs[MAXTILES], g_actorMinMs[MAXTILES], g_actorMaxMs[MAXTILES];
 
 void A_Execute(int spriteNum, int playerNum, int playerDist);
-void A_Fall(int const spriteNum);
-int32_t A_GetFurthestAngle(int const spriteNum, int const angDiv);
-void A_GetZLimits(int const spriteNum);
+void A_Fall(int spriteNum);
+int32_t A_GetFurthestAngle(int spriteNum, int angDiv);
+void A_GetZLimits(int spriteNum);
 int32_t __fastcall G_GetAngleDelta(int32_t currAngle, int32_t newAngle);
 //void G_RestoreMapState();
 //void G_SaveMapState();
@@ -62,8 +62,8 @@ int32_t __fastcall G_GetAngleDelta(int32_t currAngle, int32_t newAngle);
     wm_msgbox(APPNAME, "Line %d, %s: " Text, g_errorLineNum, VM_GetKeywordForID(g_tw), ## __VA_ARGS__); \
 } while (0)
 
-void G_GetTimeDate(int32_t * const pValues);
-int G_StartTrack(int const levelNum);
+void G_GetTimeDate(int32_t * pValues);
+int G_StartTrack(int levelNum);
 void VM_UpdateAnim(int spriteNum, int32_t *pData);
 
 #ifdef __cplusplus

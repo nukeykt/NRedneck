@@ -32,9 +32,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define DELETE_SPRITE_AND_CONTINUE(KX) do { A_DeleteSprite(KX); goto next_sprite; } while (0)
 
-extern int32_t g_numEnvSoundsPlaying;
-extern int32_t g_noEnemies;
-
 int32_t otherp;
 
 int G_SetInterpolation(int32_t *const posptr)
@@ -52,7 +49,7 @@ int G_SetInterpolation(int32_t *const posptr)
     return 0;
 }
 
-void G_StopInterpolation(int32_t * const posptr)
+void G_StopInterpolation(const int32_t * const posptr)
 {
     for (bssize_t i = 0; i < g_interpolationCnt; ++i)
         if (curipos[i] == posptr)
@@ -5543,7 +5540,6 @@ ACTOR_STATIC void G_MoveActors(void)
                 }
                 else
                 {
-                    if (pSprite->xvel < 32) pSprite->xvel += 4;
                     pSprite->xvel = 64 - (sintable[(pData[1]+512)&2047]>>9);
 
                     pSprite->ang += G_GetAngleDelta(pSprite->ang,
@@ -7638,10 +7634,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
 
             if (ldist(&sprite[pSprite->owner],pSprite) < 1024)
             {
-                int const saveAng = pSprite->ang;
-                pSprite->ang      = getangle(pPlayer->pos.x - pSprite->x, pPlayer->pos.y - pSprite->y);
-                pSprite->ang      = saveAng;
-                pSprite->owner    = -1;
+                pSprite->owner = -1;
                 goto next_sprite;
             }
             else pSprite->xvel=256;
@@ -8019,10 +8012,7 @@ ACTOR_STATIC void G_MoveEffectors(void)   //STATNUM 3
                 for (SPRITES_OF_SECT(SECT(spriteNum), j))
                 {
                     if (sprite[j].cstat&16)
-                    {
-                        if (sprite[j].cstat & 16)
-                            sprite[j].shade = (pSector->ceilingstat & 1) ? pSector->ceilingshade : pSector->floorshade;
-                    }
+                        sprite[j].shade = (pSector->ceilingstat & 1) ? pSector->ceilingshade : pSector->floorshade;
                 }
             }
             break;

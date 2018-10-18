@@ -57,8 +57,6 @@ static char *textptr;
 
 int32_t g_errorCnt,g_warningCnt;
 
-extern int32_t g_highestSoundIdx;
-
 static char *C_GetLabelType(int32_t type)
 {
     int32_t i;
@@ -2111,8 +2109,9 @@ static int32_t C_ParseCommand(int32_t loop)
             k = *(g_scriptPtr-1);
             if (EDUKE32_PREDICT_FALSE((unsigned)k >= MAXSOUNDS-1))
             {
-                initprintf("%s:%d: error: exceeded sound limit of %d.\n",g_scriptFileName,g_lineNumber,MAXSOUNDS);
+                initprintf("%s:%d: error: index exceeds sound limit of %d.\n",g_scriptFileName,g_lineNumber, MAXSOUNDS-1);
                 g_errorCnt++;
+                k = MAXSOUNDS-1;
             }
             g_scriptPtr--;
             i = 0;
@@ -2309,9 +2308,6 @@ static int32_t C_ParseCommand(int32_t loop)
 
     return 0;
 }
-
-extern int32_t g_numObituaries;
-extern int32_t g_numSelfObituaries;
 
 static char const * C_ScriptVersionString(int32_t version)
 {

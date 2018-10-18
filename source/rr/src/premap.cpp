@@ -29,9 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 static int32_t g_whichPalForPlayer = 9;
 
 static uint8_t precachehightile[2][MAXTILES>>3];
-static int32_t  g_precacheCount;
+static int32_t g_precacheCount;
 
-extern int32_t g_levelTextTime;
 
 static void flag_precache(int32_t tile, int32_t type)
 {
@@ -548,8 +547,8 @@ static void G_DoLoadScreen(const char *statustext, int32_t percent)
     }
 }
 
-extern void G_SetCrosshairColor(int32_t r, int32_t g, int32_t b);
-extern palette_t CrosshairColors;
+
+
 
 void G_CacheMapData(void)
 {
@@ -1063,7 +1062,7 @@ void P_ResetWeapons(int playerNum)
     pPlayer->curr_weapon                = PISTOL_WEAPON;
     pPlayer->kickback_pic               = 5;
     pPlayer->gotweapon                  = ((1 << PISTOL_WEAPON) | (1 << KNEE_WEAPON) | (1 << HANDREMOTE_WEAPON));
-    pPlayer->ammo_amount[PISTOL_WEAPON] = min(pPlayer->max_ammo_amount[PISTOL_WEAPON], 48);
+    pPlayer->ammo_amount[PISTOL_WEAPON] = min<int16_t>(pPlayer->max_ammo_amount[PISTOL_WEAPON], 48);
     if (RRRA)
     {
         g_chickenWeaponTimer = 0;
@@ -1982,7 +1981,7 @@ end_vol4a:
             {
                 pPlayer->curr_weapon = weaponNum;
                 pPlayer->gotweapon |= (1 << weaponNum);
-                pPlayer->ammo_amount[weaponNum] = min(pPlayer->max_ammo_amount[weaponNum], 48);
+                pPlayer->ammo_amount[weaponNum] = min<int16_t>(pPlayer->max_ammo_amount[weaponNum], 48);
             }
             else if (weaponNum == KNEE_WEAPON || (!RR && weaponNum == HANDREMOTE_WEAPON) || (RRRA && weaponNum == SLINGBLADE_WEAPON))
             {
