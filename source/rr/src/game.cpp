@@ -3397,7 +3397,7 @@ rr_badguy:
                     pSprite->cstat |= 257;
 
                     if (pSprite->picnum != SHARK)
-                        if (A_CheckSpriteFlags(pSprite->picnum, SFLAG_KILLCOUNT))
+                        if (A_CheckSpriteFlags(newSprite, SFLAG_KILLCOUNT))
                             g_player[myconnectindex].ps->max_actors_killed++;
                 }
 
@@ -3513,7 +3513,7 @@ rr_badguy:
                 changespritestat(newSprite, STAT_MISC);
                 goto SPAWN_END;
             }
-            if (!RR || A_CheckSpriteFlags(pSprite->picnum, SFLAG_KILLCOUNT))
+            if (!RR || A_CheckSpriteFlags(newSprite, SFLAG_KILLCOUNT))
                 g_player[myconnectindex].ps->max_actors_killed++;
             pActor->t_data[5] = 0;
             if (ud.monsters_off == 1)
