@@ -6778,7 +6778,7 @@ void P_ProcessInput(int playerNum)
     {
         int spriteNum = lowZhit&(MAXSPRITES-1);
 
-        if ((sprite[spriteNum].cstat&33) == 3)
+        if ((sprite[spriteNum].cstat&33) == 33)
         {
             sectorLotag             = 0;
             pPlayer->footprintcount = 0;
