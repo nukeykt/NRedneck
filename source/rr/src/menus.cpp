@@ -4890,6 +4890,9 @@ void Menu_Close(size_t playerID)
 
         walock[TILE_SAVESHOT] = 199;
         G_UpdateScreenArea();
+
+        if (!ud.pause_on)
+            S_PauseSounds(0);
     }
 }
 
