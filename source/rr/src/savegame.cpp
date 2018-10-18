@@ -2010,6 +2010,8 @@ static void postloadplayer(int32_t savegamep)
 #endif
     for (i=0; i<MAXPLAYERS; i++)
         g_player[i].ps->drug_timer = 0;
+
+    G_InitRRRASkies();
 }
 
 ////////// END GENERIC SAVING/LOADING SYSTEM //////////

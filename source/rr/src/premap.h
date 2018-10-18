@@ -51,6 +51,7 @@ void G_ClearFIFO(void);
 void G_ResetInterpolations(void);
 extern int32_t fragbarheight(void);
 void G_SetFog(int fogtype);
+void G_InitRRRASkies(void);
 
 #ifdef __cplusplus
 }

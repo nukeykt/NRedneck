@@ -1256,6 +1256,35 @@ static void resetprestat(int playerNum, int gameMode)
 
 static inline int G_CheckExitSprite(int spriteNum) { return ((uint16_t)sprite[spriteNum].lotag == UINT16_MAX && (sprite[spriteNum].cstat & 16)); }
 
+void G_InitRRRASkies(void)
+{
+    if (!RRRA)
+        return;
+    
+    for (bssize_t i = 0; i < MAXSECTORS; i++)
+    {
+        if (sector[i].ceilingpicnum != LA && sector[i].ceilingpicnum != MOONSKY1 && sector[i].ceilingpicnum != BIGORBIT1)
+        {
+            int const picnum = sector[i].ceilingpicnum;
+            if (tilesiz[picnum].x == 512)
+            {
+                psky_t *sky = tileSetupSky(picnum);
+                sky->horizfrac = 32768;
+                sky->lognumtiles = 1;
+                sky->tileofs[0] = 0;
+                sky->tileofs[1] = 0;
+            }
+            else if (tilesiz[picnum].x == 1024)
+            {
+                psky_t *sky = tileSetupSky(picnum);
+                sky->horizfrac = 32768;
+                sky->lognumtiles = 0;
+                sky->tileofs[0] = 0;
+            }
+        }
+    }
+}
+
 static void prelevel(char g)
 {
     uint8_t *tagbitmap = (uint8_t *)Xcalloc(65536>>3, 1);
@@ -1455,25 +1484,6 @@ static void prelevel(char g)
                     g_cloudSect[g_cloudCnt++] = i;
                 else
                     missedCloudSectors++;
-            }
-            if (RRRA && sector[i].ceilingpicnum != LA && sector[i].ceilingpicnum != MOONSKY1 && sector[i].ceilingpicnum != BIGORBIT1)
-            {
-                int const picnum = sector[i].ceilingpicnum;
-                if (tilesiz[picnum].x == 512)
-                {
-                    psky_t *sky = tileSetupSky(picnum);
-                    sky->horizfrac = 32768;
-                    sky->lognumtiles = 1;
-                    sky->tileofs[0] = 0;
-                    sky->tileofs[1] = 0;
-                }
-                else if (tilesiz[picnum].x == 1024)
-                {
-                    psky_t *sky = tileSetupSky(picnum);
-                    sky->horizfrac = 32768;
-                    sky->lognumtiles = 0;
-                    sky->tileofs[0] = 0;
-                }
             }
 
             if (g_player[0].ps->one_parallax_sectnum == -1)
@@ -2462,6 +2472,8 @@ int G_EnterLevel(int gameMode)
     //clearbufbyte(Actor,sizeof(Actor),0l); // JBF 20040531: yes? no?
 
     prelevel(gameMode);
+
+    G_InitRRRASkies();
 
     if (RRRA && ud.level_number == 2 && ud.volume_number == 0)
     {
