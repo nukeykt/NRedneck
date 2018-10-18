@@ -62,7 +62,7 @@ float gcosang, gsinang, gcosang2, gsinang2;
 float gchang, gshang, gctang, gstang, gvisibility;
 float gtang = 0.f;
 
-static vec3d_t xtex, ytex, otex;
+static vec3d_t xtex, ytex, otex, xtex2, ytex2, otex2;
 
 float fcosglobalang, fsinglobalang;
 float fxdim, fydim, fydimen, fviewingrange;
@@ -2747,7 +2747,7 @@ void polymost_setupglowtexture(const int32_t texunits, const int32_t tex)
 //    +4 means it's a sprite, so wraparound isn't needed
 
 // drawpoly's hack globals
-static int32_t pow2xsplit = 0, skyclamphack = 0;
+static int32_t pow2xsplit = 0, skyclamphack = 0, skyzbufferhack = 0;
 static float drawpoly_alpha = 0.f;
 static uint8_t drawpoly_blend = 0;
 
@@ -3213,6 +3213,8 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
             ; /* do nothing */
     }
 
+    static int32_t skyzbufferhack_pass = 0;
+
     if (!waloff[globalpicnum])
     {
         glEnable(GL_BLEND);
@@ -3273,6 +3275,9 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
         hictinting_apply(pc, MAXPALOOKUPS-1);
 
     globaltinting_apply(pc);
+
+    if (skyzbufferhack_pass)
+        pc[3] = 0.01;
 
     glColor4f(pc[0], pc[1], pc[2], pc[3]);
 
@@ -3545,6 +3550,23 @@ do                                                                              
 
         globalshade = shade;
         fullbright_pass = 0;
+    }
+
+    if (skyzbufferhack && skyzbufferhack_pass == 0)
+    {
+        vec3d_t bxtex, bytex, botex;
+        bxtex = xtex;
+        bytex = ytex;
+        botex = otex;
+        xtex = xtex2;
+        ytex = ytex2;
+        otex = otex2;
+        skyzbufferhack_pass++;
+        polymost_drawpoly(dpxy, n, DAMETH_MASK);
+        xtex = bxtex;
+        ytex = bytex;
+        otex = botex;
+        skyzbufferhack_pass--;
     }
 }
 
@@ -4374,6 +4396,13 @@ static void polymost_drawalls(int32_t const bunch)
         getzsofslope(sectnum,/*Blrintf(nx1)*/(int)n1.x,/*Blrintf(ny1)*/(int)n1.y,&cz,&fz);
         float const cy1 = ((float)(cz-globalposz))*ryp1 + ghoriz, fy1 = ((float)(fz-globalposz))*ryp1 + ghoriz;
 
+        xtex2.d = (ryp0-ryp1)*gxyaspect / (x0-x1);
+        ytex2.d = 0;
+        otex2.d = ryp0*gxyaspect - xtex2.d*x0;
+        
+        xtex2.u = ytex2.u = otex2.u = 0;
+        xtex2.v = ytex2.v = otex2.v = 0;
+
         // Floor
 
         globalpicnum = sec->floorpicnum;
@@ -4411,6 +4440,8 @@ static void polymost_drawalls(int32_t const bunch)
             for (bssize_t i=(1<<dapskybits)-1; i>0; i--)
                 if (dapskyoff[i] != dapskyoff[i-1])
                     { skyclamphack = r_parallaxskyclamping; break; }
+
+            skyzbufferhack = 1;
 
             if (!usehightile || !hicfindskybox(globalpicnum, globalpal))
             {
@@ -4705,6 +4736,8 @@ static void polymost_drawalls(int32_t const bunch)
             }
 
             skyclamphack = 0;
+            skyzbufferhack = 0;
+
             if (!nofog)
                 polymost_setFogEnabled(true);
         }
@@ -4746,6 +4779,8 @@ static void polymost_drawalls(int32_t const bunch)
             for (bssize_t i=(1<<dapskybits)-1; i>0; i--)
                 if (dapskyoff[i] != dapskyoff[i-1])
                     { skyclamphack = r_parallaxskyclamping; break; }
+
+            skyzbufferhack = 1;
 
             if (!usehightile || !hicfindskybox(globalpicnum, globalpal))
             {
@@ -5040,6 +5075,7 @@ static void polymost_drawalls(int32_t const bunch)
             }
 
             skyclamphack = 0;
+            skyzbufferhack = 0;
             if (!nofog)
                 polymost_setFogEnabled(true);
         }
