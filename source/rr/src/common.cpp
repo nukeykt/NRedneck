@@ -559,6 +559,7 @@ static void G_AddSteamPaths(const char *basepath)
     addsearchpath_user(buf, SEARCHPATH_REMOVE);
 #endif
 
+#if 0
     // NAM (Steam)
 #if defined EDUKE32_OSX
     Bsnprintf(buf, sizeof(buf), "%s/steamapps/common/Nam/Nam.app/Contents/Resources/Nam.boxer/C.harddisk/NAM", basepath);
@@ -570,6 +571,7 @@ static void G_AddSteamPaths(const char *basepath)
     // WWII GI (Steam)
     Bsnprintf(buf, sizeof(buf), "%s/steamapps/common/World War II GI/WW2GI", basepath);
     addsearchpath_user(buf, SEARCHPATH_WW2GI);
+#endif
 }
 
 // A bare-bones "parser" for Valve's KeyValues VDF format.
