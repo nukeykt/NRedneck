@@ -35,7 +35,7 @@ static voxmodel_t *gvox;
 
 
 //pitch must equal xsiz*4
-uint32_t gloadtex(int32_t *picbuf, int32_t xsiz, int32_t ysiz, int32_t is8bit, int32_t dapal)
+uint32_t gloadtex(const int32_t *picbuf, int32_t xsiz, int32_t ysiz, int32_t is8bit, int32_t dapal)
 {
     const char *const cptr = &britable[gammabrightness ? 0 : curbrightness][0];
 
@@ -972,8 +972,7 @@ int32_t polymost_voxdraw(voxmodel_t *m, const uspritetype *tspr)
 
     float pc[4];
 
-    pc[0] = pc[1] = pc[2] =
-        (float)(numshades-min(max((globalshade * shadescale)+m->shadeoff, 0), numshades)) / (float)numshades;
+    pc[0] = pc[1] = pc[2] = ((float)numshades - min(max((globalshade * shadescale) + m->shadeoff, 0.f), (float)numshades)) / (float)numshades;
     hictinting_apply(pc, globalpal);
 
     pc[3] = (tspr->cstat&2) ? glblend[tspr->blend].def[!!(tspr->cstat&512)].alpha : 1.0f;

@@ -859,10 +859,9 @@ REDODOOR:
 
         if (pSector->lotag & 0x8000u)
         {
-            // WTF?
             int const q = (pSector->ceilingz + pSector->floorz) >> 1;
-            j = SetAnimation(sectNum, &pSector->floorz, q, pSector->extra);
-            j = SetAnimation(sectNum, &pSector->ceilingz, q, pSector->extra);
+            SetAnimation(sectNum, &pSector->floorz, q, pSector->extra);
+            SetAnimation(sectNum, &pSector->ceilingz, q, pSector->extra);
         }
         else
         {
@@ -871,8 +870,8 @@ REDODOOR:
 
             if (floorNeighbor>=0 && ceilingNeighbor>=0)
             {
-                j = SetAnimation(sectNum, &pSector->floorz, sector[floorNeighbor].floorz, pSector->extra);
-                j = SetAnimation(sectNum, &pSector->ceilingz, sector[ceilingNeighbor].ceilingz, pSector->extra);
+                SetAnimation(sectNum, &pSector->floorz, sector[floorNeighbor].floorz, pSector->extra);
+                SetAnimation(sectNum, &pSector->ceilingz, sector[ceilingNeighbor].ceilingz, pSector->extra);
             }
             else
             {
@@ -3210,6 +3209,7 @@ void P_CheckSectors(int playerNum)
                         {
                             actor[nearSprite].t_data[0] = 1;
                             sprite[nearSprite].owner    = pPlayer->i;
+                            // assignment of buttonpalette here is not a bug
                             ud.secretlevel =
                             (pPlayer->buttonpalette = sprite[nearSprite].pal) ? sprite[nearSprite].lotag : 0;
                         }
@@ -3255,10 +3255,10 @@ void P_CheckSectors(int playerNum)
 
                         int const playerSectnum = pPlayer->cursectnum;
                         pPlayer->cursectnum     = SECT(spriteNum);
+                        P_UpdateScreenPal(pPlayer);
                         pPlayer->cursectnum     = playerSectnum;
                         pPlayer->newowner       = spriteNum;
 
-                        P_UpdateScreenPal(pPlayer);
                         P_UpdatePosWhenViewingCam(pPlayer);
 
                         return;

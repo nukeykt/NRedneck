@@ -369,7 +369,7 @@ float glox1, gloy1, glox2, gloy2;
 static int32_t gltexcacnum = -1;
 
 //in-place multiply m0=m0*m1
-static float* multiplyMatrix4f(float m0[4*4], float m1[4*4])
+static float* multiplyMatrix4f(float m0[4*4], const float m1[4*4])
 {
     float mR[4*4];
 
@@ -860,7 +860,7 @@ void polymost_glinit()
         glEnable(GL_MULTISAMPLE);
     }
 
-    if (persistentStreamBuffer && ((!glinfo.bufferstorage) || (!glinfo.sync)))
+    if (r_persistentStreamBuffer && ((!glinfo.bufferstorage) || (!glinfo.sync)))
     {
         OSD_Printf("Your OpenGL implementation doesn't support the required extensions for persistent stream buffers. Disabling...\n");
         r_persistentStreamBuffer = 0;
@@ -1291,7 +1291,6 @@ void polymost_init()
 }
 
 ////////// VISIBILITY FOG ROUTINES //////////
-extern int32_t nofog;  // in windows/SDL layers
 
 // only for r_usenewshading < 2 (not preferred)
 static void fogcalc_old(int32_t shade, int32_t vis)
@@ -2155,7 +2154,7 @@ void gloadtile_art(int32_t dapic, int32_t dapal, int32_t tintpalnum, int32_t das
     static int32_t fullbrightloadingpass = 0;
     vec2s_t const & tsizart = tilesiz[dapic];
     vec2_t siz = { 0, 0 }, tsiz = { tsizart.x, tsizart.y };
-    size_t const picdim = tsiz.x*tsiz.y;
+    int const picdim = tsiz.x*tsiz.y;
     char hasalpha = 0, hasfullbright = 0;
     char npoty = 0;
 
@@ -2971,12 +2970,24 @@ static void polymost_waitForSubBuffer(uint32_t subBufferIndex)
             {
                 return;
             }
+            if (waitResult == GL_WAIT_FAILED)
+            {
+                OSD_Printf("polymost_waitForSubBuffer: Wait failed! Error 0x%X. Disabling r_persistentStreamBuffer.\n", glGetError());
+                r_persistentStreamBuffer = 0;
+                videoResetMode();
+                if (videoSetGameMode(fullscreen,xres,yres,bpp,upscalefactor))
+                {
+                    OSD_Printf("polymost_waitForSubBuffer: Video reset failed.  Please ensure r_persistentStreamBuffer = 0 and try restarting the game.\n");
+                    Bexit(1);
+                }
+                return;
+            }
 
             static char loggedLongWait = false;
             if (waitResult == GL_TIMEOUT_EXPIRED &&
                 !loggedLongWait)
             {
-                OSD_Printf("polymost_waitForBuffer(): Had to wait for the drawpoly buffer to become available.  For performance, try increasing buffer size with r_drawpolyVertsBufferLength.\n");
+                OSD_Printf("polymost_waitForSubBuffer(): Had to wait for the drawpoly buffer to become available.  For performance, try increasing buffer size with r_drawpolyVertsBufferLength.\n");
                 loggedLongWait = true;
             }
         }
@@ -4035,7 +4046,7 @@ void polymost_editorfunc(void)
     searchit = 0;
 }
 
-void polymost_scansector(int32_t sectnum);
+
 
 // variables that are set to ceiling- or floor-members, depending
 // on which one is processed right now
@@ -7961,7 +7972,7 @@ void polymost_initosdfuncs(void)
 
     static osdcvardata_t cvars_polymost[] =
     {
-        { "r_enablepolymost2","enable/disable polymost2",(void *) &r_enablepolymost2, CVAR_BOOL, 0, 1 },
+        { "r_enablepolymost2","enable/disable polymost2",(void *) &r_enablepolymost2, CVAR_BOOL, 0, 0 }, //POGO: temporarily disable this variable
         { "r_pogoDebug","",(void *) &r_pogoDebug, CVAR_BOOL | CVAR_NOSAVE, 0, 1 },
         { "r_animsmoothing","enable/disable model animation smoothing",(void *) &r_animsmoothing, CVAR_BOOL, 0, 1 },
         { "r_downsize","controls downsizing factor (quality) for hires textures",(void *) &r_downsize, CVAR_INT|CVAR_FUNCPTR, 0, 5 },

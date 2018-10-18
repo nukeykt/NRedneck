@@ -192,9 +192,8 @@ static void suckbitsnextblock()
     if (zipfilmode)
     {
         //NOTE: should only read bytes inside compsize, not 64K!!! :/
-        int32_t n;
         B_BUF32(&olinbuf[0], B_UNBUF32(&olinbuf[sizeof(olinbuf)-4]));
-        n = min((unsigned) (kzfs.compleng-kzfs.comptell), sizeof(olinbuf)-4);
+        uint32_t n = min<uint32_t>(kzfs.compleng-kzfs.comptell, sizeof(olinbuf)-4);
         fread(&olinbuf[4], n, 1, kzfs.fil);
         kzfs.comptell += n;
         bitpos -= ((sizeof(olinbuf)-4)<<3);
@@ -225,7 +224,7 @@ static inline int32_t peekbits(int32_t n) { return (B_LITTLE32(B_UNBUF32(&filptr
 static inline void suckbits(int32_t n) { bitpos += n; if (bitpos < 0) return; suckbitsnextblock(); }
 static inline int32_t getbits(int32_t n) { int32_t i = peekbits(n); suckbits(n); return i; }
 
-static int32_t hufgetsym(int32_t *hitab, int32_t *hbmax)
+static int32_t hufgetsym(int32_t *hitab, const int32_t *hbmax)
 {
     int32_t v, n;
 
@@ -245,7 +244,7 @@ static int32_t hufgetsym(int32_t *hitab, int32_t *hbmax)
 //   return hitab[hbmax[n]+v];
 //}
 
-static void qhufgencode(int32_t *hitab, int32_t *hbmax, int32_t *qhval, uint8_t *qhbit, int32_t numbits)
+static void qhufgencode(const int32_t *hitab, const int32_t *hbmax, int32_t *qhval, uint8_t *qhbit, int32_t numbits)
 {
     int32_t i, j, k, n, r;
 
@@ -293,7 +292,7 @@ static void qhufgencode(int32_t *hitab, int32_t *hbmax, int32_t *qhval, uint8_t 
 //hitab[inum] : Indices from size-ordered list to original symbol
 //hbmax[0-31] : Highest index (+1) of n-bit symbol
 
-static void hufgencode(int32_t *inbuf, int32_t inum, int32_t *hitab, int32_t *hbmax)
+static void hufgencode(const int32_t *inbuf, int32_t inum, int32_t *hitab, int32_t *hbmax)
 {
     int32_t i, tbuf[31], *tbufptr, *hbmaxptr;
 
@@ -2342,7 +2341,7 @@ int32_t kprender(const char *buf, int32_t leng, intptr_t frameptr, int32_t bpl,
 //Given: string i and string j. string j can have wildcards
 //Returns: 1:matches, 0:doesn't match
 
-extern char toupperlookup[256];
+
 
 int32_t wildmatch(const char *match, const char *wild)
 {
@@ -2855,7 +2854,7 @@ int32_t kzread(void *buffer, int32_t leng)
             kzfs.jmpplc = 0;
 
             //Initialize for suckbits/peekbits/getbits
-            kzfs.comptell = min((unsigned)kzfs.compleng,sizeof(olinbuf));
+            kzfs.comptell = min<int32_t>(kzfs.compleng,sizeof(olinbuf));
             fread(&olinbuf[0],kzfs.comptell,1,kzfs.fil);
             //Make it re-load when there are < 32 bits left in FIFO
             bitpos = -(((int32_t)sizeof(olinbuf)-4)<<3);

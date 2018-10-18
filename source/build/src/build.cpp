@@ -254,7 +254,7 @@ static void initcrc(void);
 static int32_t menuselect(void);
 static int32_t menuselect_auto(int, int); //PK
 
-static int32_t insert_sprite_common(int32_t sucksect, int32_t dax, int32_t day);
+static int32_t insert_sprite_common(int32_t sectnum, int32_t dax, int32_t day);
 static void correct_ornamented_sprite(int32_t i, int32_t hitw);
 
 static int32_t getfilenames(const char *path, const char *kind);
@@ -1074,8 +1074,8 @@ static void handle_sprite_in_clipboard(int32_t i)
         sprite[i].shade = tempshade;
         sprite[i].blend = tempblend;
         sprite[i].pal = temppal;
-        sprite[i].xrepeat = max(tempxrepeat, 1);
-        sprite[i].yrepeat = max(tempyrepeat, 1);
+        sprite[i].xrepeat = max(tempxrepeat, 1u);
+        sprite[i].yrepeat = max(tempyrepeat, 1u);
         sprite[i].cstat = tempcstat;
     }
 }
@@ -1976,7 +1976,7 @@ static int32_t restore_highlighted_map(mapinfofull_t *mapinfo, int32_t forreal)
 }
 
 
-static int32_t newnumwalls=-1;
+static int16_t newnumwalls=-1;
 
 void ovh_whiteoutgrab(int32_t restoreredwalls)
 {
@@ -2071,10 +2071,10 @@ static void duplicate_selected_sectors(void)
                 checksectorpointer(wall[j].nextwall,wall[j].nextsector);
             checksectorpointer(j, highlightsector[i]);
 
-            minx = min(minx, wall[j].x);
-            maxx = max(maxx, wall[j].x);
-            miny = min(miny, wall[j].y);
-            maxy = max(maxy, wall[j].y);
+            minx = min(minx, TrackerCast(wall[j].x));
+            maxx = max(maxx, TrackerCast(wall[j].x));
+            miny = min(miny, TrackerCast(wall[j].y));
+            maxy = max(maxy, TrackerCast(wall[j].y));
         }
     }
 
@@ -2232,7 +2232,7 @@ void update_highlightsector(void)
         if (hlsectorbitmap[i>>3]&(1<<(i&7)))
         {
             highlightsector[highlightsectorcnt++] = i;
-            minhlsectorfloorz = min(minhlsectorfloorz, sector[i].floorz);
+            minhlsectorfloorz = min(minhlsectorfloorz, TrackerCast(sector[i].floorz));
             numhlsecwalls += sector[i].wallnum;
         }
 
@@ -2964,7 +2964,7 @@ static void M32_MarkPointInsertion(int32_t thewall)
 //  1 if inserted point on a plain white or 2 points on a plain red wall.
 //  N >= 2 if inserted N points on TROR-constrained wall.
 //  N|(EXPECTED<<16) if inserted N points but EXPECTED walls were expected.
-static int32_t M32_InsertPoint(int32_t thewall, int32_t dax, int32_t day, int32_t onewnumwalls, int32_t *mapwallnum)
+static int32_t M32_InsertPoint(int32_t thewall, int32_t dax, int32_t day, int16_t onewnumwalls, int32_t *mapwallnum)
 {
 #ifdef YAX_ENABLE
     int32_t nextw = wall[thewall].nextwall;
@@ -3065,8 +3065,6 @@ void inflineintersect(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 
     *sign12 = topt < 0 ? -1 : 1;
     *sign34 = topu < 0 ? -1 : 1;
-
-    return;
 }
 
 static int32_t lineintersect2v(const vec2_t *p1, const vec2_t *p2,  // line segment 1
@@ -7820,7 +7818,7 @@ end_batch_insert_points:
                 duplicate_selected_sprites();
             else if (linehighlight2 >= 0)
             {
-                int32_t onewnumwalls = newnumwalls;
+                int16_t onewnumwalls = newnumwalls;
                 int32_t wallis2sided = (wall[linehighlight2].nextwall>=0);
 
                 int32_t err = backup_drawn_walls(0);
@@ -7829,7 +7827,7 @@ end_batch_insert_points:
                 {
                     message("Error backing up drawn walls (code %d)!", err);
                 }
-                else if (max(numwalls,onewnumwalls) >= MAXWALLS-wallis2sided)
+                else if (max(numwalls, onewnumwalls) >= MAXWALLS-wallis2sided)
                 {
                     printmessage16("Inserting point would exceed wall limit.");
                 }
@@ -8927,10 +8925,6 @@ static void deletepoint(int16_t point, int32_t runi)
     }
 #endif
     movewalls(point, -1);
-
-//    checksectorpointer(j, sucksect);
-
-    return;
 }
 
 static int32_t deletesector(int16_t sucksect)

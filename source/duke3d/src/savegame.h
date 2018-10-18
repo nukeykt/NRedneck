@@ -114,7 +114,7 @@ extern bool g_saveRequested;
 extern savebrief_t * g_quickload;
 
 extern menusave_t * g_menusaves;
-extern size_t g_nummenusaves;
+extern uint32_t g_nummenusaves;
 
 int32_t sv_updatestate(int32_t frominit);
 int32_t sv_readdiff(int32_t fil);
@@ -152,8 +152,8 @@ enum
     P2I_FWD_NON0 = 0+2,
     P2I_BACK_NON0 = 1+2,
 };
-void G_Util_PtrToIdx(void *ptr, int32_t const count, const void *base, int32_t const mode);
-void G_Util_PtrToIdx2(void *ptr, int32_t const count, size_t const stride, const void *base, int32_t const mode);
+void G_Util_PtrToIdx(void *ptr, int32_t count, const void *base, int32_t mode);
+void G_Util_PtrToIdx2(void *ptr, int32_t count, size_t stride, const void *base, int32_t mode);
 
 #ifdef LUNATIC
 extern const char *(*El_SerializeGamevars)(int32_t *slenptr, int32_t levelnum);

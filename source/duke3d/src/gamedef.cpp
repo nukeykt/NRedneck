@@ -73,8 +73,6 @@ static char *textptr;
 
 int32_t g_errorCnt,g_warningCnt;
 
-extern int32_t g_highestSoundIdx;
-
 #if !defined LUNATIC
 static char *C_GetLabelType(int32_t type)
 {
@@ -2375,7 +2373,6 @@ static int32_t C_CountCaseStatements()
     g_lineNumber = temp_ScriptLineNumber;
 
     int32_t const lCount=g_numCases;
-    g_numCases=0;
     g_caseScriptPtr = (intptr_t *)(apScript+caseoffset);
     g_numCases = 0;
     return lCount;
@@ -5210,7 +5207,7 @@ repeatcase:
                 {
                     if (tw == CON_DEFAULT)
                     {
-                        if (EDUKE32_PREDICT_FALSE(g_caseScriptPtr && g_caseScriptPtr[0]!=0))
+                        if (EDUKE32_PREDICT_FALSE(g_caseScriptPtr[0] != 0))
                         {
                             // duplicate default statement
                             g_errorCnt++;
@@ -6081,8 +6078,9 @@ repeatcase:
             k = *(g_scriptPtr-1);
             if (EDUKE32_PREDICT_FALSE((unsigned)k >= MAXSOUNDS-1))
             {
-                initprintf("%s:%d: error: exceeded sound limit of %d.\n",g_scriptFileName,g_lineNumber,MAXSOUNDS);
+                initprintf("%s:%d: error: sound index exceeds limit of %d.\n",g_scriptFileName,g_lineNumber, MAXSOUNDS-1);
                 g_errorCnt++;
+                k = MAXSOUNDS-1;
             }
             g_scriptPtr--;
             i = 0;
@@ -6141,7 +6139,7 @@ repeatcase:
             if (k > g_highestSoundIdx)
                 g_highestSoundIdx = k;
 
-            if (k >= 0 && k < MAXSOUNDS && g_dynamicSoundMapping && j >= 0 && (labeltype[j] & LABEL_DEFINE))
+            if (k >= 0 && k < MAXSOUNDS-1 && g_dynamicSoundMapping && j >= 0 && (labeltype[j] & LABEL_DEFINE))
                 G_ProcessDynamicSoundMapping(label+(j<<6),k);
             continue;
 
@@ -6552,9 +6550,6 @@ void C_InitProjectiles(void)
 }
 
 #if !defined LUNATIC
-extern int32_t g_numObituaries;
-extern int32_t g_numSelfObituaries;
-
 static char const * C_ScriptVersionString(int32_t version)
 {
     switch (version)
