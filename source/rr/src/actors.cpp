@@ -3378,7 +3378,7 @@ ACTOR_STATIC void G_MoveTransports(void)
                             pPlayer->opos.y = pPlayer->pos.y;
 
                             if (sprite[OW(spriteNum)].owner != OW(spriteNum))
-                                pPlayer->transporter_hold = 2;
+                                pPlayer->transporter_hold = -2;
 
                             pPlayer->cursectnum = sprite[OW(spriteNum)].sectnum;
                             changespritesect(playerNum, sprite[OW(spriteNum)].sectnum);
