@@ -131,6 +131,7 @@ int32_t r_vbocount = 64;
 int32_t r_animsmoothing = 1;
 int32_t r_downsize = 0;
 int32_t r_downsizevar = -1;
+int32_t r_brightnesshack = 0;
 
 // used for fogcalc
 static float fogresult, fogresult2;
@@ -196,6 +197,8 @@ static GLint polymost1NPOTEmulationFactorLoc = -1;
 static float polymost1NPOTEmulationFactor = 1.f;
 static GLint polymost1NPOTEmulationXOffsetLoc = -1;
 static float polymost1NPOTEmulationXOffset = 0.f;
+static GLint polymost1BrightnessLoc = -1;
+static float polymost1Brightness = 1.f;
 
 static inline float float_trans(uint32_t maskprops, uint8_t blend)
 {
@@ -609,6 +612,7 @@ static void polymost_setCurrentShaderProgram(uint32_t programID)
     polymost1NPOTEmulationLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_npotEmulation");
     polymost1NPOTEmulationFactorLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_npotEmulationFactor");
     polymost1NPOTEmulationXOffsetLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_npotEmulationXOffset");
+    polymost1BrightnessLoc = glGetUniformLocation(polymost1CurrentShaderProgramID, "u_brightness");
 
     //set the uniforms to the current values
     glUniform4f(polymost1TexturePosSizeLoc, polymost1TexturePosSize.x, polymost1TexturePosSize.y, polymost1TexturePosSize.z, polymost1TexturePosSize.w);
@@ -624,6 +628,7 @@ static void polymost_setCurrentShaderProgram(uint32_t programID)
     glUniform1f(polymost1NPOTEmulationLoc, polymost1NPOTEmulation);
     glUniform1f(polymost1NPOTEmulationFactorLoc, polymost1NPOTEmulationFactor);
     glUniform1f(polymost1NPOTEmulationXOffsetLoc, polymost1NPOTEmulationXOffset);
+    glUniform1f(polymost1BrightnessLoc, polymost1Brightness);
 }
 
 void polymost_setTexturePosSize(vec4f_t texturePosSize)
@@ -773,6 +778,15 @@ void polymost_npotEmulation(char npotEmulation, float factor, float xOffset)
         glUniform1f(polymost1NPOTEmulationFactorLoc, polymost1NPOTEmulationFactor);
         polymost1NPOTEmulationXOffset = xOffset;
         glUniform1f(polymost1NPOTEmulationXOffsetLoc, polymost1NPOTEmulationXOffset);
+    }
+}
+
+void polymost_setBrightness(int brightness)
+{
+    if (currentShaderProgramID == polymost1CurrentShaderProgramID)
+    {
+        polymost1Brightness = 8.f / (brightness+8.f);
+        glUniform1f(polymost1BrightnessLoc, polymost1Brightness);
     }
 }
 
@@ -1086,6 +1100,7 @@ void polymost_glinit()
          uniform float u_npotEmulation;\n\
          uniform float u_npotEmulationFactor;\n\
          uniform float u_npotEmulationXOffset;\n\
+         uniform float u_brightness;\n\
          \n\
          varying vec4 v_color;\n\
          \n\
@@ -1136,6 +1151,8 @@ void polymost_glinit()
              \n\
              color.a *= v_color.a;\n\
              \n\
+             color.rgb = pow(color.rgb, vec3(u_brightness));\n\
+             \n\
              gl_FragColor = color;\n\
          }\n";
     const char* const POLYMOST1_EXTENDED_FRAGMENT_SHADER_CODE =
@@ -1165,6 +1182,7 @@ void polymost_glinit()
          uniform float u_npotEmulation;\n\
          uniform float u_npotEmulationFactor;\n\
          uniform float u_npotEmulationXOffset;\n\
+         uniform float u_brightness;\n\
          \n\
          uniform float u_useDetailMapping;\n\
          uniform float u_useGlowMapping;\n\
@@ -1220,10 +1238,18 @@ void polymost_glinit()
              //float fogFactor = clamp(gl_FogFragCoord, fullbright, c_one);\n\
              color.rgb = mix(gl_Fog.color.rgb, color.rgb, fogFactor);\n\
              \n\
-             vec4 glowColor = texture2D(s_glow, gl_TexCoord[4].xy);\n\
+             coordY = mix(gl_TexCoord[4].y,gl_TexCoord[4].x,u_usePalette);\n\
+             coordX = mix(gl_TexCoord[4].x,gl_TexCoord[4].y,u_usePalette);\n\
+             period = floor(coordY/u_npotEmulationFactor);\n\
+             coordX += u_npotEmulationXOffset*floor(mod(coordY,u_npotEmulationFactor));\n\
+             coordY = period+mod(coordY,u_npotEmulationFactor);\n\
+             newCoord = mix(gl_TexCoord[4].xy,mix(vec2(coordX,coordY),vec2(coordY,coordX),u_usePalette),u_npotEmulation);\n\
+             vec4 glowColor = texture2D(s_glow, newCoord);\n\
              color.rgb = mix(color.rgb, glowColor.rgb, u_useGlowMapping*glowColor.a*(c_one-u_useColorOnly));\n\
              \n\
              color.a *= v_color.a;\n\
+             \n\
+             color.rgb = pow(color.rgb, vec3(u_brightness));\n\
              \n\
              gl_FragColor = color;\n\
          }\n";
@@ -5475,6 +5501,8 @@ void polymost_drawrooms()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL); //NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
 //        glDepthRange(0.0, 1.0); //<- this is more widely supported than glPolygonOffset
+
+    polymost_setBrightness(r_brightnesshack);
 
     //Polymost supports true look up/down :) Here, we convert horizon to angle.
     //gchang&gshang are cos&sin of this angle (respectively)
