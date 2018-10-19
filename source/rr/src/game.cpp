@@ -2239,10 +2239,11 @@ default_case:
                     pSprite->shade = 127;
             }
             pSprite->cstat |= 32;
+            if (RR) goto rrbloodpool_fallthrough;
             fallthrough__;
         }
         case FECES__STATIC:
-            if (RR && pSprite->picnum == FECES) goto default_case;
+            if (RR) goto default_case;
             if (spriteNum >= 0)
                 pSprite->xrepeat = pSprite->yrepeat = 1;
             changespritestat(newSprite, STAT_MISC);
@@ -2252,6 +2253,7 @@ default_case:
         case BLOODSPLAT2__STATIC:
         case BLOODSPLAT3__STATIC:
         case BLOODSPLAT4__STATIC:
+rrbloodpool_fallthrough:
             pSprite->cstat |= 16;
             pSprite->xrepeat = 7 + (krand2() & 7);
             pSprite->yrepeat = 7 + (krand2() & 7);
