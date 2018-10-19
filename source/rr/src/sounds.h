@@ -96,7 +96,7 @@ void S_MusicVolume(int32_t volume);
 void S_RestartMusic(void);
 void S_PauseMusic(int32_t onf);
 void S_PauseSounds(int32_t onf);
-void S_PlayRRMusic(void);
+void S_PlayRRMusic(int newTrack = -1);
 int S_TryPlayLevelMusic(unsigned int);
 void S_PlayLevelMusicOrNothing(unsigned int);
 int S_TryPlaySpecialMusic(unsigned int);

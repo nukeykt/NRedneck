@@ -1153,6 +1153,9 @@ static MenuEntry_t ME_SOUND = MAKE_MENUENTRY( "Sound:", &MF_Redfont, &MEF_BigOpt
 static MenuOption_t MEO_SOUND_MUSIC = MAKE_MENUOPTION( &MF_Redfont, &MEOS_OffOn, &ud.config.MusicToggle );
 static MenuEntry_t ME_SOUND_MUSIC = MAKE_MENUENTRY( "Music:", &MF_Redfont, &MEF_BigOptionsRt, &MEO_SOUND_MUSIC, Option );
 
+static MenuLink_t MEO_SOUND_CDPLAYER = { MENU_CDPLAYER, MA_Advance, };
+static MenuEntry_t ME_SOUND_CDPLAYER = MAKE_MENUENTRY( "8 Track Player", &MF_Redfont, &MEF_BigOptionsRt, &MEO_SOUND_CDPLAYER, Link );
+
 static MenuRangeInt32_t MEO_SOUND_VOLUME_MASTER = MAKE_MENURANGE( &ud.config.MasterVolume, &MF_Redfont, 0, 255, 0, 33, 2 );
 static MenuEntry_t ME_SOUND_VOLUME_MASTER = MAKE_MENUENTRY( "Volume:", &MF_Redfont, &MEF_BigOptionsRt, &MEO_SOUND_VOLUME_MASTER, RangeInt32 );
 
@@ -1203,6 +1206,19 @@ static MenuEntry_t *MEL_ADVSOUND[] = {
     &ME_Space2_Redfont,
 #endif
     &ME_SOUND_RESTART,
+};
+
+static MenuEntry_t ME_CDPLAYER_TRACK = MAKE_MENUENTRY( NULL, &MF_Redfont, &MEF_Null, &MEO_NULL, Dummy);
+
+static MenuEntry_t *MEL_CDPLAYER[] = {
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK,
+    &ME_CDPLAYER_TRACK
 };
 
 
@@ -1381,6 +1397,7 @@ static MenuMenu_t M_LOAD = MAKE_MENUMENU_CUSTOMSIZE( s_LoadGame, &MMF_LoadSave, 
 static MenuMenu_t M_SAVE = MAKE_MENUMENU_CUSTOMSIZE( s_SaveGame, &MMF_LoadSave, MEL_SAVE );
 static MenuMenu_t M_SOUND = MAKE_MENUMENU( "Sound Setup", &MMF_BigOptions, MEL_SOUND );
 static MenuMenu_t M_ADVSOUND = MAKE_MENUMENU( "Advanced Sound", &MMF_BigOptions, MEL_ADVSOUND );
+static MenuMenu_t M_CDPLAYER = MAKE_MENUMENU( "8 Track Player", &MMF_BigOptions, MEL_CDPLAYER );
 static MenuMenu_t M_SAVESETUP = MAKE_MENUMENU( "Save Setup", &MMF_BigOptions, MEL_SAVESETUP );
 static MenuMenu_t M_NETWORK = MAKE_MENUMENU( "Network Game", &MMF_Top_Joystick_Network, MEL_NETWORK );
 static MenuMenu_t M_PLAYER = MAKE_MENUMENU( "Player Setup", &MMF_SmallOptions, MEL_PLAYER );
@@ -1509,6 +1526,7 @@ static Menu_t Menus[] = {
     { &M_SOUND, MENU_SOUND, MENU_OPTIONS, MA_Return, Menu },
     { &M_SOUND, MENU_SOUND_INGAME, MENU_CLOSE, MA_Return, Menu },
     { &M_ADVSOUND, MENU_ADVSOUND, MENU_SOUND, MA_Return, Menu },
+    { &M_CDPLAYER, MENU_CDPLAYER, MENU_SOUND, MA_Return, CdPlayer },
     { &M_SAVESETUP, MENU_SAVESETUP, MENU_OPTIONS, MA_Return, Menu },
     { &M_SAVECLEANVERIFY, MENU_SAVECLEANVERIFY, MENU_SAVESETUP, MA_None, Verify },
 #ifdef EDUKE32_SIMPLE_MENU
@@ -1936,6 +1954,8 @@ void Menu_Init(void)
 
     if (RR)
     {
+        MEL_SOUND[0] = &ME_SOUND_CDPLAYER;
+        MEL_SOUND[1] = &ME_SOUND;
         M_CREDITS.title = M_CREDITS2.title = M_CREDITS3.title = s_Credits;
         M_CREDITS3.nextID = MENU_CREDITS4;
         M_STORY.previousID = M_STORY.nextID = MENU_F1HELP;
@@ -2283,6 +2303,10 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
             if (PLUTOPAK)   // JBF 20030804
                 rotatesprite_fs(origin.x + ((MENU_MARGIN_CENTER+100)<<16), origin.y + (36<<16), 65536L,0,PLUTOPAKSPRITE+2,(sintable[(totalclock<<4)&2047]>>11),0,2+8);
         }
+        break;
+
+    case MENU_CDPLAYER:
+        rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y+(100<<16),32768L,0,CDPLAYER,16,0,10);
         break;
 
     case MENU_PLAYER:
@@ -3736,7 +3760,7 @@ static int32_t Menu_EntryOptionModify(MenuEntry_t *entry, int32_t newOption)
             S_ClearSoundLocks();
         }
     }
-    else if (entry == &ME_SOUND_MUSIC)
+    else if (entry == &ME_SOUND_MUSIC || entry == &ME_CDPLAYER_TRACK)
     {
         ud.config.MusicToggle = newOption;
 
@@ -4650,6 +4674,18 @@ static void Menu_AboutToStartDisplaying(Menu_t * m)
     case FileSelect:
         Menu_FileSelectInit((MenuFileSelect_t*)m->object);
         break;
+    case CdPlayer:
+    {
+        MenuMenu_t *menu = (MenuMenu_t*)m->object;
+        menu->currentEntry = g_cdTrack-2;
+        // MenuEntry_t* currentry = menu->entrylist[menu->currentEntry];
+
+        if (menu->currentEntry < 0 || menu->currentEntry >= menu->numEntries)
+            menu->currentEntry = 0;
+
+        Menu_EntryFocus(/*currentry*/);
+        break;
+    }
     case Menu:
     {
         MenuMenu_t *menu = (MenuMenu_t*)m->object;
@@ -4796,6 +4832,7 @@ int32_t Menu_IsTextInput(Menu_t *cm)
             return 1;
             break;
         case Panel:
+        case CdPlayer:
             return 0;
             break;
         case Menu:
@@ -5804,6 +5841,95 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
     return totalHeight;
 }
 
+static void M_RunMenu_CdPlayer(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *currentry, int32_t state, const vec2_t origin)
+{
+    static const vec2_t entryPos[8] = {
+        { 22, 15 }, { 64, 15 }, { 104, 15 }, { 142, 15 },
+        { 22, 25 }, { 64, 25 }, { 104, 25 }, { 142, 25 },
+    };
+    bool actually_draw = 1;
+
+    // RIP MenuGroup_t b. 2014-03-?? d. 2014-11-29
+    {
+        int32_t e;
+
+        for (e = 0; e < menu->numEntries; ++e)
+        {
+            MenuEntry_t *entry = menu->entrylist[e];
+
+            const int32_t x = entryPos[e].x-154+(MENU_MARGIN_CENTER<<1);
+            const int32_t y = entryPos[e].y+65;
+
+            const int32_t mousex = origin.x+(x<<15)-(4<<16);
+            const int32_t mousey = origin.y+(y<<16)-(4<<16);
+
+            if (e == menu->currentEntry && ud.config.MusicToggle)
+                rotatesprite_fs(origin.x+(x<<15), origin.y+(y<<16), 32768, 0, CDPLAYER+1, 16, 0, 10);
+
+            
+            if (MOUSEACTIVECONDITIONAL(cm == m_currentMenu && !Menu_MouseOutsideBounds(&m_mousepos, mousex, mousey, 8<<16, 8<<16)))
+            {
+                if (!m_mousecaught && g_mouseClickState == MOUSE_RELEASED)
+                {
+                    menu->currentEntry = e;
+
+                    S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
+
+                    if (ud.config.MusicToggle)
+                    {
+                        S_StopMusic();
+                        S_PlayRRMusic(2+menu->currentEntry);
+                    }
+
+                    m_mousecaught = 1;
+                }
+            }
+            //switch (entry->type)
+            //{
+            //    case Spacer:
+            //        break;
+            //    case Dummy:
+                    //if (MOUSEACTIVECONDITIONAL(state != 1 && cm == m_currentMenu && !Menu_MouseOutsideBounds(&m_mousepos, mousex, mousey, mousewidth, height)))
+                    //{
+                    //    if (MOUSEWATCHPOINTCONDITIONAL(Menu_MouseOutsideBounds(&m_prevmousepos, mousex, mousey, mousewidth, height)))
+                    //    {
+                    //        menu->currentEntry = e;
+                    //        Menu_RunInput_Menu_MovementVerify(menu);
+                    //    }
+                    //}
+                    //break;
+            //}
+        }
+    }
+
+    const int32_t mousex = origin.x+((MENU_MARGIN_CENTER-60)<<16)-(8<<16);
+    const int32_t mousey = origin.y+(113<<16)-(8<<16);
+    if (MOUSEACTIVECONDITIONAL(cm == m_currentMenu && !Menu_MouseOutsideBounds(&m_mousepos, mousex, mousey, 16<<16, 16<<16)))
+    {
+        if (!m_mousecaught && g_mouseClickState == MOUSE_RELEASED)
+        {
+            ud.config.MusicToggle = !ud.config.MusicToggle;
+
+            if (ud.config.MusicToggle == 0)
+                S_PauseMusic(1);
+            else
+            {
+                S_PlayRRMusic(2+menu->currentEntry);
+                S_PauseMusic(0);
+            }
+
+            m_mousecaught = 1;
+        }
+    }
+
+    if (ud.config.MusicToggle)
+        rotatesprite_fs(origin.x+((MENU_MARGIN_CENTER-60)<<16), origin.y+(113<<16), 32768, 0, CDPLAYER+3, 16, 0, 10);
+    else
+        rotatesprite_fs(origin.x+((MENU_MARGIN_CENTER-60)<<16), origin.y+(113<<16), 32768, 0, CDPLAYER+2, 16, 0, 10);
+
+    return;
+}
+
 static void Menu_RunOptionList(Menu_t *cm, MenuEntry_t *entry, MenuOption_t *object, const vec2_t origin)
 {
     int32_t e, y = 0;
@@ -6209,6 +6335,27 @@ static void Menu_Run(Menu_t *cm, const vec2_t origin)
 
             if (object->title != NoTitle)
                 Menu_DrawTopBarCaption(object->title, origin);
+
+            break;
+        }
+
+        case CdPlayer:
+        {
+            MenuMenu_t *menu = (MenuMenu_t*)cm->object;
+            MenuEntry_t *currentry = menu->entrylist[menu->currentEntry];
+            Menu_Pre(cm->menuID);
+
+            Menu_PreDrawBackground(cm->menuID, origin);
+
+            if (menu->title != NoTitle)
+                Menu_DrawTopBar(origin);
+
+            Menu_PreDraw(cm->menuID, NULL, origin);
+
+            M_RunMenu_CdPlayer(cm, menu, currentry, 0, origin);
+
+            if (menu->title != NoTitle)
+                Menu_DrawTopBarCaption(menu->title, origin);
 
             break;
         }
@@ -7022,6 +7169,175 @@ static void Menu_RunInput(Menu_t *cm)
 
             Menu_PreInput(NULL);
             break;
+
+        case CdPlayer:
+        {
+            int32_t state;
+
+            MenuMenu_t *menu = (MenuMenu_t*)cm->object;
+            MenuEntry_t *currentry = menu->entrylist[menu->currentEntry];
+            MenuOption_t *object = (MenuOption_t*)currentry->entry;
+
+            if (I_AdvanceTrigger())
+            {
+                I_AdvanceTriggerClear();
+
+                ud.config.MusicToggle = !ud.config.MusicToggle;
+
+                if (ud.config.MusicToggle == 0)
+                    S_PauseMusic(1);
+                else
+                {
+                    S_PlayRRMusic(2+menu->currentEntry);
+                    S_PauseMusic(0);
+                }
+
+                S_PlaySound(RR ? 341 : PISTOL_BODYHIT);
+            }
+
+            if (I_ReturnTrigger() || I_EscapeTrigger() || Menu_RunInput_MouseReturn())
+            {
+                I_ReturnTriggerClear();
+                I_EscapeTriggerClear();
+                m_mousecaught = 1;
+
+                if (cm->parentID != MENU_CLOSE || (g_player[myconnectindex].ps->gm & MODE_GAME))
+                    S_PlaySound(EXITMENUSOUND);
+
+                Menu_AnimateChange(cm->parentID, cm->parentAnimation);
+            }
+            else if (I_MenuUp() || I_MenuLeft())
+            {
+                I_MenuUpClear();
+                I_MenuLeftClear();
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+
+                currentry = Menu_RunInput_Menu_Movement(menu, MM_Up);
+
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (I_MenuDown() || I_MenuRight())
+            {
+                I_MenuDownClear();
+                I_MenuRightClear();
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+
+                currentry = Menu_RunInput_Menu_Movement(menu, MM_Down);
+
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_1))
+            {
+                KB_ClearKeyDown(sc_1);
+                menu->currentEntry = 0;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_2))
+            {
+                KB_ClearKeyDown(sc_2);
+                menu->currentEntry = 1;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_3))
+            {
+                KB_ClearKeyDown(sc_3);
+                menu->currentEntry = 2;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_4))
+            {
+                KB_ClearKeyDown(sc_4);
+                menu->currentEntry = 3;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_5))
+            {
+                KB_ClearKeyDown(sc_5);
+                menu->currentEntry = 4;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_6))
+            {
+                KB_ClearKeyDown(sc_6);
+                menu->currentEntry = 5;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_7))
+            {
+                KB_ClearKeyDown(sc_7);
+                menu->currentEntry = 6;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+            else if (KB_KeyPressed(sc_8))
+            {
+                KB_ClearKeyDown(sc_8);
+                menu->currentEntry = 7;
+
+                S_PlaySound(RR ? 335 : KICK_HIT);
+                if (ud.config.MusicToggle)
+                {
+                    S_StopMusic();
+                    S_PlayRRMusic(2+menu->currentEntry);
+                }
+            }
+
+            if (currentry != NULL)
+                Menu_PreInput(currentry);
+
+            break;
+        }
 
         case Menu:
         {

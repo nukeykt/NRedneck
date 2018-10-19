@@ -81,6 +81,7 @@ enum MenuIndex_t {
     MENU_SOUND          = 700,
     MENU_SOUND_INGAME   = 701,
 	MENU_ADVSOUND       = 702,
+    MENU_CDPLAYER       = 703,
     MENU_SAVESETUP      = 750,
     MENU_SAVECLEANVERIFY = 751,
     MENU_CHEATS         = 800,
@@ -381,6 +382,7 @@ typedef enum MenuType_t
     Message,
     TextForm,
     FileSelect,
+    CdPlayer,
 } MenuType_t;
 
 typedef struct MenuMenu_t

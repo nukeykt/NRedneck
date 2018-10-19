@@ -323,14 +323,14 @@ int S_TryPlaySpecialMusic(unsigned int m)
     return 1;
 }
 
-void S_PlayRRMusic(void)
+void S_PlayRRMusic(int newTrack)
 {
     char fileName[16];
     if (!RR)
         return;
     S_StopMusic();
-    g_cdTrack++;
-    if (g_cdTrack > 9 || g_cdTrack < 2)
+    g_cdTrack = newTrack != -1 ? newTrack : g_cdTrack+1;
+    if (newTrack != 10 && (g_cdTrack > 9 || g_cdTrack < 2))
         g_cdTrack = 2;
 
     Bsprintf(fileName, "track%.2d.ogg", g_cdTrack);
