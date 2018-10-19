@@ -2259,6 +2259,9 @@ rrbloodpool_fallthrough:
             pSprite->yrepeat = 7 + (krand2() & 7);
             pSprite->z -= ZOFFSET2;
 
+            if (pSprite->picnum == BLOODPOOL)
+                pSprite->cstat |= 32768;
+
             if (spriteNum >= 0 && sprite[spriteNum].pal == 6)
                 pSprite->pal = 6;
 

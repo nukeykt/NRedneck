@@ -3433,12 +3433,12 @@ ACTOR_STATIC void G_MoveTransports(void)
                                 doWarp = 1;
                                 absZdiff = 1;
                             }
-                            if (absZvel != 0 && sectLotag == 160 && sprite[sectSprite].z > (sector[sectNum].ceilingz - absZvel) && warpDir == 2)
+                            if (absZvel != 0 && sectLotag == 160 && sprite[sectSprite].z > (sector[sectNum].floorz - absZvel) && warpDir == 2)
                             {
                                 doWarp = 1;
                                 absZdiff = absZvel - klabs(sector[sectNum].floorz-sprite[sectSprite].z);
                             }
-                            else if (sectLotag == 160 && sprite[sectSprite].z > (sector[sectNum].ceilingz - 1000) && warpDir == 2)
+                            else if (sectLotag == 160 && sprite[sectSprite].z > (sector[sectNum].floorz - 1000) && warpDir == 2)
                             {
                                 doWarp = 1;
                                 absZdiff = 1;
@@ -3534,8 +3534,8 @@ default_case:
                                             changespritesect(sectSprite, sprite[OW(spriteNum)].sectnum);
 
                                             vec3_t const vect = {
-                                                (sprite[sectSprite].x*sintable[(sprite[sectSprite].ang+512)&2047])>>14,
-                                                (sprite[sectSprite].y*sintable[sprite[sectSprite].ang])>>14,
+                                                (sprite[sectSprite].xvel*sintable[(sprite[sectSprite].ang+512)&2047])>>14,
+                                                (sprite[sectSprite].xvel*sintable[sprite[sectSprite].ang])>>14,
                                                 0
                                             };
 
@@ -3758,14 +3758,18 @@ ACTOR_STATIC int A_CheckPins(int16_t const sectNum)
 
 ACTOR_STATIC void A_ResetPins(int16_t sect)
 {
+    int step = 0;
     int tag = 0;
     int spriteNum = headspritesect[sect];
     while (spriteNum >= 0)
     {
+        if (spriteNum > MAXSECTORSV7 || step > 1000)
+            break;
         int const nextSprite = headspritesect[spriteNum];
         if (sprite[spriteNum].picnum == RRTILE3440)
             deletesprite(spriteNum);
         spriteNum = nextSprite;
+        step++;
     }
     spriteNum = headspritesect[sect];
     while (spriteNum >= 0)
