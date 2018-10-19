@@ -71,6 +71,7 @@ enum MenuIndex_t {
     MENU_SAVE           = 350,
     MENU_STORY          = 400,
     MENU_F1HELP         = 401,
+    MENU_F1HELP2        = 402,
     MENU_QUIT           = 500,
     MENU_QUITTOTITLE    = 501,
     MENU_QUIT_INGAME    = 502,

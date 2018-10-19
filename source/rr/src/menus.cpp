@@ -1396,6 +1396,7 @@ static MenuPanel_t M_STORY = { NoTitle, MENU_F1HELP, MA_Return, MENU_F1HELP, MA_
 #endif
 
 static MenuPanel_t M_F1HELP = { NoTitle, MENU_STORY, MA_Return, MENU_STORY, MA_Advance, };
+static MenuPanel_t M_F1HELP2 = { NoTitle, MENU_F1HELP, MA_Return, MENU_STORY, MA_Advance, };
 static MenuPanel_t M_CREDITS = { NoTitle, MENU_CREDITS33, MA_Return, MENU_CREDITS2, MA_Advance, };
 static MenuPanel_t M_CREDITS2 = { NoTitle, MENU_CREDITS, MA_Return, MENU_CREDITS3, MA_Advance, };
 static MenuPanel_t M_CREDITS3 = { NoTitle, MENU_CREDITS2, MA_Return, MENU_CREDITS31, MA_Advance, };
@@ -1498,6 +1499,7 @@ static Menu_t Menus[] = {
     { &M_SAVE, MENU_SAVE, MENU_MAIN, MA_Return, Menu },
     { &M_STORY, MENU_STORY, MENU_MAIN, MA_Return, Panel },
     { &M_F1HELP, MENU_F1HELP, MENU_MAIN, MA_Return, Panel },
+    { &M_F1HELP2, MENU_F1HELP2, MENU_MAIN, MA_Return, Panel },
     { &M_QUIT, MENU_QUIT, MENU_PREVIOUS, MA_Return, Verify },
     { &M_QUITTOTITLE, MENU_QUITTOTITLE, MENU_PREVIOUS, MA_Return, Verify },
     { &M_QUIT, MENU_QUIT_INGAME, MENU_CLOSE, MA_None, Verify },
@@ -1936,9 +1938,12 @@ void Menu_Init(void)
     {
         M_CREDITS.title = M_CREDITS2.title = M_CREDITS3.title = s_Credits;
         M_CREDITS3.nextID = MENU_CREDITS4;
+        M_STORY.previousID = M_STORY.nextID = MENU_F1HELP;
         if (RRRA)
         {
             M_CREDITS31.previousID = MENU_CREDITS30;
+            M_STORY.previousID = MENU_F1HELP2;
+            M_F1HELP.nextID = MENU_F1HELP2;
         }
         else
         {
@@ -2246,6 +2251,10 @@ static void Menu_PreDrawBackground(MenuID_t cm, const vec2_t origin)
 
     case MENU_F1HELP:
         rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (100<<16), 65536L,0,F1HELP,0,0,10+64);
+        break;
+
+    case MENU_F1HELP2:
+        rotatesprite_fs(origin.x + (MENU_MARGIN_CENTER<<16), origin.y + (100<<16), 65536L,0,RRTILE1636,0,0,10+64);
         break;
     }
 }
