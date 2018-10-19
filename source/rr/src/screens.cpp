@@ -2730,7 +2730,7 @@ void G_ShowMapFrame(void)
 
     if (ud.volume_number == 0)
     {
-        switch (ud.volume_number)
+        switch (ud.level_number)
         {
         case 1:
             frame = 0;
@@ -2757,7 +2757,7 @@ void G_ShowMapFrame(void)
     }
     else
     {
-        switch (ud.volume_number)
+        switch (ud.level_number)
         {
         case 1:
             frame = 7;
@@ -2902,11 +2902,9 @@ void G_BonusScreenRRRA(int32_t bonusonly)
         gfx_offset = RRTILE403;
 
     if (!showMap)
-    {
         rotatesprite_fs(160<<16, 100<<16, 65536L, 0, gfx_offset, 0, 0, 2+8+64+128+BGSTRETCH);
-        if (lastmapname)
-            menutext(80,16, lastmapname);
-    }
+    if (lastmapname)
+        menutext(80,16, lastmapname);
 
     menutext(15, 192, "Press any key to continue");
 
@@ -2995,7 +2993,7 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                     }
                 }
 
-                if (lastmapname && !showMap)
+                if (lastmapname)
                     menutext(80, 16, lastmapname);
 
                 menutext(15, 192, "Press any key to continue");
