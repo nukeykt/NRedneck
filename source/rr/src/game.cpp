@@ -6316,7 +6316,7 @@ void G_HandleLocalKeys(void)
 
         //        if((!net_server && ud.multimode < 2))
         {
-            if (ud.recstat != 2 && KB_UnBoundKeyPressed(sc_F2))
+            if (ud.recstat != 2 && (!RRRA || ud.player_skill != 4) && (!RR || RRRA || ud.player_skill != 5) && KB_UnBoundKeyPressed(sc_F2))
             {
                 KB_ClearKeyDown(sc_F2);
 
@@ -6340,7 +6340,7 @@ FAKE_F2:
                 }
             }
 
-            if (KB_UnBoundKeyPressed(sc_F3))
+            if ((!RRRA || ud.player_skill != 4) && (!RR || RRRA || ud.player_skill != 5) && KB_UnBoundKeyPressed(sc_F3))
             {
                 KB_ClearKeyDown(sc_F3);
 
@@ -6390,7 +6390,7 @@ FAKE_F3:
             P_DoQuote(QUOTE_MUSIC, g_player[myconnectindex].ps);
         }
 
-        if ((BUTTON(gamefunc_Quick_Save) || g_doQuickSave == 1) && (g_player[myconnectindex].ps->gm&MODE_GAME))
+        if ((BUTTON(gamefunc_Quick_Save) || g_doQuickSave == 1) && (!RRRA || ud.player_skill != 4) && (!RR || RRRA || ud.player_skill != 5) && (g_player[myconnectindex].ps->gm&MODE_GAME))
         {
             CONTROL_ClearButton(gamefunc_Quick_Save);
 
@@ -6452,7 +6452,7 @@ FAKE_F3:
             ud.fta_on     = fta;
         }
 
-        if ((BUTTON(gamefunc_Quick_Load) || g_doQuickSave == 2) && (g_player[myconnectindex].ps->gm&MODE_GAME))
+        if ((BUTTON(gamefunc_Quick_Load) || g_doQuickSave == 2) && (!RRRA || ud.player_skill != 4) && (!RR || RRRA || ud.player_skill != 5) && (g_player[myconnectindex].ps->gm&MODE_GAME))
         {
             CONTROL_ClearButton(gamefunc_Quick_Load);
 

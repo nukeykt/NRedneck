@@ -2552,7 +2552,7 @@ void G_BonusScreen(int32_t bonusonly)
                     if (bonuscnt == 2)
                     {
                         bonuscnt++;
-                        S_PlaySound(FLY_BY);
+                        S_PlaySound(RR ? 422 : FLY_BY);
                     }
 
                     yy = zz;
@@ -3085,7 +3085,7 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                     if (bonuscnt == 2)
                     {
                         bonuscnt++;
-                        S_PlaySound(FLY_BY);
+                        S_PlaySound(RR ? 422 : FLY_BY);
                     }
 
                     yy = zz;
