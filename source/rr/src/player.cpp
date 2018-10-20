@@ -7860,7 +7860,7 @@ HORIZONLY:;
 
     if (pPlayer->cursectnum >= 0 && ud.noclip == 0)
     {
-        int const squishPlayer = (pushmove((vec3_t *)pPlayer, &pPlayer->cursectnum, RR ? 16 : 164, (4L << 8), (4L << 8), CLIPMASK0) < 0 &&
+        int const squishPlayer = (pushmove((vec3_t *)pPlayer, &pPlayer->cursectnum, (!RR || pSprite->clipdist == 64) ? 164 : 16, (4L << 8), (4L << 8), CLIPMASK0) < 0 &&
                                  A_GetFurthestAngle(pPlayer->i, 8) < 512);
 
         if (squishPlayer || klabs(actor[pPlayer->i].floorz-actor[pPlayer->i].ceilingz) < (48<<8))

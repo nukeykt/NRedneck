@@ -3381,7 +3381,7 @@ ACTOR_STATIC void G_MoveTransports(void)
                                 pPlayer->transporter_hold = -2;
 
                             pPlayer->cursectnum = sprite[OW(spriteNum)].sectnum;
-                            changespritesect(playerNum, sprite[OW(spriteNum)].sectnum);
+                            changespritesect(sectSprite, sprite[OW(spriteNum)].sectnum);
                         }
                     }
                     break;

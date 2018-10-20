@@ -1270,7 +1270,7 @@ void G_DisplayRest(int32_t smoothratio)
             );
         G_ScreenText(MF_Bluefont.tilenum, 2<<16, i-gtextsc(ystep*3), gtextsc(MF_Bluefont.zoom), 0, 0, tempbuf, 0, 10, 2|8|16|256|ROTATESPRITE_FULL16, 0, MF_Bluefont.emptychar.x, MF_Bluefont.emptychar.y, xbetween, MF_Bluefont.between.y, MF_Bluefont.textflags|TEXT_XOFFSETZERO|TEXT_GAMETEXTNUMHACK, 0, 0, xdim-1, ydim-1);
 
-        if (ud.player_skill > 3 || ((g_netServer || ud.multimode > 1) && !GTFLAGS(GAMETYPE_PLAYERSFRIENDLY)))
+        if ((!RR && ud.player_skill > 3) || ((g_netServer || ud.multimode > 1) && !GTFLAGS(GAMETYPE_PLAYERSFRIENDLY)))
             Bsprintf(tempbuf, "K:^15%d", (ud.multimode>1 &&!GTFLAGS(GAMETYPE_PLAYERSFRIENDLY)) ?
                 myps->frag-myps->fraggedself : myps->actors_killed);
         else
@@ -3194,7 +3194,14 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                 Net_GetPackets();
                 break;
             }
+            S_Cleanup();
             if (!S_CheckSoundPlaying(-1,35)) break;
+            if (I_CheckAllInput())
+            {
+                I_ClearAllInput();
+                S_StopSound(35);
+                break;
+            }
         }
     }
     if (g_RAendEpisode)

@@ -1723,9 +1723,9 @@ default_case:
                             {
                                 sprite[var6c[j]].hitag = 0;
                                 if (nSwitchPicnum >= MULTISWITCH2)
-                                    sprite[var6c[j]].hitag = MULTISWITCH2+3;
+                                    sprite[var6c[j]].picnum = MULTISWITCH2+3;
                                 else
-                                    sprite[var6c[j]].hitag = MULTISWITCH+3;
+                                    sprite[var6c[j]].picnum = MULTISWITCH+3;
                                 P_ActivateSwitch(playerNum,var6c[j],1);
                             }
                         }
