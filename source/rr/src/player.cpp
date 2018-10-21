@@ -3166,7 +3166,7 @@ void P_GetInputMotorcycle(int playerNum)
     int const turn = staticInput.q16avel / 32;
     int turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left);
     int turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right);
-    int avelScale = F16(turnLeft || turnRight);
+    int avelScale = F16((turnLeft || turnRight) ? 1 : 0);
     if (turn)
     {
         avelScale = fix16_max(avelScale, fix16_clamp(fix16_mul(turn, turn),0,F16(1)));
@@ -3467,7 +3467,7 @@ void P_GetInputBoat(int playerNum)
     int const turn = staticInput.q16avel / 32;
     int turnLeft = BUTTON(gamefunc_Turn_Left) || BUTTON(gamefunc_Strafe_Left);
     int turnRight = BUTTON(gamefunc_Turn_Right) || BUTTON(gamefunc_Strafe_Right);
-    int avelScale = F16(turnLeft || turnRight);
+    int avelScale = F16((turnLeft || turnRight) ? 1 : 0);
     if (turn)
     {
         avelScale = fix16_max(avelScale, fix16_clamp(fix16_mul(turn, turn),0,F16(1)));

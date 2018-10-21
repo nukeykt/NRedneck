@@ -5843,13 +5843,12 @@ static int32_t M_RunMenu_Menu(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *current
     return totalHeight;
 }
 
-static void M_RunMenu_CdPlayer(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *currentry, int32_t state, const vec2_t origin)
+static void M_RunMenu_CdPlayer(Menu_t *cm, MenuMenu_t *menu, const vec2_t origin)
 {
     static const vec2_t entryPos[8] = {
         { 22, 15 }, { 64, 15 }, { 104, 15 }, { 142, 15 },
         { 22, 25 }, { 64, 25 }, { 104, 25 }, { 142, 25 },
     };
-    bool actually_draw = 1;
 
     // RIP MenuGroup_t b. 2014-03-?? d. 2014-11-29
     {
@@ -5857,8 +5856,6 @@ static void M_RunMenu_CdPlayer(Menu_t *cm, MenuMenu_t *menu, MenuEntry_t *curren
 
         for (e = 0; e < menu->numEntries; ++e)
         {
-            MenuEntry_t *entry = menu->entrylist[e];
-
             const int32_t x = entryPos[e].x-154+(MENU_MARGIN_CENTER<<1);
             const int32_t y = entryPos[e].y+65;
 
@@ -6344,7 +6341,6 @@ static void Menu_Run(Menu_t *cm, const vec2_t origin)
         case CdPlayer:
         {
             MenuMenu_t *menu = (MenuMenu_t*)cm->object;
-            MenuEntry_t *currentry = menu->entrylist[menu->currentEntry];
             Menu_Pre(cm->menuID);
 
             Menu_PreDrawBackground(cm->menuID, origin);
@@ -6354,7 +6350,7 @@ static void Menu_Run(Menu_t *cm, const vec2_t origin)
 
             Menu_PreDraw(cm->menuID, NULL, origin);
 
-            M_RunMenu_CdPlayer(cm, menu, currentry, 0, origin);
+            M_RunMenu_CdPlayer(cm, menu, origin);
 
             if (menu->title != NoTitle)
                 Menu_DrawTopBarCaption(menu->title, origin);
@@ -7174,11 +7170,8 @@ static void Menu_RunInput(Menu_t *cm)
 
         case CdPlayer:
         {
-            int32_t state;
-
             MenuMenu_t *menu = (MenuMenu_t*)cm->object;
             MenuEntry_t *currentry = menu->entrylist[menu->currentEntry];
-            MenuOption_t *object = (MenuOption_t*)currentry->entry;
 
             if (I_AdvanceTrigger())
             {

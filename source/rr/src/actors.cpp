@@ -671,7 +671,6 @@ void A_MoveSector(int spriteNum)
 {
     // T1,T2 and T3 are used for all the sector moving stuff!!!
 
-    int32_t           playerDist;
     spritetype *const pSprite     = &sprite[spriteNum];
     int const         rotateAngle = T3(spriteNum);
     int               originIdx   = T2(spriteNum);

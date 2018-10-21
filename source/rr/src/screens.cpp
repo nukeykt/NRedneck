@@ -1184,8 +1184,6 @@ void G_DisplayRest(int32_t smoothratio)
             if (RR)
                 crosshair_scale >>= 1;
 
-            auto const oyxaspect = yxaspect;
-
             rotatesprite_win(crosshairpos.x, crosshairpos.y, crosshair_scale, 0, a, 0, crosshair_pal, crosshair_o);
         }
     }
@@ -1903,7 +1901,6 @@ static void G_BonusCutscenes(void)
         G_HandleEventsWhileNoInput();
         fadepal(0, 0, 0, 0, 252, 4);
 
-    VOL1_END:
         S_StopMusic();
         FX_StopAllSounds();
         S_ClearSoundLocks();
@@ -1989,7 +1986,6 @@ static void G_BonusCutscenes(void)
         G_HandleEventsWhileNoInput();
         fadepal(0, 0, 0, 0, 252, 12);
 
-    VOL4_DUKETEAM:
         videoClearScreen(0L);
         videoNextPage();
 
@@ -2002,7 +1998,6 @@ static void G_BonusCutscenes(void)
         videoNextPage();
         G_FadePalette(0, 0, 0, 252);
 
-    VOL4_END:
         FX_StopAllSounds();
         S_ClearSoundLocks();
         I_ClearAllInput();
@@ -2212,7 +2207,7 @@ void G_BonusScreen(int32_t bonusonly)
     int32_t gfx_offset;
     int32_t bonuscnt;
     int32_t clockpad = 2;
-    char *lastmapname;
+    const char *lastmapname;
 
     if (g_networkMode == NET_DEDICATED_SERVER)
         return;
@@ -2235,9 +2230,9 @@ void G_BonusScreen(int32_t bonusonly)
     if (RR)
     {
         if ((g_lastLevel && ud.volume_number == 2) || g_vixenLevel)
-            lastmapname = (char*)"CLOSE ENCOUNTERS";
+            lastmapname = "CLOSE ENCOUNTERS";
         else if (g_turdLevel)
-            lastmapname = (char*)"SMELTING PLANT";
+            lastmapname = "SMELTING PLANT";
     }
 
 
@@ -2663,31 +2658,31 @@ void G_BonusScreen(int32_t bonusonly)
 
 void G_PlayMapAnim(void)
 {
-    char *animFile;
+    const char *animFile;
     if (ud.volume_number == 0)
     {
         switch (ud.level_number)
         {
             case 1:
-                animFile = (char*)"lvl1.anm";
+                animFile = "lvl1.anm";
                 break;
             case 2:
-                animFile = (char*)"lvl2.anm";
+                animFile = "lvl2.anm";
                 break;
             case 3:
-                animFile = (char*)"lvl3.anm";
+                animFile = "lvl3.anm";
                 break;
             case 4:
-                animFile = (char*)"lvl4.anm";
+                animFile = "lvl4.anm";
                 break;
             case 5:
-                animFile = (char*)"lvl5.anm";
+                animFile = "lvl5.anm";
                 break;
             case 6:
-                animFile = (char*)"lvl6.anm";
+                animFile = "lvl6.anm";
                 break;
             default:
-                animFile = (char*)"lvl7.anm";
+                animFile = "lvl7.anm";
                 break;
         }
     }
@@ -2696,25 +2691,25 @@ void G_PlayMapAnim(void)
         switch (ud.level_number)
         {
             case 1:
-                animFile = (char*)"lvl8.anm";
+                animFile = "lvl8.anm";
                 break;
             case 2:
-                animFile = (char*)"lvl9.anm";
+                animFile = "lvl9.anm";
                 break;
             case 3:
-                animFile = (char*)"lvl10.anm";
+                animFile = "lvl10.anm";
                 break;
             case 4:
-                animFile = (char*)"lvl11.anm";
+                animFile = "lvl11.anm";
                 break;
             case 5:
-                animFile = (char*)"lvl12.anm";
+                animFile = "lvl12.anm";
                 break;
             case 6:
-                animFile = (char*)"lvl13.anm";
+                animFile = "lvl13.anm";
                 break;
             default:
-                animFile = (char*)NULL;
+                animFile = NULL;
                 break;
         }
     }
@@ -2790,9 +2785,8 @@ void G_BonusScreenRRRA(int32_t bonusonly)
 {
     int32_t gfx_offset;
     int32_t bonuscnt;
-    int32_t clockpad = 2;
     int32_t showMap = 0;
-    char *lastmapname;
+    const char *lastmapname;
 
     if (g_networkMode == NET_DEDICATED_SERVER)
         return;
@@ -2813,9 +2807,9 @@ void G_BonusScreenRRRA(int32_t bonusonly)
     }
 
     if ((g_lastLevel && ud.volume_number == 2) || g_vixenLevel)
-        lastmapname = (char*)"CLOSE ENCOUNTERS";
+        lastmapname = "CLOSE ENCOUNTERS";
     else if (g_turdLevel)
-        lastmapname = (char*)"SMELTING PLANT";
+        lastmapname = "SMELTING PLANT";
 
 
     fadepal(0, 0, 0, 0, 252, 4);
