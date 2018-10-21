@@ -399,6 +399,8 @@ int32_t A_MoveSprite(int32_t spriteNum, vec3_t const * const change, uint32_t cl
     {
         if (pSprite->statnum == STAT_PROJECTILE)
             clipDist = 8;
+        else if (RR)
+            clipDist = 128;
         else
             clipDist = pSprite->clipdist<<2;
     }
@@ -3903,6 +3905,7 @@ void A_ResetLanePics(void)
 
 ACTOR_STATIC void G_MoveActors(void)
 {
+    extern char g_demo_legacy;
     int spriteNum;
 
     if (g_jailDoorCnt)
@@ -5799,9 +5802,9 @@ ACTOR_STATIC void G_MoveActors(void)
 DETONATEB:
             if ((detonatePlayer >= 0 && g_player[detonatePlayer].ps->hbomb_on == 0) || pData[3] == 1)
             {
-                pData[2]++;
+                pData[4]++;
 
-                if (pData[2] == 2)
+                if (pData[4] == 2)
                 {
                     int const x      = pSprite->extra;
                     int       radius = 0;
@@ -5826,7 +5829,7 @@ DETONATEB:
                         if (RRRA && pSprite->picnum == CHEERBOMB)
                             A_Spawn(spriteNum, BURNING);
 
-                        if (pSprite->zvel == 0)
+                        if (!RR && pSprite->zvel == 0)
                             A_Spawn(spriteNum,EXPLOSION2BOT);
 
                         for (bssize_t x = 0; x < 8; ++x)
@@ -5840,7 +5843,7 @@ DETONATEB:
                     goto next_sprite;
                 }
 
-                if (pData[2] > 20)
+                if (pData[4] > 20)
                 {
                     if (RR || pSprite->owner != spriteNum || ud.respawn_items == 0)
                     {
@@ -5848,7 +5851,7 @@ DETONATEB:
                     }
                     else
                     {
-                        pData[2] = g_itemRespawnTime;
+                        pData[4] = g_itemRespawnTime;
                         A_Spawn(spriteNum,RESPAWNMARKERRED);
                         pSprite->cstat = 32768;
                         pSprite->yrepeat = 9;
@@ -6078,6 +6081,12 @@ DETONATEB:
             {
                 pSprite->cstat = 257;
             }
+        }
+
+        if (deleteAfterExecute && ud.recstat == 2 && g_demo_legacy)
+        {
+            A_DeleteSprite(spriteNum);
+            deleteAfterExecute = 0;
         }
 
         if (G_HaveActor(sprite[spriteNum].picnum))

@@ -2571,7 +2571,7 @@ void G_BonusScreen(int32_t bonusonly)
                         else
                             menutext(231,yy,tempbuf);
                         yy += yystep;
-                        if (ud.player_skill > 3)
+                        if (ud.player_skill > 3 && !RR)
                         {
                             if (!RR)
                                 gametext((320>>2)+70, yy+9, "N/A");
@@ -3098,12 +3098,12 @@ void G_BonusScreenRRRA(int32_t bonusonly)
                         Bsprintf(tempbuf, "%-3d", g_player[myconnectindex].ps->actors_killed);
                         menutext(231,yy,tempbuf);
                         yy += yystep;
-                        if (ud.player_skill > 3)
-                        {
-                            menutext(231,yy, "N/A");
-                            yy += yystep;
-                        }
-                        else
+                        //if (ud.player_skill > 3)
+                        //{
+                        //    menutext(231,yy, "N/A");
+                        //    yy += yystep;
+                        //}
+                        //else
                         {
                             if ((g_player[myconnectindex].ps->max_actors_killed-g_player[myconnectindex].ps->actors_killed) < 0)
                                 Bsprintf(tempbuf, "%-3d", 0);

@@ -10096,7 +10096,7 @@ int32_t inside(int32_t x, int32_t y, int16_t sectnum)
 {
     if (sectnum >= 0 && sectnum < numsectors)
     {
-        uint32_t cnt1 = 0, cnt2 = 0;
+        uint32_t cnt = 0;
         uwalltype const * wal = (uwalltype *) &wall[sector[sectnum].wallptr];
         int wallsleft = sector[sectnum].wallnum;
 
@@ -10107,10 +10107,6 @@ int32_t inside(int32_t x, int32_t y, int16_t sectnum)
             vec2_t v1 = { wal->x - x, wal->y - y };
             vec2_t v2 = { wall[wal->point2].x - x, wall[wal->point2].y - y };
 
-            // First, test if the point is EXACTLY_ON_WALL_POINT.
-            if ((v1.x|v1.y) == 0 || (v2.x|v2.y)==0)
-                return 1;
-
             // If their signs differ[*], ...
             //
             // [*] where '-' corresponds to <0 and '+' corresponds to >=0.
@@ -10118,30 +10114,13 @@ int32_t inside(int32_t x, int32_t y, int16_t sectnum)
             //   y1 != y2 AND y_m <= y < y_M,
             // where y_m := min(y1, y2) and y_M := max(y1, y2).
             if ((v1.y^v2.y) < 0)
-                cnt1 ^= (((v1.x^v2.x) >= 0) ? v1.x : (v1.x*v2.y-v2.x*v1.y)^v2.y);
-
-            v1.y--;
-            v2.y--;
-
-            // Now, do the same comparisons, but with the interval half-open on
-            // the other side! That is, take the branch iff
-            //   y1 != y2 AND y_m < y <= y_M,
-            // For a rectangular sector, without EXACTLY_ON_WALL_POINT, this
-            // would still leave the lower left and upper right points
-            // "outside" the sector.
-            if ((v1.y^v2.y) < 0)
-            {
-                v1.x--;
-                v2.x--;
-
-                cnt2 ^= (((v1.x^v2.x) >= 0) ? v1.x : (v1.x*v2.y-v2.x*v1.y)^v2.y);
-            }
+                cnt ^= (((v1.x^v2.x) >= 0) ? v1.x : (v1.x*v2.y-v2.x*v1.y)^v2.y);
 
             wal++;
         }
         while (--wallsleft);
 
-        return (cnt1|cnt2)>>31;
+        return cnt>>31;
     }
 
     return -1;

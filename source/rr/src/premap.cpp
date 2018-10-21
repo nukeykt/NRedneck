@@ -1361,7 +1361,7 @@ static void prelevel(char g)
                 else if (sprite[spriteNum].pal == 101)
                 {
                     sprite[spriteNum].extra = 0;
-                    sprite[spriteNum].hitag = 0;
+                    sprite[spriteNum].hitag = 1;
                     sprite[spriteNum].pal = 0;
                     changespritestat(spriteNum, 118);
                 }

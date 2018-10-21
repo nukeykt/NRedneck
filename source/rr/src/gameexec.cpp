@@ -918,6 +918,7 @@ static int32_t A_GetWaterZOffset(int const spriteNum)
 
 static void VM_Fall(int const spriteNum, spritetype * const pSprite)
 {
+    char g_demo_legacy;
     int spriteGravity = g_spriteGravity;
     int hitSprite = 0;
 
@@ -933,7 +934,10 @@ static void VM_Fall(int const spriteNum, spritetype * const pSprite)
                 {
                     A_Spawn(vm.spriteNum, ROCK2);
                     A_Spawn(vm.spriteNum, ROCK2);
-                    vm.flags |= VM_SAFEDELETE;
+                    if (ud.recstat == 2 && g_demo_legacy)
+                        A_DeleteSprite(vm.spriteNum);
+                    else
+                        vm.flags |= VM_SAFEDELETE;
                 }
             }
             else if (sector[vm.pSprite->sectnum].lotag == 802)
@@ -942,20 +946,31 @@ static void VM_Fall(int const spriteNum, spritetype * const pSprite)
                 {
                     A_DoGuts(vm.spriteNum, JIBS6, 5);
                     A_PlaySound(SQUISHED, vm.spriteNum);
-                    vm.flags |= VM_SAFEDELETE;
+                    if (ud.recstat == 2 && g_demo_legacy)
+                        A_DeleteSprite(vm.spriteNum);
+                    else
+                        vm.flags |= VM_SAFEDELETE;
                 }
             }
             else if (sector[vm.pSprite->sectnum].lotag == 803)
             {
                 if (vm.pSprite->picnum == ROCK2)
-                    vm.flags |= VM_SAFEDELETE;
+                {
+                    if (ud.recstat == 2 && g_demo_legacy)
+                        A_DeleteSprite(vm.spriteNum);
+                    else
+                        vm.flags |= VM_SAFEDELETE;
+                }
             }
         }
         if (sector[vm.pSprite->sectnum].lotag == 800)
         {
             if (vm.pSprite->picnum == AMMO)
             {
-                vm.flags |= VM_SAFEDELETE;
+                if (ud.recstat == 2 && g_demo_legacy)
+                    A_DeleteSprite(vm.spriteNum);
+                else
+                    vm.flags |= VM_SAFEDELETE;
                 return;
             }
             if (vm.pSprite->picnum != APLAYER && (A_CheckEnemySprite(vm.pSprite) || vm.pSprite->picnum == COW) && g_spriteExtra[vm.spriteNum] < 128)
@@ -1577,6 +1592,13 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 else
                 {
                     VM_CONDITIONAL(0);
+                }
+
+                {
+                    // This crashes VM...
+                    extern char g_demo_legacy;
+                    if (ud.recstat == 2 && g_demo_legacy)
+                        insptr++;
                 }
                 continue;
 
@@ -2526,6 +2548,11 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
             case CON_IFNOSOUNDS: VM_CONDITIONAL(!A_CheckAnySoundPlaying(vm.spriteNum)); continue;
 
             default:  // you aren't supposed to be here!
+                if (RR && ud.recstat == 2)
+                {
+                    vm.flags |= VM_KILL;
+                    return;
+                }
                 VM_ScriptInfo(insptr, 64);
                 G_GameExit("An error has occurred in the " APPNAME " virtual machine.\n\n"
                            "If you are an end user, please e-mail the file " APPBASENAME ".log\n"

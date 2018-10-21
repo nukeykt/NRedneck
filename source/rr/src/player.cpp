@@ -801,7 +801,7 @@ growspark_rr:
                             goto SKIPBULLETHOLE;
 
                         for (SPRITES_OF(STAT_MISC, decalSprite))
-                            if (sprite[decalSprite].picnum == BULLETHOLE && dist(&sprite[decalSprite], &sprite[spriteNum]) < (12 + (krand2() & 7)))
+                            if (sprite[decalSprite].picnum == BULLETHOLE && dist(&sprite[decalSprite], &sprite[spawnedSprite]) < (12 + (krand2() & 7)))
                                 goto SKIPBULLETHOLE;
 
                         decalSprite = A_Spawn(spawnedSprite, BULLETHOLE);
@@ -839,7 +839,7 @@ growspark_rr:
                     A_DamageWall(spawnedSprite, hitData.wall, &hitData.pos, SHOTSPARK1);
             }
 
-            if ((krand2() & 255) < 4)
+            if ((krand2() & 255) < (RR ? 10 : 4))
                 S_PlaySound3D(PISTOL_RICOCHET, spawnedSprite, &hitData.pos);
 
             return -1;
@@ -3652,7 +3652,7 @@ static int32_t P_DoCounters(int playerNum)
     {
         if (g_windTime > 0)
             g_windTime--;
-        if ((krand2() & 127) == 8)
+        else if ((krand2() & 127) == 8)
         {
             g_windTime = 120+((krand2()&63)<<2);
             g_windDir = krand2()&2047;
