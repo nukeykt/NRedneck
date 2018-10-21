@@ -1288,6 +1288,7 @@ void G_InitRRRASkies(void)
 static void prelevel(char g)
 {
     uint8_t *tagbitmap = (uint8_t *)Xcalloc(65536>>3, 1);
+    int32_t p1 = 0, p2 = 0, p3 = 0;
     //DukePlayer_t *ps = g_player[screenpeek].ps;
 
     if (RRRA)
@@ -1383,7 +1384,6 @@ static void prelevel(char g)
         case 41:
         {
             if (!RR) break;
-            int32_t p1 = 0, p2 = 0, p3 = 0;
             int k = headspritesect[i];
             while (k != -1)
             {
@@ -1423,7 +1423,6 @@ static void prelevel(char g)
         case 42:
         {
             if (!RR) break;
-            int32_t p1, p2, p3 = 0;
             int k = headspritesect[i];
             while (k != -1)
             {

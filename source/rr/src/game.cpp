@@ -5496,7 +5496,7 @@ default_case2:
             break;
         }
 
-        if (G_HaveActor(pSprite->picnum) && (!RR || (t->cstat & 48) != 48))
+        if (G_HaveActor(pSprite->picnum) && scrofs_action != 0 && (!RR || (t->cstat & 48) != 48))
         {
             if ((unsigned)scrofs_action + ACTION_VIEWTYPE >= (unsigned)g_scriptSize)
                 goto skip;
@@ -5556,6 +5556,7 @@ default_case2:
                     {
                         if (A_CheckEnemySprite(pSprite) && pSprite->statnum == STAT_ZOMBIEACTOR && pSprite->extra > 0)
                         {
+                            int const angDiff = pSprite->ang-getangle(pSprite->x-ourx, pSprite->y-oury);
                             frameOffset = getofs_viewtype_mirrored<5>(t->cstat, angDiff);
                             break;
                         }
