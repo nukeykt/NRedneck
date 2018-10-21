@@ -8997,7 +8997,7 @@ static int32_t engineFinishLoadBoard(const vec3_t *dapos, int16_t *dacursectnum,
         int32_t removeit = 0;
 
         if ((sprite[i].cstat & 48) == 48)
-            sprite[i].cstat &= ~48;
+            sprite[i].cstat |= 32768;
 
         if (sprite[i].statnum == MAXSTATUS)
         {
