@@ -3194,15 +3194,16 @@ static void Menu_PreDraw(MenuID_t cm, MenuEntry_t *entry, const vec2_t origin)
     case MENU_CREDITS31:
         l = 7;
 
-        mgametextcenter(origin.x, origin.y + ((70-l)<<16), "Developer");
+        mgametextcenter(origin.x, origin.y + ((65-l)<<16), "Developer");
         creditsminitext(origin.x + (160<<16), origin.y + ((70+10-l)<<16), "Alexey \"Nuke.YKT\" Skrybykin", 8);
 
-        mgametextcenter(origin.x, origin.y + ((100-l)<<16), "Tester & support");
+        mgametextcenter(origin.x, origin.y + ((95-l)<<16), "Tester & support");
         creditsminitext(origin.x + (160<<16), origin.y + ((100+10-l)<<16), "Sergey \"Maxi Clouds\" Skrybykin", 8);
 
-        mgametextcenter(origin.x, origin.y + ((130-l)<<16), "Special thanks to");
+        mgametextcenter(origin.x, origin.y + ((125-l)<<16), "Special thanks to");
         creditsminitext(origin.x + (160<<16), origin.y + ((130+10-l)<<16), "Evan \"Hendricks266\" Ramos", 8);
         creditsminitext(origin.x + (160<<16), origin.y + ((130+20-l)<<16), "\"NY00123\"", 8);
+        creditsminitext(origin.x + (160<<16), origin.y + ((130+30-l)<<16), "\"MetHy\"", 8);
 
         break;
 
