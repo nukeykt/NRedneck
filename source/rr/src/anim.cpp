@@ -186,6 +186,11 @@ void Anim_Init(void)
         { 82, 1 },
     };
 
+    static defaultanmsound const rr_outro[] =
+    {
+        { 35, 1 },
+    };
+
     struct defaultanm {
         char const *fn;
         defaultanmsound const *sounds;
@@ -212,6 +217,7 @@ void Anim_Init(void)
         { "redneck.anm", anmsnd(redneck), 9 },
         { "xatlogo.anm", anmsnd(xatlogo), 9 },
         { "turdmov.anm", anmsnd(turdmov), 9 },
+        { "rr_outro.anm", anmsnd(rr_outro), 9 },
         { "lvl1.anm", NULL, 0, 20 },
         { "lvl2.anm", NULL, 0, 20 },
         { "lvl3.anm", NULL, 0, 20 },

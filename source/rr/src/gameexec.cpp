@@ -2287,7 +2287,6 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 P_ForceAngle(pPlayer);
                 pPlayer->vel.x -= sintable[(fix16_to_int(pPlayer->q16ang)+512)&2047]<<7;
                 pPlayer->vel.y -= sintable[fix16_to_int(pPlayer->q16ang)&2047]<<7;
-                vm.flags |= VM_RETURN;
                 continue;
 
             case CON_WACKPLAYER:
@@ -2301,7 +2300,6 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                 }
                 else
                     P_ForceAngle(pPlayer);
-                vm.flags |= VM_RETURN;
                 continue;
 
             case CON_IFGAPZL:

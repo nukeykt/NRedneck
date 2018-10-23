@@ -696,7 +696,7 @@ void G_DoCheats(void)
                     return;
 
                 case CHEAT_RAGARY:
-                    // RR TODO
+                    S_PlayRRMusic(10);
                     end_cheat(pPlayer);
                     KB_FlushKeyboardQueue();
                     return;

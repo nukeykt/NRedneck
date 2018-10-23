@@ -678,7 +678,7 @@ void G_OperateSectors(int sectNum, int spriteNum)
     {
     case 41:
         if (!RR) break;
-        for (bssize_t i = 0; i < g_jailDoorCnt; i++)
+        for (bsize_t i = 0; i < g_jailDoorCnt; i++)
         {
             if (g_jailDoorSecHitag[i] == pSector->hitag)
             {

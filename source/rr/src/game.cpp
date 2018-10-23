@@ -1343,7 +1343,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 
             int geoSector = 0;
 
-            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bsize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSector[gs]];
                 while (spriteNum != -1)
@@ -1367,7 +1367,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
             CAMERA(pos.x) += g_geoSectorX[geoSector];
             CAMERA(pos.y) += g_geoSectorY[geoSector];
                 
-            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bsize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSectorWarp[gs]];
                 while (spriteNum != -1)
@@ -1385,7 +1385,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
 
             renderDrawMasks();
 
-            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bsize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSector[gs]];
                 while (spriteNum != -1)
@@ -1409,7 +1409,7 @@ void G_DrawRooms(int32_t playerNum, int32_t smoothRatio)
             CAMERA(pos.x) += g_geoSectorX2[geoSector];
             CAMERA(pos.y) += g_geoSectorY2[geoSector];
                 
-            for (bssize_t gs = 0; gs < g_geoSectorCnt; gs++)
+            for (bsize_t gs = 0; gs < g_geoSectorCnt; gs++)
             {
                 int spriteNum = headspritesect[g_geoSectorWarp2[gs]];
                 while (spriteNum != -1)
@@ -8327,10 +8327,6 @@ MAIN_LOOP_RESTART:
               ? calc_smoothratio(totalclock, ototalclock)
               : 65536;
 
-            if (RR && ud.recstat == 0 && ud.multimode < 2 && g_torchCnt)
-                G_DoTorch();
-
-
             G_DrawRooms(screenpeek, smoothRatio);
             if (videoGetRenderMode() >= REND_POLYMOST)
                 G_DrawBackground();
@@ -8535,6 +8531,9 @@ int G_DoMoveThings(void)
 
     if (g_netClient)   //Slave
         Net_SendClientUpdate();
+
+    if (RR && ud.recstat == 0 && ud.multimode < 2 && g_torchCnt)
+        G_DoTorch();
 
     return 0;
 }
