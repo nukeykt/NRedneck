@@ -918,7 +918,7 @@ static int32_t A_GetWaterZOffset(int const spriteNum)
 
 static void VM_Fall(int const spriteNum, spritetype * const pSprite)
 {
-    char g_demo_legacy;
+    extern char g_demo_legacy;
     int spriteGravity = g_spriteGravity;
     int hitSprite = 0;
 

@@ -5684,7 +5684,7 @@ ACTOR_STATIC void G_MoveActors(void)
                 if (A_IncurDamage(spriteNum) >= 0)
                 {
                     pData[3]       = 1;
-                    pData[2]       = 0;
+                    pData[4]       = 0;
                     detonatePlayer = 0;
                     pSprite->xvel  = 0;
                     goto DETONATEB;
@@ -5760,7 +5760,7 @@ ACTOR_STATIC void G_MoveActors(void)
                 && (moveSprite || playerDist < 844))
             {
                 pData[3] = 1;
-                pData[2] = 0;
+                pData[4] = 0;
                 detonatePlayer = 0;
                 pSprite->xvel = 0;
                 goto DETONATEB;
@@ -5789,7 +5789,7 @@ ACTOR_STATIC void G_MoveActors(void)
                 if (RRRA && pSprite->picnum == CHEERBOMB)
                 {
                     pData[3] = 1;
-                    pData[4] = 1;
+                    pData[4] = 0;
                     detonatePlayer = 0;
                     pSprite->xvel = 0;
                     goto DETONATEB;
