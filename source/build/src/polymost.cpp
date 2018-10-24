@@ -3303,7 +3303,7 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
     globaltinting_apply(pc);
 
     if (skyzbufferhack_pass)
-        pc[3] = 0.01;
+        pc[3] = 0.01f;
 
     glColor4f(pc[0], pc[1], pc[2], pc[3]);
 

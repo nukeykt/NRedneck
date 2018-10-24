@@ -1967,7 +1967,7 @@ void P_DisplayWeapon(void)
                     static int offsetX[] = { 580,676,310,491,356,210,310,614 };
                     static int offsetY[] = { 369,363,300,323,371,400,300,440 };
                     weaponX = weaponX + ((offsetX[weaponFrames[*weaponFrame]]>>1) - 12);
-                    weaponY = weaponY + 200 - (244-offsetY[weaponFrames[*weaponFrame]]);
+                    weaponY = weaponY + 210 - (244-offsetY[weaponFrames[*weaponFrame]]);
                     guniqhudid = currentWeapon;
                     G_DrawTileScaled(weaponX - halfLookAng + 20, weaponY - weaponYOffset - 80, SLINGBLADE + weaponFrames[*weaponFrame],
                                         weaponShade, weaponBits, weaponPal, 32768);
