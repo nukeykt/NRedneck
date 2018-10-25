@@ -948,7 +948,10 @@ int32_t minitext_(int32_t x, int32_t y, const char *t, int32_t s, int32_t p, int
 
     if (sb & ROTATESPRITE_MAX)
     {
-        x = sbarx16(x);
+        if (sb & RS_ALIGN_R)
+            x = sbarxr16(x);
+        else
+            x = sbarx16(x);
         y = minitext_yofs+sbary16(y);
         z = sbarsc(z);
     }

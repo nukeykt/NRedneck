@@ -33,6 +33,7 @@ static FORCE_INLINE int32_t sbarsc(int32_t sc)
 }
 
 int32_t sbarx16(int32_t x);
+int32_t sbarxr16(int32_t x);
 int32_t sbary16(int32_t y);
 void G_DrawInventory(const DukePlayer_t *p);
 void G_DrawStatusBar(int32_t snum);
