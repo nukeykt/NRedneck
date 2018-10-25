@@ -58,6 +58,12 @@ int32_t sbarx16(int32_t x)
     return (((320<<16) - sbarsc(320<<16)) >> 1) + sbarsc(x);
 }
 
+int32_t sbarxr16(int32_t x)
+{
+    if (ud.screen_size == 4) return (320<<16) - sbarsc(x);
+    return (((320<<16) - sbarsc(320<<16)) >> 1) + sbarsc(x);
+}
+
 #if 0 // enable if ever needed
 static int32_t sbarxr16(int32_t x)
 {
@@ -119,6 +125,41 @@ static void G_DrawInvNum(int32_t x, int32_t yofs, int32_t y, char num1, char ha,
     if (shd) x = -x;
 
     Bsprintf(dabuf, "%d", num1);
+
+    if (sbits & RS_ALIGN_R)
+    {
+        if (num1 > 99)
+        {
+            if (shd && ud.screen_size == 4 && videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+            {
+                rotatesprite_fs(sbarxr(x+4+1), RR ? sby : sbyp1, sbscale, 0, THREEBYFIVE+dabuf[0]-'0', 127, 4, POLYMOSTTRANS|sbits);
+                rotatesprite_fs(sbarxr(x-1), sbyp1, sbscale, 0, THREEBYFIVE+dabuf[1]-'0', 127, 4, POLYMOSTTRANS|sbits);
+                rotatesprite_fs(sbarxr(x-4+1), sbyp1, sbscale, 0, THREEBYFIVE+dabuf[2]-'0', 127, 4, POLYMOSTTRANS|sbits);
+            }
+        
+            rotatesprite_fs(sbarxr(x+4), RR ? sbym1 : sby, sbscale, 0, THREEBYFIVE+dabuf[0]-'0', ha, 0, sbits);
+            rotatesprite_fs(sbarxr(x), sby, sbscale, 0, THREEBYFIVE+dabuf[1]-'0', ha, 0, sbits);
+            rotatesprite_fs(sbarxr(x-4), sby, sbscale, 0, THREEBYFIVE+dabuf[2]-'0', ha, 0, sbits);
+            return;
+        }
+
+        if (num1 > 9)
+        {
+            if (shd && ud.screen_size == 4 && videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
+            {
+                rotatesprite_fs(sbarxr(x+1), sbyp1, sbscale, 0, THREEBYFIVE+dabuf[0]-'0', 127, 4, POLYMOSTTRANS|sbits);
+                rotatesprite_fs(sbarxr(x-4-1), sbyp1, sbscale, 0, THREEBYFIVE+dabuf[1]-'0', 127, 4, POLYMOSTTRANS|sbits);
+            }
+
+            rotatesprite_fs(sbarxr(x), sby, sbscale, 0, THREEBYFIVE+dabuf[0]-'0', ha, 0, sbits);
+            rotatesprite_fs(sbarxr(x-4), sby, sbscale, 0, THREEBYFIVE+dabuf[1]-'0', ha, 0, sbits);
+            return;
+        }
+
+        rotatesprite_fs(sbarxr(x-4+1), sbyp1, sbscale, 0, THREEBYFIVE+dabuf[0]-'0', ha, 4, sbits);
+        rotatesprite_fs(sbarxr(x-4), sby, sbscale, 0, THREEBYFIVE+dabuf[0]-'0', ha, 0, sbits);
+        return;
+    }
 
     if (num1 > 99)
     {
@@ -710,24 +751,24 @@ void G_DrawStatusBar(int32_t snum)
                     i = ((unsigned) p->inven_icon < ICON_MAX) ? item_icons[p->inven_icon] : -1;
 
                     if (i >= 0)
-                        rotatesprite_althud(231-o+85, hudoffset-21-2, sb15, 0, i, 0, 0, orient);
+                        rotatesprite_althudr(320-(231-o+85), hudoffset-21-2, sb15, 0, i, 0, 0, orient);
 
                     if (p->inven_icon == 1 || p->inven_icon == 2)
                     {
                         if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
-                            minitextshade(292-30-o+1+85, hudoffset-10-3+1, "%", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
-                        minitext(292-30-o+85, hudoffset-10-3, "%", 0, orient+ROTATESPRITE_MAX);
+                            minitextshade(320-(292-30-o+1+85), hudoffset-10-3+1, "%", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(320-(292-30-o+85), hudoffset-10-3, "%", 0, orient+ROTATESPRITE_MAX);
                     }
 
                     i = G_GetInvAmount(p);
 
-                    G_DrawInvNum(-(284-30-o+85), 0, hudoffset-6-3, (uint8_t) i, 0, 10+permbit+512);
+                    G_DrawInvNum(320-(284-30-o+85), 0, hudoffset-6-3, (uint8_t) i, 0, 10+permbit+512);
 
                     if (p->inven_icon >= ICON_SCUBA)
                     {
                         if (videoGetRenderMode() >= REND_POLYMOST && althud_shadows)
-                            minitextshade(284-35-o+1+85, hudoffset-20-3+1, "Auto", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
-                        minitext(284-35-o+85, hudoffset-20-3, "Auto", 2, orient+ROTATESPRITE_MAX);
+                            minitextshade(320-(284-35-o+1+85), hudoffset-20-3+1, "Auto", 127, 4, POLYMOSTTRANS+orient+ROTATESPRITE_MAX);
+                        minitext(320-(284-35-o+85), hudoffset-20-3, "Auto", 2, orient+ROTATESPRITE_MAX);
                     }
                 }
 
@@ -1347,7 +1388,7 @@ void G_DrawBackground(void)
         return;
     }
 
-    int32_t const dapicnum = BIGHOLE;
+    int32_t const dapicnum = (RRRA ? RRTILE7629 : BIGHOLE);
 
     // XXX: if dapicnum is not available, this might leave the menu background
     // not drawn, leading to "HOM".

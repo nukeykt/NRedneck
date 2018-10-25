@@ -292,16 +292,32 @@ void CONFIG_SetDefaults(void)
 
     Bstrcpy(szPlayerName, "Player");
 
-    Bstrcpy(ud.ridecule[0], "An inspiration for birth control.");
-    Bstrcpy(ud.ridecule[1], "You're gonna die for that!");
-    Bstrcpy(ud.ridecule[2], "It hurts to be you.");
-    Bstrcpy(ud.ridecule[3], "Lucky son of a bitch.");
-    Bstrcpy(ud.ridecule[4], "Hmmm... payback time.");
-    Bstrcpy(ud.ridecule[5], "You bottom dwelling scum sucker.");
-    Bstrcpy(ud.ridecule[6], "Damn, you're ugly.");
-    Bstrcpy(ud.ridecule[7], "Ha ha ha... wasted!");
-    Bstrcpy(ud.ridecule[8], "You suck!");
-    Bstrcpy(ud.ridecule[9], "AARRRGHHHHH!!!");
+    //if (RR)
+    //{
+    //    Bstrcpy(ud.ridecule[0], "Yer as ugly as a mud fence!");
+    //    Bstrcpy(ud.ridecule[1], "Duck you pecker-head!");
+    //    Bstrcpy(ud.ridecule[2], "You like that boy?");
+    //    Bstrcpy(ud.ridecule[3], "Yer lower than catfish crap!");
+    //    Bstrcpy(ud.ridecule[4], "Eat lead, you shit monkey!");
+    //    Bstrcpy(ud.ridecule[5], "You dumb-ass!");
+    //    Bstrcpy(ud.ridecule[6], "Yer slower'n a three legged dog!");
+    //    Bstrcpy(ud.ridecule[7], "Come on...Squeal like a pig!");
+    //    Bstrcpy(ud.ridecule[8], "Haw, haw, haw!");
+    //    Bstrcpy(ud.ridecule[9], "Now you gone and done it!");
+    //}
+    //else
+    //{
+        Bstrcpy(ud.ridecule[0], "An inspiration for birth control.");
+        Bstrcpy(ud.ridecule[1], "You're gonna die for that!");
+        Bstrcpy(ud.ridecule[2], "It hurts to be you.");
+        Bstrcpy(ud.ridecule[3], "Lucky son of a bitch.");
+        Bstrcpy(ud.ridecule[4], "Hmmm... payback time.");
+        Bstrcpy(ud.ridecule[5], "You bottom dwelling scum sucker.");
+        Bstrcpy(ud.ridecule[6], "Damn, you're ugly.");
+        Bstrcpy(ud.ridecule[7], "Ha ha ha... wasted!");
+        Bstrcpy(ud.ridecule[8], "You suck!");
+        Bstrcpy(ud.ridecule[9], "AARRRGHHHHH!!!");
+    //}
 
     // JBF 20031211
 
