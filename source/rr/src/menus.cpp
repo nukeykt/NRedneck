@@ -7704,6 +7704,12 @@ void M_DisplayMenus(void)
         m_menuchange_watchpoint++;
 #endif
 
+    if (totalclock < m_animation.start)
+    {
+        m_animation.start = 0;
+        m_animation.length = 0;
+    }
+
     // Determine animation values.
     if (totalclock < m_animation.start + m_animation.length)
     {
