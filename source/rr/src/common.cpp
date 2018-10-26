@@ -492,10 +492,10 @@ static int G_ReadRegistryValue(char const * const SubKey, char const * const Val
     // KEY_WOW64_32KEY gets us around Wow6432Node on 64-bit builds
     REGSAM const wow64keys[] = { KEY_WOW64_32KEY, KEY_WOW64_64KEY };
 
-    for (size_t k = 0; k < ARRAY_SIZE(wow64keys); ++k)
+    for (auto &wow64key : wow64keys)
     {
         HKEY hkey;
-        LONG keygood = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NULL, 0, KEY_READ | wow64keys[k], &hkey);
+        LONG keygood = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NULL, 0, KEY_READ | wow64key, &hkey);
 
         if (keygood != ERROR_SUCCESS)
             continue;
@@ -725,7 +725,7 @@ static void G_ParseSteamKeyValuesForPaths(const char *vdf)
     if (size <= 0)
         return;
 
-    vdfbufstart = vdfbuf = (char*)Bmalloc(size);
+    vdfbufstart = vdfbuf = (char*)Xmalloc(size);
     size = (int32_t)Bread(fd, vdfbuf, size);
     Bclose(fd);
     vdfbufend = vdfbuf + size;
@@ -979,11 +979,11 @@ void G_LoadGroupsInDir(const char *dirname)
     char buf[BMAX_PATH];
     fnlist_t fnlist = FNLIST_INITIALIZER;
 
-    for (unsigned i=0; i<(sizeof(extensions)/sizeof(extensions[0])); i++)
+    for (auto & extension : extensions)
     {
         CACHE1D_FIND_REC *rec;
 
-        fnlist_getnames(&fnlist, dirname, extensions[i], -1, 0);
+        fnlist_getnames(&fnlist, dirname, extension, -1, 0);
 
         for (rec=fnlist.findfiles; rec; rec=rec->next)
         {

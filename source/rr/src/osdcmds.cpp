@@ -926,7 +926,7 @@ static int32_t osdcmd_bind(osdfuncparm_t const * const parm)
         j = 1;
 
         repeat = 1;
-        if (parm->numparms >= 2 && !Bstrcasecmp(parm->parms[j],"norepeat"))
+        if (!Bstrcasecmp(parm->parms[j],"norepeat"))
         {
             repeat = 0;
             j++;
@@ -959,7 +959,7 @@ static int32_t osdcmd_bind(osdfuncparm_t const * const parm)
     j = 1;
 
     repeat = 1;
-    if (parm->numparms >= 2 && !Bstrcasecmp(parm->parms[j],"norepeat"))
+    if (!Bstrcasecmp(parm->parms[j],"norepeat"))
     {
         repeat = 0;
         j++;
@@ -1383,7 +1383,7 @@ static int32_t osdcmd_cvar_set_game(osdfuncparm_t const * const parm)
     }
     else if (!Bstrcasecmp(parm->name, "color"))
     {
-        G_CheckPlayerColor((int32_t *)&ud.color,-1);
+        ud.color = G_CheckPlayerColor(ud.color);
         g_player[0].ps->palookup = g_player[0].pcolor = ud.color;
     }
     else if (!Bstrcasecmp(parm->name, "osdscale"))
@@ -1570,8 +1570,7 @@ int32_t registerosdcommands(void)
 
         { "snd_ambience", "enables/disables ambient sounds", (void *)&ud.config.AmbienceToggle, CVAR_BOOL, 0, 1 },
         { "snd_enabled", "enables/disables sound effects", (void *)&ud.config.SoundToggle, CVAR_BOOL, 0, 1 },
-        { "snd_mastervolume", "master volume for sound system", (void *)&ud.config.MasterVolume, CVAR_INT, 0, 255 },
-        { "snd_fxvolume", "volume of sound effects", (void *)&ud.config.FXVolume, CVAR_INT, 1, 255 },
+        { "snd_fxvolume", "controls volume for sound effects", (void *)&ud.config.FXVolume, CVAR_INT, 0, 255 },
         { "snd_mixrate", "sound mixing rate", (void *)&ud.config.MixRate, CVAR_INT, 0, 48000 },
         { "snd_numchannels", "the number of sound channels", (void *)&ud.config.NumChannels, CVAR_INT, 0, 2 },
         { "snd_numvoices", "the number of concurrent sounds", (void *)&ud.config.NumVoices, CVAR_INT, 1, 128 },

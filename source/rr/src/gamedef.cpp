@@ -241,7 +241,7 @@ char const * VM_GetKeywordForID(int32_t id)
         if (keyword.val == id)
             return keyword.token;
 
-    return nullptr;
+    return "<invalid keyword>";
 }
 
 char *bitptr; // pointer to bitmap of which bytecode positions contain pointers
@@ -594,7 +594,7 @@ static int32_t parse_decimal_number(void)  // (textptr)
 
 static int32_t parse_hex_constant(const char *hexnum)
 {
-    int64_t x;
+    uint64_t x;
     sscanf(hexnum, "%" PRIx64 "", &x);
 
     if (EDUKE32_PREDICT_FALSE(x > UINT32_MAX))
@@ -2160,12 +2160,14 @@ static int32_t C_ParseCommand(int32_t loop)
 
             C_GetNextValue(LABEL_DEFINE);
             g_sounds[k].m = *(g_scriptPtr-1) & ~SF_ONEINST_INTERNAL;
-            if (*(g_scriptPtr-1) & 1)
+            if (*(g_scriptPtr-1) & SF_LOOP)
                 g_sounds[k].m |= SF_ONEINST_INTERNAL;
 
             C_GetNextValue(LABEL_DEFINE);
             g_sounds[k].vo = *(g_scriptPtr-1);
             g_scriptPtr -= 5;
+
+            g_sounds[k].volume = 1.f;
 
             if (k > g_highestSoundIdx)
                 g_highestSoundIdx = k;
@@ -2451,8 +2453,8 @@ void C_Compile(const char *fileName)
     initprintf("Script compiled in %dms, %ld bytes%s\n", timerGetTicks() - startcompiletime,
                 (unsigned long)(g_scriptPtr-apScript), C_ScriptVersionString(g_scriptVersion));
 
-    for (unsigned i=0; i < ARRAY_SIZE(tables_free); i++)
-        hash_free(tables_free[i]);
+    for (auto *i : tables_free)
+        hash_free(i);
 
     //freehashnames();
     freesoundhashnames();

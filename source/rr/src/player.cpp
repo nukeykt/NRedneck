@@ -658,7 +658,7 @@ growspark_rr:
                             A_PlaySound(260, kneeSprite);
                     }
 
-                    if (playerNum >= 0 && pPlayer->inv_amount[GET_STEROIDS] > 0 && pPlayer->inv_amount[GET_STEROIDS] < 400)
+                    if (pPlayer != NULL && pPlayer->inv_amount[GET_STEROIDS] > 0 && pPlayer->inv_amount[GET_STEROIDS] < 400)
                         sprite[kneeSprite].extra += (pPlayer->max_player_health>>2);
 
                     if (hitData.sprite >= 0 && sprite[hitData.sprite].picnum != ACCESSSWITCH && sprite[hitData.sprite].picnum != ACCESSSWITCH2)
@@ -2774,6 +2774,8 @@ void P_GetInput(int playerNum)
         return;
     }
 
+    CONTROL_ProcessBinds();
+
     if (ud.mouseaiming)
         g_myAimMode = BUTTON(gamefunc_Mouse_Aiming);
     else
@@ -3062,6 +3064,8 @@ void P_GetInputMotorcycle(int playerNum)
 
         return;
     }
+
+    CONTROL_ProcessBinds();
 
     if (ud.mouseaiming)
         g_myAimMode = BUTTON(gamefunc_Mouse_Aiming);
@@ -3363,6 +3367,8 @@ void P_GetInputBoat(int playerNum)
 
         return;
     }
+
+    CONTROL_ProcessBinds();
 
     if (ud.mouseaiming)
         g_myAimMode = BUTTON(gamefunc_Mouse_Aiming);
@@ -6129,7 +6135,7 @@ void P_ProcessInput(int playerNum)
                     }
                     else if (pPlayer->moto_speed == 0 && !A_CheckSoundPlaying(pPlayer->i, 214))
                     {
-                        if (A_CheckSoundPlaying(pPlayer->i, 187) > 0)
+                        if (A_CheckSoundPlaying(pPlayer->i, 187))
                             S_StopEnvSound(187, pPlayer->i);
                         A_PlaySound(214,pPlayer->i);
                     }
@@ -6146,13 +6152,13 @@ void P_ProcessInput(int playerNum)
             else
             {
                 var68 = 0;
-                if (A_CheckSoundPlaying(pPlayer->i, 214) > 0)
+                if (A_CheckSoundPlaying(pPlayer->i, 214))
                 {
                     S_StopEnvSound(214, pPlayer->i);
                     if (!A_CheckSoundPlaying(pPlayer->i, 189))
                         A_PlaySound(189,pPlayer->i);
                 }
-                if (A_CheckSoundPlaying(pPlayer->i, 188) > 0)
+                if (A_CheckSoundPlaying(pPlayer->i, 188))
                 {
                     S_StopEnvSound(188, pPlayer->i);
                     if (!A_CheckSoundPlaying(pPlayer->i, 189))
@@ -6409,7 +6415,7 @@ void P_ProcessInput(int playerNum)
                 playerBits &= ~(1<<SK_JUMP);
                 if (pPlayer->moto_speed == 0 && !A_CheckSoundPlaying(pPlayer->i, 89))
                 {
-                    if (A_CheckSoundPlaying(pPlayer->i, 87) > 0)
+                    if (A_CheckSoundPlaying(pPlayer->i, 87))
                         S_StopEnvSound(pPlayer->i, 87);
                     A_PlaySound(89,pPlayer->i);
                 }
@@ -6421,13 +6427,13 @@ void P_ProcessInput(int playerNum)
             else
             {
                 varac = 0;
-                if (A_CheckSoundPlaying(pPlayer->i, 89) > 0)
+                if (A_CheckSoundPlaying(pPlayer->i, 89))
                 {
                     S_StopEnvSound(pPlayer->i, 89);
                     if (!A_CheckSoundPlaying(pPlayer->i, 90))
                         A_PlaySound(90,pPlayer->i);
                 }
-                if (A_CheckSoundPlaying(pPlayer->i, 88) > 0)
+                if (A_CheckSoundPlaying(pPlayer->i, 88))
                 {
                     S_StopEnvSound(pPlayer->i, 88);
                     if (!A_CheckSoundPlaying(pPlayer->i, 90))
@@ -7210,7 +7216,7 @@ check_enemy_sprite:
                         {
                             if (RRRA && pPlayer->on_motorcycle)
                             {
-                                if (A_CheckSoundPlaying(pPlayer->i, 190) > 0)
+                                if (A_CheckSoundPlaying(pPlayer->i, 190))
                                     S_StopEnvSound(pPlayer->i, 190);
                                 A_PlaySound(191, pPlayer->i);
                                 pPlayer->moto_turb = 12;

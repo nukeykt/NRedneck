@@ -32,6 +32,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "savegame.h"
 #include "scriplib.h"
 
+#include "debugbreak.h"
+
 #if KRANDDEBUG
 # define GAMEEXEC_INLINE
 # define GAMEEXEC_STATIC
@@ -2551,6 +2553,7 @@ GAMEEXEC_STATIC void VM_Execute(native_t loop)
                     vm.flags |= VM_KILL;
                     return;
                 }
+                debug_break();
                 VM_ScriptInfo(insptr, 64);
                 G_GameExit("An error has occurred in the " APPNAME " virtual machine.\n\n"
                            "If you are an end user, please e-mail the file " APPBASENAME ".log\n"

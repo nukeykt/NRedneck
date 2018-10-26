@@ -7,9 +7,6 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\editor">
-      <UniqueIdentifier>{05d02e24-61b9-4708-999a-b4b6d8665357}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\android">
       <UniqueIdentifier>{c0296ff5-d859-419b-a732-9596d77717dc}</UniqueIdentifier>
     </Filter>
@@ -123,15 +120,6 @@
     <ClInclude Include="..\..\source\rr\src\quotes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\rr\src\m32def.h">
-      <Filter>Header Files\editor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rr\src\mapster32.h">
-      <Filter>Header Files\editor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\rr\src\sounds_mapster32.h">
-      <Filter>Header Files\editor</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\rr\src\input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -167,9 +155,6 @@
     </ClInclude>
     <ClInclude Include="..\..\source\rr\src\inv.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\build\include\m32script.h">
-      <Filter>Header Files\editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

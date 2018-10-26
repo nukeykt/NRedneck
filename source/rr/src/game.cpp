@@ -143,6 +143,12 @@ enum gametokens
     T_ANIMSOUNDS,
     T_NOFLOORPALRANGE,
     T_ID,
+    T_MINPITCH,
+    T_MAXPITCH,
+    T_PRIORITY,
+    T_TYPE,
+    T_DISTANCE,
+    T_VOLUME,
     T_DELAY,
     T_RENAMEFILE,
     T_GLOBALGAMEFLAGS,
@@ -262,15 +268,15 @@ void G_OffMotorcycle(DukePlayer_t *pPlayer)
     int j;
     if (pPlayer->on_motorcycle)
     {
-        if (A_CheckSoundPlaying(pPlayer->i,188) > 0)
+        if (A_CheckSoundPlaying(pPlayer->i,188))
             S_StopEnvSound(188,pPlayer->i);
-        if (A_CheckSoundPlaying(pPlayer->i,187) > 0)
+        if (A_CheckSoundPlaying(pPlayer->i,187))
             S_StopEnvSound(187,pPlayer->i);
-        if (A_CheckSoundPlaying(pPlayer->i,186) > 0)
+        if (A_CheckSoundPlaying(pPlayer->i,186))
             S_StopEnvSound(186,pPlayer->i);
-        if (A_CheckSoundPlaying(pPlayer->i,214) > 0)
+        if (A_CheckSoundPlaying(pPlayer->i,214))
             S_StopEnvSound(214,pPlayer->i);
-        if (A_CheckSoundPlaying(pPlayer->i,42) == 0)
+        if (!A_CheckSoundPlaying(pPlayer->i,42))
             A_PlaySound(42, pPlayer->i);
         pPlayer->on_motorcycle = 0;
         pPlayer->gotweapon &= ~(1<<MOTORCYCLE_WEAPON);
@@ -5982,7 +5988,7 @@ extern int G_StartRTS(int lumpNum, int localPlayer)
 
         if (pData != NULL)
         {
-            FX_Play3D(pData, RTS_SoundLength(lumpNum - 1), FX_ONESHOT, 0, 0, FX_VOLUME(1), 255, -lumpNum);
+            FX_Play3D(pData, RTS_SoundLength(lumpNum - 1), FX_ONESHOT, 0, 0, 1, 255, 1.f, -lumpNum);
             g_RTSPlaying = 7;
             return 1;
         }
@@ -6304,7 +6310,7 @@ void G_HandleLocalKeys(void)
             KB_ClearKeyDown(sc_F1);
 
             Menu_Change(MENU_STORY);
-            S_PauseSounds(1);
+            S_PauseSounds(true);
             Menu_Open(myconnectindex);
 
             if ((!g_netServer && ud.multimode < 2))
@@ -6330,7 +6336,7 @@ FAKE_F2:
 
                 Menu_Change(MENU_SAVE);
 
-                S_PauseSounds(1);
+                S_PauseSounds(true);
                 Menu_Open(myconnectindex);
 
                 if ((!g_netServer && ud.multimode < 2))
@@ -6347,7 +6353,7 @@ FAKE_F2:
 
 FAKE_F3:
                 Menu_Change(MENU_LOAD);
-                S_PauseSounds(1);
+                S_PauseSounds(true);
                 Menu_Open(myconnectindex);
 
                 if ((!g_netServer && ud.multimode < 2) && ud.recstat != 2)
@@ -6364,7 +6370,7 @@ FAKE_F3:
         {
             KB_ClearKeyDown(sc_F4);
 
-            S_PauseSounds(1);
+            S_PauseSounds(true);
             Menu_Open(myconnectindex);
 
             if ((!g_netServer && ud.multimode < 2) && ud.recstat != 2)
@@ -6465,7 +6471,7 @@ FAKE_F3:
             {
                 KB_FlushKeyboardQueue();
                 KB_ClearKeysDown();
-                S_PauseSounds(1);
+                S_PauseSounds(true);
                 if (G_LoadPlayerMaybeMulti(*g_quickload) != 0)
                     g_quickload->reset();
             }
@@ -6476,7 +6482,7 @@ FAKE_F3:
             KB_ClearKeyDown(sc_F10);
 
             Menu_Change(MENU_QUIT_INGAME);
-            S_PauseSounds(1);
+            S_PauseSounds(true);
             Menu_Open(myconnectindex);
 
             if ((!g_netServer && ud.multimode < 2) && ud.recstat != 2)
@@ -6491,7 +6497,7 @@ FAKE_F3:
             KB_ClearKeyDown(sc_F11);
 
             Menu_Change(MENU_COLCORR_INGAME);
-            S_PauseSounds(1);
+            S_PauseSounds(true);
             Menu_Open(myconnectindex);
 
             if ((!g_netServer && ud.multimode < 2) && ud.recstat != 2)
@@ -6580,12 +6586,24 @@ static int32_t S_DefineAudioIfSupported(char **fn, const char *name)
     return 0;
 }
 
-static int32_t S_DefineSound(int32_t ID, const char *name)
+static int32_t S_DefineSound(int sndidx, const char *name, int minpitch, int maxpitch, int priority, int type, int distance, float volume)
 {
-    if ((unsigned)ID >= MAXSOUNDS)
+    if ((unsigned)sndidx >= MAXSOUNDS || S_DefineAudioIfSupported(&g_sounds[sndidx].filename, name))
         return -1;
 
-    return S_DefineAudioIfSupported(&g_sounds[ID].filename, name);
+    auto &snd = g_sounds[sndidx];
+
+    snd.ps     = clamp(minpitch, INT16_MIN, INT16_MAX);
+    snd.pe     = clamp(maxpitch, INT16_MIN, INT16_MAX);
+    snd.pr     = priority & 255;
+    snd.m      = type & ~SF_ONEINST_INTERNAL;
+    snd.vo     = clamp(distance, INT16_MIN, INT16_MAX);
+    snd.volume = volume;
+
+    if (snd.m & SF_LOOP)
+        snd.m |= SF_ONEINST_INTERNAL;
+
+    return 0;
 }
 
 // Returns:
@@ -6756,16 +6774,22 @@ static int parsedefinitions_game(scriptfile *pScript, int firstPass)
 
     static const tokenlist soundTokens[] =
     {
-        { "id",   T_ID  },
-        { "file", T_FILE },
+        { "id",       T_ID },
+        { "file",     T_FILE },
+        { "minpitch", T_MINPITCH },
+        { "maxpitch", T_MAXPITCH },
+        { "priority", T_PRIORITY },
+        { "type",     T_TYPE },
+        { "distance", T_DISTANCE },
+        { "volume",   T_VOLUME },
     };
 
     static const tokenlist animTokens [] =
     {
-        { "delay", T_DELAY },
-        { "aspect", T_ASPECT },
-        { "sounds", T_SOUND },
-        { "forcefilter", T_FORCEFILTER },
+        { "delay",         T_DELAY },
+        { "aspect",        T_ASPECT },
+        { "sounds",        T_SOUND },
+        { "forcefilter",   T_FORCEFILTER },
         { "forcenofilter", T_FORCENOFILTER },
         { "texturefilter", T_TEXTUREFILTER },
     };
@@ -6963,10 +6987,18 @@ static int parsedefinitions_game(scriptfile *pScript, int firstPass)
 
         case T_SOUND:
         {
-            char *  tokenPtr = pScript->ltextptr;
-            char *  fileName = NULL;
+            char *tokenPtr = pScript->ltextptr;
+            char *fileName = NULL;
+            char *musicEnd;
+
+            double volume = 1.0;
+
             int32_t soundNum = -1;
-            char *  musicEnd;
+            int32_t maxpitch = 0;
+            int32_t minpitch = 0;
+            int32_t priority = 0;
+            int32_t type     = 0;
+            int32_t distance = 0;
 
             if (scriptfile_getbraces(pScript, &musicEnd))
                 break;
@@ -6975,8 +7007,14 @@ static int parsedefinitions_game(scriptfile *pScript, int firstPass)
             {
                 switch (getatoken(pScript, soundTokens, ARRAY_SIZE(soundTokens)))
                 {
-                    case T_ID: scriptfile_getsymbol(pScript, &soundNum); break;
-                    case T_FILE: scriptfile_getstring(pScript, &fileName); break;
+                    case T_ID:       scriptfile_getsymbol(pScript, &soundNum); break;
+                    case T_FILE:     scriptfile_getstring(pScript, &fileName); break;
+                    case T_MINPITCH: scriptfile_getsymbol(pScript, &minpitch); break;
+                    case T_MAXPITCH: scriptfile_getsymbol(pScript, &maxpitch); break;
+                    case T_PRIORITY: scriptfile_getsymbol(pScript, &priority); break;
+                    case T_TYPE:     scriptfile_getsymbol(pScript, &type);     break;
+                    case T_DISTANCE: scriptfile_getsymbol(pScript, &distance); break;
+                    case T_VOLUME:   scriptfile_getdouble(pScript, &volume);   break;
                 }
             }
 
@@ -6991,7 +7029,8 @@ static int parsedefinitions_game(scriptfile *pScript, int firstPass)
                 if (fileName == NULL || check_file_exist(fileName))
                     break;
 
-                if (S_DefineSound(soundNum,fileName) == -1)
+                // maybe I should have just packed this into a sound_t and passed a reference...
+                if (S_DefineSound(soundNum, fileName, minpitch, maxpitch, priority, type, distance, volume) == -1)
                     initprintf("Error: invalid sound ID on line %s:%d\n", pScript->filename, scriptfile_getlinum(pScript,tokenPtr));
             }
         }
@@ -8125,8 +8164,8 @@ MAIN_LOOP_RESTART:
     lockclock = 0;
 
     g_player[myconnectindex].ps->fta = 0;
-    for (size_t q = 0; q < MAXUSERQUOTES; ++q)
-        user_quote_time[q] = 0;
+    for (int & q : user_quote_time)
+        q = 0;
 
     Menu_Change(MENU_MAIN);
 
@@ -8249,7 +8288,6 @@ MAIN_LOOP_RESTART:
         {
             if (g_networkMode != NET_DEDICATED_SERVER)
             {
-                CONTROL_ProcessBinds();
                 if (RRRA && g_player[myconnectindex].ps->on_motorcycle)
                     P_GetInputMotorcycle(myconnectindex);
                 else if (RRRA && g_player[myconnectindex].ps->on_boat)
@@ -8382,13 +8420,13 @@ int G_DoMoveThings(void)
     if (g_RTSPlaying > 0)
         g_RTSPlaying--;
 
-    for (bssize_t i=0; i<MAXUSERQUOTES; i++)
+    for (int & i : user_quote_time)
     {
-        if (user_quote_time[i])
+        if (i)
         {
-            if (--user_quote_time[i] > ud.msgdisptime)
-                user_quote_time[i] = ud.msgdisptime;
-            if (!user_quote_time[i]) pub = NUMPAGES;
+            if (--i > ud.msgdisptime)
+                i = ud.msgdisptime;
+            if (!i) pub = NUMPAGES;
         }
     }
 

@@ -176,9 +176,9 @@ SKIPWALLCHECK:
         STAT_PLAYER, STAT_FALLER, STAT_ZOMBIEACTOR, STAT_MISC
     };
 
-    for (native_t stati=0; stati < ARRAY_SSIZE(statnumList); stati++)
+    for (unsigned char stati : statnumList)
     {
-        int32_t otherSprite = headspritestat[statnumList[stati]];
+        int32_t otherSprite = headspritestat[stati];
 
         while (otherSprite >= 0)
         {
@@ -186,7 +186,7 @@ SKIPWALLCHECK:
             spritetype *const pOther    = &sprite[otherSprite];
 
             // DEFAULT, ZOMBIEACTOR, MISC
-            if (statnumList[stati] == STAT_DEFAULT || statnumList[stati] == STAT_ZOMBIEACTOR || statnumList[stati] == STAT_MISC || AFLAMABLE(pOther->picnum))
+            if (stati == STAT_DEFAULT || stati == STAT_ZOMBIEACTOR || stati == STAT_MISC || AFLAMABLE(pOther->picnum))
             {
                 if ((!RR && pSprite->picnum != SHRINKSPARK) || (pOther->cstat&257))
                 {
@@ -5184,16 +5184,10 @@ ACTOR_STATIC void G_MoveActors(void)
                     pSprite->z -= 1024;
             }
 
-            if (RR)
-            {
-                if (A_CheckSoundPlaying(spriteNum,457) < 2)
-                    A_PlaySound(457,spriteNum);
-            }
-            else
-            {
-                if (!A_CheckSoundPlaying(spriteNum,RECO_ROAM))
-                    A_PlaySound(RECO_ROAM,spriteNum);
-            }
+            int sndNum = RR ? 457 : RECO_ROAM;
+
+            if (!A_CheckSoundPlaying(spriteNum,sndNum))
+                A_PlaySound(sndNum,spriteNum);
 
             A_SetSprite(spriteNum,CLIPMASK0);
 
