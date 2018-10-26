@@ -331,7 +331,7 @@ void gltexapplyprops(void)
                 continue;
             }
 
-            int32_t const filter = pth->flags & PTH_FORCEFILTER ? TEXFILTER_ON : -1;
+            int32_t const filter = (pth->flags & PTH_FORCEFILTER) ? TEXFILTER_ON : -1;
 
             bind_2d_texture(pth->glpic, filter);
 
@@ -359,7 +359,7 @@ void gltexapplyprops(void)
             {
                 if (!sk->texid[j])
                     continue;
-                bind_2d_texture(sk->texid[j], sk->flags & HICR_FORCEFILTER ? TEXFILTER_ON : -1);
+                bind_2d_texture(sk->texid[j], (sk->flags & HICR_FORCEFILTER) ? TEXFILTER_ON : -1);
             }
     }
 }
@@ -456,7 +456,7 @@ static GLuint polymost2_compileShader(GLenum shaderType, const char* const sourc
         OSD_Printf("Compile Status: %u\n", compileStatus);
         if (logLength > 0)
         {
-            char *infoLog = (char*) malloc(logLength);
+            char *infoLog = (char*)Xmalloc(logLength);
             glGetShaderInfoLog(shaderID, logLength, &logLength, infoLog);
             OSD_Printf("Log:\n%s\n", infoLog);
             free(infoLog);
@@ -631,7 +631,7 @@ static void polymost_setCurrentShaderProgram(uint32_t programID)
     glUniform1f(polymost1BrightnessLoc, polymost1Brightness);
 }
 
-void polymost_setTexturePosSize(vec4f_t texturePosSize)
+void polymost_setTexturePosSize(vec4f_t const &texturePosSize)
 {
     if (currentShaderProgramID == polymost1CurrentShaderProgramID)
     {
@@ -640,7 +640,7 @@ void polymost_setTexturePosSize(vec4f_t texturePosSize)
     }
 }
 
-static void polymost_setHalfTexelSize(vec2f_t halfTexelSize)
+static inline void polymost_setHalfTexelSize(vec2f_t const &halfTexelSize)
 {
     if (currentShaderProgramID == polymost1CurrentShaderProgramID)
     {
@@ -812,7 +812,7 @@ void polymost_bindTexture(GLenum target, uint32_t textureID)
     }
 }
 
-static void polymost_bindPth(pthtyp *pPth)
+static void polymost_bindPth(pthtyp const * const pPth)
 {
     Bassert(pPth);
 
@@ -1323,25 +1323,20 @@ static void fogcalc_old(int32_t shade, int32_t vis)
 {
     float f;
 
-    if (r_usenewshading==1)
+    if (r_usenewshading == 1)
     {
         f = 0.9f * shade;
-        f = (vis > 239) ? (float)(gvisibility*((vis-240+f))) :
-            (float)(gvisibility*(vis+16+f));
+        f = (vis > 239) ? (float)(gvisibility * (vis - 240 + f)) :
+                          (float)(gvisibility * (vis + 16 + f));
     }
     else
     {
         f = (shade < 0) ? shade * 3.5f : shade * .66f;
-        f = (vis > 239) ? (float)(gvisibility*((vis-240+f)/(klabs(vis-256)))) :
-            (float)(gvisibility*(vis+16+f));
+        f = (vis > 239) ? (float)(gvisibility * ((vis - 240 + f) / (klabs(vis - 256)))) :
+                          (float)(gvisibility * (vis + 16 + f));
     }
 
-    if (f < 0.001f)
-        f = 0.001f;
-    else if (f > 100.0f)
-        f = 100.0f;
-
-    fogresult = f;
+    fogresult = clamp(f, 0.001f, 100.0f);
 }
 
 // For GL_LINEAR fog:
@@ -1373,13 +1368,13 @@ static inline void fogcalc(int32_t tile, int32_t shade, int32_t vis, int32_t pal
         {
             // beg = -D*shade, end = D*(NUMSHADES-1-shade)
             //  => end/beg = -(NUMSHADES-1-shade)/shade
-            fogresult = (float) -FULLVIS_BEGIN;
-            fogresult2 = FULLVIS_BEGIN * (float) (numshades-1-shade)/shade;
+            fogresult = -FULLVIS_BEGIN;
+            fogresult2 = FULLVIS_BEGIN * (float)(numshades-1-shade) / shade;
         }
         else
         {
-            fogresult = (float) FULLVIS_BEGIN;
-            fogresult2 = (float) FULLVIS_END;
+            fogresult  = FULLVIS_BEGIN;
+            fogresult2 = FULLVIS_END;
         }
     }
     else if (r_usenewshading == 3 && shade >= numshades-1)
@@ -1390,7 +1385,7 @@ static inline void fogcalc(int32_t tile, int32_t shade, int32_t vis, int32_t pal
     else
     {
         combvis = 1.f/combvis;
-        fogresult = (r_usenewshading == 3 && shade > 0) ? 0 : -(FOGDISTCONST * shade) * combvis;
+        fogresult = (r_usenewshading == 3 && shade > 0) ? 0.f : -(FOGDISTCONST * shade) * combvis;
         fogresult2 = (FOGDISTCONST * (numshades-1-shade)) * combvis;
     }
 }
@@ -2539,13 +2534,13 @@ int32_t gloadtile_hi(int32_t dapic,int32_t dapalnum, int32_t facen, hicreplctyp 
                 lastfn = fn;  // careful...
                 if (!lastpic)
                 {
-                    lastpic = (coltype *)Bmalloc(siz.x*siz.y*sizeof(coltype));
+                    lastpic = (coltype *)Xmalloc(siz.x*siz.y*sizeof(coltype));
                     lastsize = siz.x*siz.y;
                 }
                 else if (lastsize < siz.x*siz.y)
                 {
                     Bfree(lastpic);
-                    lastpic = (coltype *)Bmalloc(siz.x*siz.y*sizeof(coltype));
+                    lastpic = (coltype *)Xmalloc(siz.x*siz.y*sizeof(coltype));
                 }
                 if (lastpic)
                     Bmemcpy(lastpic, pic, siz.x*siz.y*sizeof(coltype));
@@ -2680,7 +2675,7 @@ int32_t gloadtile_hi(int32_t dapic,int32_t dapalnum, int32_t facen, hicreplctyp 
         pth->scale.y = (float)tsiz.y / (float)tilesiz[dapic].y;
     }
 
-    polymost_setuptexture(dameth, hicr->flags & HICR_FORCEFILTER ? TEXFILTER_ON : -1);
+    polymost_setuptexture(dameth, (hicr->flags & HICR_FORCEFILTER) ? TEXFILTER_ON : -1);
 
     if (tsiz.x>>r_downsize <= tilesiz[dapic].x || tsiz.y>>r_downsize <= tilesiz[dapic].y)
         hicr->flags |= HICR_ARTIMMUNITY;
@@ -2690,7 +2685,7 @@ int32_t gloadtile_hi(int32_t dapic,int32_t dapalnum, int32_t facen, hicreplctyp 
     pth->flags = TO_PTH_CLAMPED(dameth) | TO_PTH_NOTRANSFIX(dameth) |
                  PTH_HIGHTILE | ((facen>0) * PTH_SKYBOX) |
                  (hasalpha ? PTH_HASALPHA : 0) |
-                 (hicr->flags & HICR_FORCEFILTER ? PTH_FORCEFILTER : 0);
+                 ((hicr->flags & HICR_FORCEFILTER) ? PTH_FORCEFILTER : 0);
     pth->skyface = facen;
     pth->hicr = hicr;
 
@@ -2707,7 +2702,7 @@ int32_t gloadtile_hi(int32_t dapic,int32_t dapalnum, int32_t facen, hicreplctyp 
 
         // handle nodownsize:
         cachead.flags = nonpow2 * CACHEAD_NONPOW2 | (hasalpha ? CACHEAD_HASALPHA : 0) |
-                        (hicr->flags & (HICR_NODOWNSIZE|HICR_ARTIMMUNITY) ? CACHEAD_NODOWNSIZE : 0);
+                        ((hicr->flags & (HICR_NODOWNSIZE|HICR_ARTIMMUNITY)) ? CACHEAD_NODOWNSIZE : 0);
 
         ///            OSD_Printf("Caching \"%s\"\n", fn);
         texcache_writetex_fromdriver(texcacheid, &cachead);
@@ -3168,7 +3163,7 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
 
         if (usehightile && !drawingskybox && hicfindsubst(globalpicnum, DETAILPAL, 1) &&
             (detailpth = texcache_fetch(globalpicnum, DETAILPAL, 0, method & ~DAMETH_MASKPROPS)) &&
-            detailpth && detailpth->hicr && detailpth->hicr->palnum == DETAILPAL)
+            detailpth->hicr && detailpth->hicr->palnum == DETAILPAL)
         {
             polymost_useDetailMapping(true);
             polymost_setupdetailtexture(videoGetRenderMode() == REND_POLYMOST ? GL_TEXTURE3 : ++texunits, detailpth->glpic);
@@ -3194,7 +3189,7 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
 
         if (usehightile && !drawingskybox && hicfindsubst(globalpicnum, GLOWPAL, 1) &&
             (glowpth = texcache_fetch(globalpicnum, GLOWPAL, 0, (method & ~DAMETH_MASKPROPS) | DAMETH_MASK)) &&
-            glowpth && glowpth->hicr && (glowpth->hicr->palnum == GLOWPAL))
+            glowpth->hicr && (glowpth->hicr->palnum == GLOWPAL))
         {
             polymost_useGlowMapping(true);
             polymost_setupglowtexture(videoGetRenderMode() == REND_POLYMOST ? GL_TEXTURE4 : ++texunits, glowpth->glpic);
@@ -3253,8 +3248,8 @@ static void polymost_drawpoly(vec2f_t const * const dpxy, int32_t const n, int32
     }
     else
     {
-        float const al = waloff[globalpicnum] ? alphahackarray[globalpicnum] != 0 ? alphahackarray[globalpicnum] * (1.f/255.f):
-                         (pth->hicr && pth->hicr->alphacut >= 0.f ? pth->hicr->alphacut : 0.f) : 0.f;
+        float const al = alphahackarray[globalpicnum] != 0 ? alphahackarray[globalpicnum] * (1.f/255.f) :
+                         (pth->hicr && pth->hicr->alphacut >= 0.f ? pth->hicr->alphacut : 0.f);
 
         glAlphaFunc(GL_GREATER, al);
         handle_blend((method & DAMETH_MASKPROPS) > DAMETH_MASK, drawpoly_blend, (method & DAMETH_MASKPROPS) == DAMETH_TRANS2);
@@ -5433,7 +5428,7 @@ static void polymost_initmosts(const float * px, const float * py, int const n)
     {
         if (px[i] < px[j])
         {
-            if ((vcnt > 1) && (px[i] <= vsp[vcnt-1].x)) vcnt--;
+            if (px[i] <= vsp[vcnt-1].x) vcnt--;
             vsp[vcnt].x = px[i];
             vsp[vcnt].cy[0] = py[i];
             int k = j+1; if (k >= n) k = 0;
@@ -5446,7 +5441,7 @@ static void polymost_initmosts(const float * px, const float * py, int const n)
         }
         else if (px[j] < px[i])
         {
-            if ((vcnt > 1) && (px[j] <= vsp[vcnt-1].x)) vcnt--;
+            if (px[j] <= vsp[vcnt-1].x) vcnt--;
             vsp[vcnt].x = px[j];
             vsp[vcnt].fy[0] = py[j];
             int k = i-1; if (k < 0) k = n-1;
@@ -5459,7 +5454,7 @@ static void polymost_initmosts(const float * px, const float * py, int const n)
         }
         else
         {
-            if ((vcnt > 1) && (px[i] <= vsp[vcnt-1].x)) vcnt--;
+            if (px[i] <= vsp[vcnt-1].x) vcnt--;
             vsp[vcnt].x = px[i];
             vsp[vcnt].cy[0] = py[i];
             vsp[vcnt].fy[0] = py[j];
@@ -7482,7 +7477,7 @@ static void tessectrap(const float *px, const float *py, const int32_t *point2, 
     npoints = numpoints; z = 0;
     for (i=0; i<numpoints; i++)
     {
-        j = npoint2[i]; if ((point2[i] < i) && (i < numpoints-1)) z = 3;
+        j = npoint2[i]; if ((i < numpoints-1) && (point2[i] < i)) z = 3;
         if (j < 0) continue;
         k = npoint2[j];
         m0 = (px[j]-px[i])*(py[k]-py[j]);
@@ -7619,7 +7614,7 @@ void polymost_fillpolygon(int32_t npoints)
     if (gloy1 != -1) polymostSet2dView(); //disables blending, texturing, and depth testing
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_TEXTURE_2D);
-    pthtyp *pth = our_texcache_fetch(DAMETH_NOMASK | (videoGetRenderMode() == REND_POLYMOST && r_useindexedcolortextures ? PTH_INDEXED : 0));
+    pthtyp const * const pth = our_texcache_fetch(DAMETH_NOMASK | (videoGetRenderMode() == REND_POLYMOST && r_useindexedcolortextures ? PTH_INDEXED : 0));
 
     if (pth)
     {
@@ -8135,7 +8130,7 @@ void polymost_initosdfuncs(void)
     };
 
     for (i=0; i<ARRAY_SIZE(cvars_polymost); i++)
-        OSD_RegisterCvar(&cvars_polymost[i], cvars_polymost[i].flags & CVAR_FUNCPTR ? osdcmd_cvar_set_polymost : osdcmd_cvar_set);
+        OSD_RegisterCvar(&cvars_polymost[i], (cvars_polymost[i].flags & CVAR_FUNCPTR) ? osdcmd_cvar_set_polymost : osdcmd_cvar_set);
 }
 
 void polymost_precache(int32_t dapicnum, int32_t dapalnum, int32_t datype)
@@ -8144,28 +8139,25 @@ void polymost_precache(int32_t dapicnum, int32_t dapalnum, int32_t datype)
     // datype is 0 for a wall/floor/ceiling and 1 for a sprite
     //    basically this just means walls are repeating
     //    while sprites are clamped
-    int32_t mid;
 
     if (videoGetRenderMode() < REND_POLYMOST) return;
-
-    if ((palookup[dapalnum] == NULL) && (dapalnum < (MAXPALOOKUPS - RESERVEDPALS))) return;//dapalnum = 0;
+    if ((dapalnum < (MAXPALOOKUPS - RESERVEDPALS)) && (palookup[dapalnum] == NULL)) return;//dapalnum = 0;
 
     //OSD_Printf("precached %d %d type %d\n", dapicnum, dapalnum, datype);
     hicprecaching = 1;
-
-
     texcache_fetch(dapicnum, dapalnum, 0, (datype & 1)*(DAMETH_CLAMPED|DAMETH_MASK));
     hicprecaching = 0;
 
     if (datype == 0 || !usemodels) return;
 
-    mid = md_tilehasmodel(dapicnum,dapalnum);
+    int const mid = md_tilehasmodel(dapicnum, dapalnum);
 
     if (mid < 0 || models[mid]->mdnum < 2) return;
 
-    int j = (models[mid]->mdnum == 3) ? ((md3model_t *)models[mid])->head.numsurfs : 0;
+    int const surfaces = (models[mid]->mdnum == 3) ? ((md3model_t *)models[mid])->head.numsurfs : 0;
 
-    for (bssize_t i = 0; i <= j; i++) mdloadskin((md2model_t *)models[mid], 0, dapalnum, i);
+    for (int i = 0; i <= surfaces; i++)
+        mdloadskin((md2model_t *)models[mid], 0, dapalnum, i);
 }
 
 #else /* if !defined USE_OPENGL */

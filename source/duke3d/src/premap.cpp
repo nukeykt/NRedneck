@@ -75,6 +75,7 @@ static void G_CacheSpriteNum(int32_t i)
     for (j = PN(i); j <= g_tile[PN(i)].cacherange; j++)
         tloadtile(j,1);
 
+#ifndef EDUKE32_STANDALONE
     switch (DYNAMICTILEMAP(PN(i)))
     {
     case HYDRENT__STATIC:
@@ -195,8 +196,8 @@ static void G_CacheSpriteNum(int32_t i)
     case DEVISTATORSPRITE__STATIC:
         for (j=DEVISTATOR; j<=DEVISTATOR+1; j++) tloadtile(j,1);
         break;
-
     }
+#endif
 
     for (j = PN(i); j < (PN(i)+maxc); j++) tloadtile(j,1);
 }
@@ -214,6 +215,7 @@ static void G_PrecacheSprites(void)
             for (j = i; j <= g_tile[i].cacherange; j++)
                 tloadtile(j,1);
     }
+#ifndef EDUKE32_STANDALONE
     tloadtile(BOTTOMSTATUSBAR,1);
     if ((g_netServer || ud.multimode > 1))
         tloadtile(FRAGBAR,1);
@@ -264,6 +266,7 @@ static void G_PrecacheSprites(void)
     for (i=SHRINKEREXPLOSION; i<SHRINKEREXPLOSION+4; i++) tloadtile(i,1);
     for (i=MORTER; i<MORTER+4; i++) tloadtile(i,1);
     for (i=0; i<=60; i++) tloadtile(i,1);
+#endif
 }
 
 static void G_DoLoadScreen(const char *statustext, int32_t percent)
@@ -1708,11 +1711,11 @@ void G_SetupFilenameBasedMusic(char *nameBuf, const char *fileName, int levelNum
         p[0] = '.';
     }
 
-    for (unsigned int i = 0; i < ARRAY_SIZE(exts); i++)
+    for (auto & ext : exts)
     {
         int32_t kFile;
 
-        Bmemcpy(p+1, exts[i], Bstrlen(exts[i]) + 1);
+        Bmemcpy(p+1, ext, Bstrlen(ext) + 1);
 
         if ((kFile = kopen4loadfrommod(nameBuf, 0)) != -1)
         {
@@ -1750,7 +1753,7 @@ int G_EnterLevel(int gameMode)
 
     if (g_networkMode != NET_DEDICATED_SERVER)
     {
-        S_PauseSounds(0);
+        S_PauseSounds(false);
         FX_StopAllSounds();
         S_ClearSoundLocks();
         FX_SetReverb(0);

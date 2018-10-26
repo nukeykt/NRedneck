@@ -20,155 +20,128 @@
 
 #include "_multivc.h"
 
-
 /*
- JBF:
-
- position = offset of starting sample in start
- rate = resampling increment
- start = sound data
  length = count of samples to mix
+ position = offset of starting sample in source
+ rate = resampling increment
+ volume = direct volume adjustment, 1.0 = no change
  */
 
 // 8-bit stereo source, 16-bit mono output
-void MV_Mix16BitMono8Stereo(uint32_t position, uint32_t rate, const char *start, uint32_t length)
+void MV_Mix16BitMono8Stereo(struct VoiceNode const * const voice, uint32_t length)
 {
-    uint8_t const * const source = (uint8_t const *) start;
-    int16_t *dest = (int16_t *) MV_MixDestination;
-    int32_t sample0, sample1;
+    auto *const source = (uint8_t const *)voice->sound;
+    auto *      dest   = (int16_t *)MV_MixDestination;
 
-    while (length--) {
-        sample0 = source[(position >> 16) << 1];
-        sample1 = source[((position >> 16) << 1) + 1];
+    uint32_t       position = voice->position;
+    uint32_t const rate     = voice->RateScale;
+    float const    volume   = voice->volume;
+
+    while (length--)
+    {
+        uint8_t const usample0 = SCALE_SAMPLE(source[(position >> 16) << 1], volume);
+        uint8_t const usample1 = SCALE_SAMPLE(source[((position >> 16) << 1) + 1], volume);
+
         position += rate;
 
-        sample0 = (MV_LeftVolume[sample0] + MV_LeftVolume[sample1]) / 2 + *dest;
-        if (sample0 < -32768) sample0 = -32768;
-        else if (sample0 > 32767) sample0 = 32767;
-
-        *dest = (int16_t) sample0;
-
-        dest += MV_SampleSize / 2;
+        *dest = (int16_t)clamp(((SCALE_SAMPLE(MV_LeftVolume[usample0], MV_GlobalVolume) +
+                                 SCALE_SAMPLE(MV_LeftVolume[usample1], MV_GlobalVolume)) >> 1) + *dest, INT16_MIN, INT16_MAX);
+        dest += MV_SampleSize >> 1;
     }
 
-    MV_MixPosition = position;
-    MV_MixDestination = (char *) dest;
+    MV_MixPosition    = position;
+    MV_MixDestination = (char *)dest;
 }
 
 // 8-bit stereo source, 16-bit stereo output
-void MV_Mix16BitStereo8Stereo(uint32_t position, uint32_t rate, const char *start, uint32_t length)
+void MV_Mix16BitStereo8Stereo(struct VoiceNode const * const voice, uint32_t length)
 {
-    uint8_t const * const source = (uint8_t const *) start;
-    int16_t *dest = (int16_t *) MV_MixDestination;
-    int32_t sample0, sample1;
+    auto *const source = (uint8_t const *)voice->sound;
+    auto *      dest   = (int16_t *)MV_MixDestination;
 
-    while (length--) {
-        sample0 = source[(position >> 16) << 1];
-        sample1 = source[((position >> 16) << 1) + 1];
+    uint32_t       position = voice->position;
+    uint32_t const rate     = voice->RateScale;
+    float const    volume   = voice->volume;
+
+    while (length--)
+    {
+        uint8_t const usample0 = SCALE_SAMPLE(source[(position >> 16) << 1], volume);
+        uint8_t const usample1 = SCALE_SAMPLE(source[((position >> 16) << 1) + 1], volume);
+
         position += rate;
 
-        sample0 = MV_LeftVolume[sample0] + *dest;
-        sample1 = MV_RightVolume[sample1] + *(dest + MV_RightChannelOffset / 2);
-        if (sample0 < -32768) sample0 = -32768;
-        else if (sample0 > 32767) sample0 = 32767;
-        if (sample1 < -32768) sample1 = -32768;
-        else if (sample1 > 32767) sample1 = 32767;
-
-        *dest = (int16_t) sample0;
-        *(dest + MV_RightChannelOffset/2) = (int16_t) sample1;
-
-        dest += MV_SampleSize / 2;
+        *dest = (int16_t)clamp(SCALE_SAMPLE(MV_LeftVolume[usample0], MV_GlobalVolume) + *dest, INT16_MIN, INT16_MAX);
+        *(dest + (MV_RightChannelOffset >> 1))
+            = (int16_t)clamp(SCALE_SAMPLE(MV_RightVolume[usample1], MV_GlobalVolume) + *(dest + (MV_RightChannelOffset >> 1)), INT16_MIN, INT16_MAX);
+        dest += MV_SampleSize >> 1;
     }
 
-    MV_MixPosition = position;
-    MV_MixDestination = (char *) dest;
+    MV_MixPosition    = position;
+    MV_MixDestination = (char *)dest;
 }
 
 // 16-bit stereo source, 16-bit mono output
-void MV_Mix16BitMono16Stereo(uint32_t position, uint32_t rate, const char *start, uint32_t length)
+void MV_Mix16BitMono16Stereo(struct VoiceNode const * const voice, uint32_t length)
 {
-    uint16_t const * const source = (uint16_t const *) start;
-    int16_t *dest = (int16_t *) MV_MixDestination;
-    int32_t sample0l, sample0h, sample0;
-    int32_t sample1l, sample1h, sample1;
+    auto *const source = (int16_t const *)voice->sound;
+    auto *      dest   = (int16_t *)MV_MixDestination;
 
-    while (length--) {
-        sample0 = source[(position >> 16) << 1];
-        sample1 = source[((position >> 16) << 1) + 1];
-#ifdef BIGENDIAN
-        sample0l = sample0 >> 8;
-        sample0h = (sample0 & 255) ^ 128;
-        sample1l = sample1 >> 8;
-        sample1h = (sample1 & 255) ^ 128;
-#else
-        sample0l = sample0 & 255;
-        sample0h = (sample0 >> 8) ^ 128;
-        sample1l = sample1 & 255;
-        sample1h = (sample1 >> 8) ^ 128;
-#endif
+    uint32_t       position = voice->position;
+    uint32_t const rate     = voice->RateScale;
+    float const    volume   = voice->volume;
+
+    while (length--)
+    {
+        int16_t const isample0 = B_LITTLE16(source[(position >> 16) << 1]);
+        int16_t const isample1 = B_LITTLE16(source[((position >> 16) << 1) + 1]);
+        split16_t const usample0{FLIP_SIGN(SCALE_SAMPLE(isample0, volume))};
+        split16_t const usample1{FLIP_SIGN(SCALE_SAMPLE(isample1, volume))};
+
         position += rate;
 
-        sample0l = MV_LeftVolume[sample0l] >> 8;
-        sample0h = MV_LeftVolume[sample0h];
-        sample0 = sample0l + sample0h + 128;
-        sample1l = MV_LeftVolume[sample1l] >> 8;
-        sample1h = MV_LeftVolume[sample1h];
-        sample1 = sample1l + sample1h + 128;
+        int32_t const sample0 = (SCALE_SAMPLE(MV_LeftVolume[usample0.l()], MV_GlobalVolume)>> 8) +
+                                 SCALE_SAMPLE(MV_LeftVolume[usample0.h()], MV_GlobalVolume) + 128;
+        int32_t const sample1 = (SCALE_SAMPLE(MV_LeftVolume[usample1.l()], MV_GlobalVolume) >> 8) +
+                                 SCALE_SAMPLE(MV_LeftVolume[usample1.h()], MV_GlobalVolume) + 128;
 
-        sample0 = (sample0 + sample1) / 2 + *dest;
-        if (sample0 < -32768) sample0 = -32768;
-        else if (sample0 > 32767) sample0 = 32767;
-
-        *dest = (int16_t) sample0;
-
-        dest += MV_SampleSize / 2;
+        *dest = (int16_t)clamp(((sample0 + sample1) >> 1) + *dest, INT16_MIN, INT16_MAX);
+        dest += MV_SampleSize >> 1;
     }
 
-    MV_MixPosition = position;
-    MV_MixDestination = (char *) dest;
+    MV_MixPosition    = position;
+    MV_MixDestination = (char *)dest;
 }
 
 // 16-bit stereo source, 16-bit stereo output
-void MV_Mix16BitStereo16Stereo(uint32_t position, uint32_t rate, const char *start, uint32_t length)
+void MV_Mix16BitStereo16Stereo(struct VoiceNode const * const voice, uint32_t length)
 {
-    uint16_t const * const source = (uint16_t const *) start;
-    int16_t *dest = (int16_t *) MV_MixDestination;
-    int32_t sample0l, sample0h, sample0;
-    int32_t sample1l, sample1h, sample1;
+    auto *const source = (int16_t const *)voice->sound;
+    auto *      dest   = (int16_t *)MV_MixDestination;
 
-    while (length--) {
-        sample0 = source[(position >> 16) << 1];
-        sample1 = source[((position >> 16) << 1) + 1];
-#ifdef BIGENDIAN
-        sample0l = sample0 >> 8;
-        sample0h = (sample0 & 255) ^ 128;
-        sample1l = sample1 >> 8;
-        sample1h = (sample1 & 255) ^ 128;
-#else
-        sample0l = sample0 & 255;
-        sample0h = (sample0 >> 8) ^ 128;
-        sample1l = sample1 & 255;
-        sample1h = (sample1 >> 8) ^ 128;
-#endif
+    uint32_t       position = voice->position;
+    uint32_t const rate     = voice->RateScale;
+    float const    volume   = voice->volume;
+
+    while (length--)
+    {
+        int16_t const isample0 = B_LITTLE16(source[(position >> 16) << 1]);
+        int16_t const isample1 = B_LITTLE16(source[((position >> 16) << 1) + 1]);
+        split16_t const usample0{FLIP_SIGN(SCALE_SAMPLE(isample0, volume))};
+        split16_t const usample1{FLIP_SIGN(SCALE_SAMPLE(isample1, volume))};
+
         position += rate;
 
-        sample0l = MV_LeftVolume[sample0l] >> 8;
-        sample0h = MV_LeftVolume[sample0h];
-        sample1l = MV_RightVolume[sample1l] >> 8;
-        sample1h = MV_RightVolume[sample1h];
-        sample0 = sample0l + sample0h + 128 + *dest;
-        sample1 = sample1l + sample1h + 128 + *(dest + MV_RightChannelOffset/2);
-        if (sample0 < -32768) sample0 = -32768;
-        else if (sample0 > 32767) sample0 = 32767;
-        if (sample1 < -32768) sample1 = -32768;
-        else if (sample1 > 32767) sample1 = 32767;
+        int32_t const sample0 = (SCALE_SAMPLE(MV_LeftVolume[usample0.l()], MV_GlobalVolume)>> 8) +
+                                 SCALE_SAMPLE(MV_LeftVolume[usample0.h()], MV_GlobalVolume) + 128;
+        int32_t const sample1 = (SCALE_SAMPLE(MV_LeftVolume[usample1.l()], MV_GlobalVolume) >> 8) +
+                                 SCALE_SAMPLE(MV_LeftVolume[usample1.h()], MV_GlobalVolume) + 128;
 
-        *dest = (int16_t) sample0;
-        *(dest + MV_RightChannelOffset/2) = (int16_t) sample1;
-
-        dest += MV_SampleSize / 2;
+        *dest = (int16_t)clamp(sample0 + *dest, INT16_MIN, INT16_MAX);
+        *(dest + (MV_RightChannelOffset >> 1))
+            = (int16_t)clamp(sample1 + *(dest + (MV_RightChannelOffset >> 1)), INT16_MIN, INT16_MAX);
+        dest += MV_SampleSize >> 1;
     }
 
-    MV_MixPosition = position;
-    MV_MixDestination = (char *) dest;
+    MV_MixPosition    = position;
+    MV_MixDestination = (char *)dest;
 }

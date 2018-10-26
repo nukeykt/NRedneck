@@ -958,9 +958,9 @@ static FORCE_INLINE void B_BUF16(void * const buf, uint16_t const x) { *(uint16_
 static FORCE_INLINE void B_BUF32(void * const buf, uint32_t const x) { *(uint32_t *) buf = x; }
 static FORCE_INLINE void B_BUF64(void * const buf, uint64_t const x) { *(uint64_t *) buf = x; }
 
-static FORCE_INLINE uint16_t B_UNBUF16(void const * const buf) { return *(uint16_t const *) buf; }
-static FORCE_INLINE uint32_t B_UNBUF32(void const * const buf) { return *(uint32_t const *) buf; }
-static FORCE_INLINE uint64_t B_UNBUF64(void const * const buf) { return *(uint64_t const *) buf; }
+static FORCE_INLINE CONSTEXPR uint16_t B_UNBUF16(void const * const buf) { return *(uint16_t const *) buf; }
+static FORCE_INLINE CONSTEXPR uint32_t B_UNBUF32(void const * const buf) { return *(uint32_t const *) buf; }
+static FORCE_INLINE CONSTEXPR uint64_t B_UNBUF64(void const * const buf) { return *(uint64_t const *) buf; }
 #else
 static FORCE_INLINE void B_BUF16(void * const vbuf, uint16_t const x)
 {
@@ -1013,7 +1013,7 @@ static FORCE_INLINE uint64_t B_UNBUF64(void const * const vbuf)
 
 ////////// Abstract data operations //////////
 
-#define ABSTRACT_DECL static FORCE_INLINE WARN_UNUSED_RESULT
+#define ABSTRACT_DECL static FORCE_INLINE WARN_UNUSED_RESULT CONSTEXPR
 
 #ifdef __cplusplus
 template <typename T, typename X, typename Y> ABSTRACT_DECL T clamp(T in, X min, Y max) { return in <= (T) min ? (T) min : (in >= (T) max ? (T) max : in); }
@@ -1153,8 +1153,13 @@ char *Bstrtolower(char *str);
 #define Bwildmatch wildmatch
 
 #ifdef _WIN32
-# define Bstrlwr strlwr
-# define Bstrupr strupr
+# ifdef _MSC_VER
+#  define Bstrlwr _strlwr
+#  define Bstrupr _strupr
+# else
+#  define Bstrlwr strlwr
+#  define Bstrupr strupr
+# endif
 #else
 char *Bstrlwr(char *);
 char *Bstrupr(char *);
@@ -1174,27 +1179,24 @@ uint32_t Bgetsysmemsize(void);
 extern void xalloc_set_location(int32_t line, const char *file, const char *func);
 #endif
 void set_memerr_handler(void (*handlerfunc)(int32_t, const char *, const char *));
-void handle_memerr(void);
+void *handle_memerr(void *);
 
 static FORCE_INLINE char *xstrdup(const char *s)
 {
     char *ptr = Bstrdup(s);
-    if (ptr == NULL) handle_memerr();
-    return ptr;
+    return (ptr == NULL) ? (char *)handle_memerr(ptr) : ptr;
 }
 
 static FORCE_INLINE void *xmalloc(const bsize_t size)
 {
     void *ptr = Bmalloc(size);
-    if (ptr == NULL) handle_memerr();
-    return ptr;
+    return (ptr == NULL) ? handle_memerr(ptr) : ptr;
 }
 
 static FORCE_INLINE void *xcalloc(const bsize_t nmemb, const bsize_t size)
 {
     void *ptr = Bcalloc(nmemb, size);
-    if (ptr == NULL) handle_memerr();
-    return ptr;
+    return (ptr == NULL) ? handle_memerr(ptr) : ptr;
 }
 
 static FORCE_INLINE void *xrealloc(void * const ptr, const bsize_t size)
@@ -1205,18 +1207,14 @@ static FORCE_INLINE void *xrealloc(void * const ptr, const bsize_t size)
     //  - ptr == NULL makes realloc() behave like malloc()
     //  - size == 0 make it behave like free() if ptr != NULL
     // Since we want to catch an out-of-mem in the first case, this leaves:
-    if (newptr == NULL && size != 0)
-        handle_memerr();
-
-    return newptr;
+    return (newptr == NULL && size != 0) ? handle_memerr(ptr) : newptr;
 }
 
 #if !defined NO_ALIGNED_MALLOC
 static FORCE_INLINE void *xaligned_alloc(const bsize_t alignment, const bsize_t size)
 {
     void *ptr = Baligned_alloc(alignment, size);
-    if (ptr == NULL) handle_memerr();
-    return ptr;
+    return (ptr == NULL) ? handle_memerr(ptr) : ptr;
 }
 #else
 # define xaligned_alloc(alignment, size) xmalloc(size)

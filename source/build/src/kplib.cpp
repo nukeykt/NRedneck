@@ -1403,7 +1403,7 @@ static int32_t kpegrend(const char *kfilebuf, int32_t kfilength,
                     zz += dctx[z]*dcty[z];
                 }
                 z = zz*64*sizeof(int16_t);
-                dctbuf = (int16_t *)Bmalloc(z); if (!dctbuf) return -1;
+                dctbuf = (int16_t *)Xmalloc(z); if (!dctbuf) return -1;
                 Bmemset(dctbuf,0,z);
                 for (z=zz=0; z<gnumcomponents; z++) { dctptr[z] = &dctbuf[zz*64]; zz += dctx[z]*dcty[z]; }
             }
@@ -1967,8 +1967,6 @@ static int32_t kbmprend(const char *buf, int32_t fleng,
 
     x0 = 0; x1 = xsiz;
     y0 = 0; y1 = ysiz;
-    if ((x0 >= daxres) || (x1 <= 0) || (y0 >= dayres) || (y1 <= 0)) return 0;
-    if (x0 < 0) x0 = 0;
     if (x1 > daxres) x1 = daxres;
     for (y=y0; y<y1; y++,cptr=&cptr[cptrinc])
     {
@@ -2401,14 +2399,14 @@ static int32_t kzcheckhashsiz(int32_t siz)
     if (!kzhashbuf) //Initialize hash table on first call
     {
         Bmemset(kzhashead,-1,sizeof(kzhashead));
-        kzhashbuf = (char *)Bmalloc(KZHASHINITSIZE); if (!kzhashbuf) return 0;
+        kzhashbuf = (char *)Xmalloc(KZHASHINITSIZE); if (!kzhashbuf) return 0;
         kzhashpos = 0; kzlastfnam = -1; kzhashsiz = KZHASHINITSIZE; kzdirnamhead = -1;
     }
     if (kzhashpos+siz > kzhashsiz) //Make sure string fits in kzhashbuf
     {
         int32_t i = kzhashsiz; do { i <<= 1; }
         while (kzhashpos+siz > i);
-        kzhashbuf = (char *)Brealloc(kzhashbuf,i); if (!kzhashbuf) return 0;
+        kzhashbuf = (char *)Xrealloc(kzhashbuf,i); if (!kzhashbuf) return 0;
         kzhashsiz = i;
     }
     return 1;

@@ -1856,7 +1856,7 @@ static WSHELPER_DECL void calc_vplcinc_sprite(uint32_t *vplc, int32_t *vinc, int
 
     *vinc = tmpvinc;
     // Clamp the vertical texture coordinate!
-    *vplc = min<uint32_t>(max<inthi_t>(0, tmpvplc), UINT32_MAX);
+    *vplc = min<inthi_t>(max<inthi_t>(0, tmpvplc), UINT32_MAX);
 }
 #endif
 
@@ -4077,7 +4077,8 @@ static void classicDrawBunches(int32_t bunch)
                     setup_globals_wall1(wal, wal->picnum);
                     setup_globals_wall2(wal, sec->visibility, nextsec->ceilingz, sec->ceilingz);
 
-                    if (gotswall == 0) { gotswall = 1; prepwall(z,wal); }
+                    gotswall = 1;
+                    prepwall(z,wal);
                     wallscan(x1,x2,uplc,dwall,swall,lwall);
 
                     if ((cz[2] >= cz[0]) && (cz[3] >= cz[1]))
@@ -4798,7 +4799,7 @@ static void classicDrawSprite(int32_t snum)
             return;
     }
 
-    if (tspr->xrepeat <= 0 || tspr->yrepeat <= 0)
+    if (!tspr->xrepeat || !tspr->yrepeat)
         return;
 
     globalpal = tspr->pal;
@@ -7458,8 +7459,7 @@ int32_t rintersect(int32_t x1, int32_t y1, int32_t z1,
 
     if (bot == 0)
         return -1;
-
-    if (bot >= 0)
+    else if (bot > 0)
     {
         int64_t x31=x3-x1, y31 = y3-y1;
         topt = x31*y34 - y31*x34; if (topt < 0) return -1;
@@ -7631,8 +7631,7 @@ int32_t enginePreInit(void)
         for (i=0; i<(signed)ARRAY_SIZE(dynarray); i++)
             size += dynarray[i].size;
 
-        if ((blockptr = Bcalloc(1, size)) == NULL)
-            return 1;
+        blockptr = Xcalloc(1, size);
 
         size = 0;
 
@@ -10053,7 +10052,7 @@ int32_t qloadkvx(int32_t voxindex, const char *filename)
     }
 
     Bfree(voxfilenames[voxindex]);
-    voxfilenames[voxindex] = Bstrdup(filename);
+    voxfilenames[voxindex] = Xstrdup(filename);
     g_haveVoxels = 1;
 #endif
 
@@ -11825,9 +11824,9 @@ restart_grand:
 #endif
                 vec2_t v1 = *(vec2_t *)&sprite[j];
 
-                switch (cstat&48)
+                switch (cstat & CSTAT_SPRITE_ALIGNMENT_MASK)
                 {
-                    case 0:
+                    case CSTAT_SPRITE_ALIGNMENT_FACING:
                     {
                         int32_t k = walldist+(sprite[j].clipdist<<2)+1;
                         if ((klabs(v1.x-pos->x) <= k) && (klabs(v1.y-pos->y) <= k))
@@ -11839,7 +11838,7 @@ restart_grand:
                         break;
                     }
 
-                    case 16:
+                    case CSTAT_SPRITE_ALIGNMENT_WALL:
                     {
                         vec2_t v2;
                         get_wallspr_points((uspritetype *)&sprite[j], &v1.x, &v2.x, &v1.y, &v2.y);
@@ -11854,7 +11853,7 @@ restart_grand:
                         break;
                     }
 
-                    case 32:
+                    case CSTAT_SPRITE_ALIGNMENT_FLOOR:
                     {
                         daz = sprite[j].z; daz2 = daz;
 

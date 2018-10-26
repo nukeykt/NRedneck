@@ -354,12 +354,8 @@ static void G_DrawOverheadMap(int32_t cposx, int32_t cposy, int32_t czoom, int16
             k = wal->nextwall;
             if (k < 0) continue;
 
-            if (sector[wal->nextsector].ceilingz == z1)
-                if (sector[wal->nextsector].floorz == z2)
+            if (sector[wal->nextsector].ceilingz == z1 && sector[wal->nextsector].floorz == z2)
                     if (((wal->cstat|wall[wal->nextwall].cstat)&(16+32)) == 0) continue;
-
-            col = editorcolors[1]; //red
-            if ((wal->cstat|wall[wal->nextwall].cstat)&1) col = editorcolors[5]; //magenta
 
             if (!(show2dsector[wal->nextsector>>3]&(1<<(wal->nextsector&7))))
                 col = editorcolors[7];
@@ -666,7 +662,7 @@ static void G_PrintCoords(int32_t snum)
     y += 7;
     Bsprintf(tempbuf, "THOLD= %d", ps->transporter_hold);
     printext256(x, y+54, COLOR_WHITE, -1, tempbuf, 0);
-    Bsprintf(tempbuf, "GAMETIC= %d, TOTALCLOCK=%d", g_moveThingsCount, totalclock);
+    Bsprintf(tempbuf, "GAMETIC= %u, TOTALCLOCK=%d", g_moveThingsCount, totalclock);
     printext256(x, y+63, COLOR_WHITE, -1, tempbuf, 0);
 #ifdef DEBUGGINGAIDS
     Bsprintf(tempbuf, "NUMSPRITES= %d", Numsprites);
@@ -771,7 +767,7 @@ static void G_ShowCacheLocks(void)
                     break;
 
                 Bsprintf(tempbuf, "snd #%d inst %d: voice %d, ow %d", i, j,
-                    g_sounds[i].instances[j].voice, g_sounds[i].instances[j].spriteNum);
+                    g_sounds[i].voices[j].id, g_sounds[i].voices[j].owner);
                 printext256(240, k, COLOR_WHITE, -1, tempbuf, 0);
 
                 k += 9;
@@ -806,7 +802,7 @@ static void G_PrintFPS(void)
 
         if (ud.showfps)
         {
-            int32_t chars = Bsprintf(tempbuf, "%d ms (%3u fps)", frameDelay, lastFPS);
+            int32_t chars = Bsprintf(tempbuf, "%d ms (%3d fps)", frameDelay, lastFPS);
 
             printext256(windowxy2.x-(chars<<(3-x))+1, windowxy1.y+2+FPS_YOFFSET, 0, -1, tempbuf, x);
             printext256(windowxy2.x-(chars<<(3-x)), windowxy1.y+1+FPS_YOFFSET,
@@ -814,13 +810,13 @@ static void G_PrintFPS(void)
 
             if (ud.showfps > 1)
             {
-                chars = Bsprintf(tempbuf, "max fps: %3u", maxFPS);
+                chars = Bsprintf(tempbuf, "max fps: %3d", maxFPS);
 
                 printext256(windowxy2.x-(chars<<(3-x))+1, windowxy1.y+10+2+FPS_YOFFSET, 0, -1, tempbuf, x);
                 printext256(windowxy2.x-(chars<<(3-x)), windowxy1.y+10+FPS_YOFFSET,
                     FPS_COLOR(maxFPS < LOW_FPS), -1, tempbuf, x);
 
-                chars = Bsprintf(tempbuf, "min fps: %3u", minFPS);
+                chars = Bsprintf(tempbuf, "min fps: %3d", minFPS);
 
                 printext256(windowxy2.x-(chars<<(3-x))+1, windowxy1.y+20+2+FPS_YOFFSET, 0, -1, tempbuf, x);
                 printext256(windowxy2.x-(chars<<(3-x)), windowxy1.y+20+FPS_YOFFSET,
@@ -831,13 +827,13 @@ static void G_PrintFPS(void)
                 if (g_gameUpdateTime > maxGameUpdate) maxGameUpdate = g_gameUpdateTime;
                 if (g_gameUpdateTime < minGameUpdate) minGameUpdate = g_gameUpdateTime;
 
-                chars = Bsprintf(tempbuf, "Game Update: %2d ms GU & Draw: %2d ms", g_gameUpdateTime, g_gameUpdateAndDrawTime);
+                chars = Bsprintf(tempbuf, "Game Update: %2u ms GU & Draw: %2u ms", g_gameUpdateTime, g_gameUpdateAndDrawTime);
 
                 printext256(windowxy2.x-(chars<<(3-x))+1, windowxy1.y+30+2+FPS_YOFFSET, 0, -1, tempbuf, x);
                 printext256(windowxy2.x-(chars<<(3-x)), windowxy1.y+30+FPS_YOFFSET,
                     FPS_COLOR(g_gameUpdateAndDrawTime >= SLOW_FRAME_TIME), -1, tempbuf, x);
 
-                chars = Bsprintf(tempbuf, "Min GU: %2d ms Max GU: %2d ms Avg GU: %5.2f ms", minGameUpdate, maxGameUpdate, g_gameUpdateAvgTime);
+                chars = Bsprintf(tempbuf, "Min GU: %2u ms Max GU: %2u ms Avg GU: %5.2f ms", minGameUpdate, maxGameUpdate, g_gameUpdateAvgTime);
 
                 printext256(windowxy2.x-(chars<<(3-x))+1, windowxy1.y+40+2+FPS_YOFFSET, 0, -1, tempbuf, x);
                 printext256(windowxy2.x-(chars<<(3-x)), windowxy1.y+40+FPS_YOFFSET,
@@ -1156,14 +1152,14 @@ void G_DisplayRest(int32_t smoothratio)
             S_PlaySound(EXITMENUSOUND);
             Menu_Change(MENU_CLOSE);
             if (!ud.pause_on)
-                S_PauseSounds(0);
+                S_PauseSounds(false);
         }
         else if ((g_player[myconnectindex].ps->gm&MODE_MENU) != MODE_MENU &&
             g_player[myconnectindex].ps->newowner == -1 &&
             (g_player[myconnectindex].ps->gm&MODE_TYPE) != MODE_TYPE)
         {
             I_EscapeTriggerClear();
-            S_PauseSounds(1);
+            S_PauseSounds(true);
 
             Menu_Open(myconnectindex);
 

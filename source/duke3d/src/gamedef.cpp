@@ -613,7 +613,7 @@ char const * VM_GetKeywordForID(int32_t id)
         if (keyword.val == id)
             return keyword.token;
 
-    return nullptr;
+    return "<invalid keyword>";
 }
 #endif
 
@@ -1793,7 +1793,7 @@ static int32_t parse_decimal_number(void)  // (textptr)
 
 static int32_t parse_hex_constant(const char *hexnum)
 {
-    int64_t x;
+    uint64_t x;
     sscanf(hexnum, "%" PRIx64 "", &x);
 
     if (EDUKE32_PREDICT_FALSE(x > UINT32_MAX))
@@ -6129,12 +6129,14 @@ repeatcase:
 
             C_GetNextValue(LABEL_DEFINE);
             g_sounds[k].m = *(g_scriptPtr-1) & ~SF_ONEINST_INTERNAL;
-            if (*(g_scriptPtr-1) & 1)
+            if (*(g_scriptPtr-1) & SF_LOOP)
                 g_sounds[k].m |= SF_ONEINST_INTERNAL;
 
             C_GetNextValue(LABEL_DEFINE);
             g_sounds[k].vo = *(g_scriptPtr-1);
             g_scriptPtr -= 5;
+
+            g_sounds[k].volume = 1.f;
 
             if (k > g_highestSoundIdx)
                 g_highestSoundIdx = k;
@@ -6509,8 +6511,8 @@ static void C_AddDefaultDefinitions(void)
         { "GAMEARRAY_BOOLEAN", GAMEARRAY_BITMAP },
     };
 
-    for (unsigned i = 0; i < ARRAY_SIZE(predefined); i++)
-        C_AddDefinition(predefined[i].token, predefined[i].val, LABEL_DEFINE);
+    for (auto & i : predefined)
+        C_AddDefinition(i.token, i.val, LABEL_DEFINE);
 
     C_AddDefinition("NO", 0, LABEL_DEFINE | LABEL_ACTION | LABEL_AI | LABEL_MOVE);
 }
@@ -6706,12 +6708,12 @@ void C_Compile(const char *fileName)
         G_GameExit(buf);
     }
 
-    for (int i = 0; i < MAXEVENTS; ++i)
+    for (intptr_t i : apScriptGameEventEnd)
     {
-        if (!apScriptGameEventEnd[i])
+        if (!i)
             continue;
 
-        intptr_t *eventEnd = apScript + apScriptGameEventEnd[i];
+        intptr_t *eventEnd = apScript + i;
         // C_FillEventBreakStackWithEndEvent
         intptr_t *breakPtr = (intptr_t*)*(eventEnd + 2);
         while (breakPtr)
@@ -6729,8 +6731,8 @@ void C_Compile(const char *fileName)
     initprintf("Script compiled in %dms, %ld bytes%s\n", timerGetTicks() - startcompiletime,
                 (unsigned long)(g_scriptPtr-apScript), C_ScriptVersionString(g_scriptVersion));
 
-    for (unsigned i=0; i < ARRAY_SIZE(tables_free); i++)
-        hash_free(tables_free[i]);
+    for (auto *i : tables_free)
+        hash_free(i);
 
     freehashnames();
     freesoundhashnames();

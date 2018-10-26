@@ -480,7 +480,7 @@ int main(int argc, char *argv[])
 #ifdef _WIN32
     char *argvbuf;
     int32_t buildargc = win_buildargs(&argvbuf);
-    const char **buildargv = (const char **) Bmalloc(sizeof(char *)*(buildargc+1));
+    const char **buildargv = (const char **) Xmalloc(sizeof(char *)*(buildargc+1));
     char *wp = argvbuf;
 
     for (bssize_t i=0; i<buildargc; i++, wp++)
@@ -808,7 +808,7 @@ int32_t initinput(void)
         if (!keytranslation[i])
             continue;
 
-        Bstrncpyz(g_keyNameTable[keytranslation[i]], SDL_GetKeyName(SDL_SCANCODE_TO_KEYCODE(i)), sizeof(g_keyNameTable[i]));
+        Bstrncpyz(g_keyNameTable[keytranslation[i]], SDL_GetKeyName(SDL_SCANCODE_TO_KEYCODE(i)), sizeof(g_keyNameTable[0]));
     }
 
     if (!SDL_InitSubSystem(SDL_INIT_JOYSTICK))
@@ -832,15 +832,15 @@ int32_t initinput(void)
             joystick.numHats = min((36-joystick.numButtons)/4,SDL_JoystickNumHats(joydev));
             initprintf("Joystick 1 has %d axes, %d buttons, and %d hat(s).\n", joystick.numAxes, joystick.numButtons, joystick.numHats);
 
-            joystick.pAxis = (int32_t *)Bcalloc(joystick.numAxes, sizeof(int32_t));
+            joystick.pAxis = (int32_t *)Xcalloc(joystick.numAxes, sizeof(int32_t));
 
             if (joystick.numHats)
-                joystick.pHat = (int32_t *)Bcalloc(joystick.numHats, sizeof(int32_t));
+                joystick.pHat = (int32_t *)Xcalloc(joystick.numHats, sizeof(int32_t));
 
             for (i = 0; i < joystick.numHats; i++) joystick.pHat[i] = -1;  // centre
 
-            joydead = (uint16_t *)Bcalloc(joystick.numAxes, sizeof(uint16_t));
-            joysatur = (uint16_t *)Bcalloc(joystick.numAxes, sizeof(uint16_t));
+            joydead = (uint16_t *)Xcalloc(joystick.numAxes, sizeof(uint16_t));
+            joysatur = (uint16_t *)Xcalloc(joystick.numAxes, sizeof(uint16_t));
         }
     }
 
@@ -1184,19 +1184,25 @@ void videoGetModes(void)
     SDL_CHECKFSMODES(maxx, maxy);
 
     // add windowed modes next
+    // SDL sorts display modes largest to smallest, so we can just compare with mode 0
+    // to make sure we aren't adding modes that are larger than the actual screen res
+    SDL_GetDisplayMode(0, 0, &dispmode);
+
     for (i = 0; g_defaultVideoModes[i].x; i++)
     {
-        if (!SDL_CHECKMODE(g_defaultVideoModes[i].x, g_defaultVideoModes[i].y))
+        auto const &mode = g_defaultVideoModes[i];
+
+        if (mode.x > dispmode.w || mode.y > dispmode.h || !SDL_CHECKMODE(mode.x, mode.y))
             continue;
 
-        // HACK: 8-bit == Software, 32-bit == OpenGL
-        SDL_ADDMODE(g_defaultVideoModes[i].x, g_defaultVideoModes[i].y, 8, 0);
+        // 8-bit == Software, 32-bit == OpenGL
+        SDL_ADDMODE(mode.x, mode.y, 8, 0);
 
 #ifdef USE_OPENGL
         if (nogl)
             continue;
 
-        SDL_ADDMODE(g_defaultVideoModes[i].x, g_defaultVideoModes[i].y, 32, 0);
+        SDL_ADDMODE(mode.x, mode.y, 32, 0);
 #endif
     }
 
@@ -2098,7 +2104,7 @@ int32_t handleevents_pollsdl(void)
                         if (OSD_HandleChar(code))
                             keyBufferInsert(code);
                     }
-                } while (j < SDL_TEXTINPUTEVENT_TEXT_SIZE && ev.text.text[++j]);
+                } while (j < SDL_TEXTINPUTEVENT_TEXT_SIZE-1 && ev.text.text[++j]);
                 break;
 
             case SDL_KEYDOWN:

@@ -291,7 +291,6 @@ void scriptfile_preparse(scriptfile *sf, char *tx, int32_t flen)
     printf("[eof]\nnumlines=%d\n",sf->linenum);
     for (i=0; i<sf->linenum; i++) printf("line %d = byte %d\n",i,sf->lineoffs[i]);
 #endif
-    flen = nflen;
 
     sf->textbuf = sf->textptr = tx;
     sf->textlength = nflen;
@@ -379,7 +378,7 @@ int32_t scriptfile_getsymbolvalue(char const *name, int32_t *val)
     {
         if (name[0] == '0' && tolower(name[1]) == 'x')  // hex constants
         {
-            int64_t x;
+            uint64_t x;
             sscanf(name + 2, "%" PRIx64 "", &x);
 
             if (EDUKE32_PREDICT_FALSE(x > UINT32_MAX))

@@ -48,8 +48,9 @@ void xalloc_set_location(int32_t line, const char *file, const char *func)
 }
 #endif
 
-void handle_memerr(void)
+void *handle_memerr(void *p)
 {
+    UNREFERENCED_PARAMETER(p);
     debug_break();
 
     if (g_MemErrHandler)
@@ -62,6 +63,7 @@ void handle_memerr(void)
     }
 
     Bexit(EXIT_FAILURE);
+    EDUKE32_UNREACHABLE_SECTION(return &handle_memerr);
 }
 
 void set_memerr_handler(void(*handlerfunc)(int32_t, const char *, const char *))
@@ -72,17 +74,11 @@ void set_memerr_handler(void(*handlerfunc)(int32_t, const char *, const char *))
 //
 // Stuff which must be a function
 //
-#ifdef _WIN32
-typedef BOOL (WINAPI * aSHGetSpecialFolderPathAtype)(HWND, LPTSTR, int, BOOL);
-#endif
-
 char *Bgethomedir(void)
 {
 #ifdef _WIN32
-    aSHGetSpecialFolderPathAtype aSHGetSpecialFolderPathA;
-    TCHAR appdata[MAX_PATH];
     int32_t loaded = 0;
-    HMODULE hShell32 = GetModuleHandle("shell32.dll");
+    auto hShell32 = GetModuleHandle("shell32.dll");
 
     if (hShell32 == NULL)
     {
@@ -93,14 +89,20 @@ char *Bgethomedir(void)
     if (hShell32 == NULL)
         return NULL;
 
-    aSHGetSpecialFolderPathA = (aSHGetSpecialFolderPathAtype)(void (*)(void))GetProcAddress(hShell32, "SHGetSpecialFolderPathA");
+    using SHGSFPA_t = BOOL (WINAPI *)(HWND, LPTSTR, int, BOOL);
+    auto aSHGetSpecialFolderPathA = (SHGSFPA_t)(void (*)(void))GetProcAddress(hShell32, "SHGetSpecialFolderPathA");
+
     if (aSHGetSpecialFolderPathA != NULL)
+    {
+        TCHAR appdata[MAX_PATH];
+
         if (SUCCEEDED(aSHGetSpecialFolderPathA(NULL, appdata, CSIDL_APPDATA, FALSE)))
         {
             if (loaded)
                 FreeLibrary(hShell32);
-            return Bstrdup(appdata);
+            return Xstrdup(appdata);
         }
+    }
 
     if (loaded)
         FreeLibrary(hShell32);
@@ -114,11 +116,11 @@ char *Bgethomedir(void)
     drv = strchr(cwd, ':');
     if (drv)
         drv[1] = '\0';
-    return Bstrdup(cwd);
+    return Xstrdup(cwd);
 #else
     char *e = getenv("HOME");
     if (!e) return NULL;
-    return Bstrdup(e);
+    return Xstrdup(e);
 #endif
 }
 
@@ -133,7 +135,7 @@ char *Bgetappdir(void)
         // trim off the filename
         char *slash = Bstrrchr(appdir, '\\');
         if (slash) slash[0] = 0;
-        dir = Bstrdup(appdir);
+        dir = Xstrdup(appdir);
     }
 
 #elif defined EDUKE32_OSX
@@ -141,14 +143,16 @@ char *Bgetappdir(void)
 #elif defined __FreeBSD__
     // the sysctl should also work when /proc/ is not mounted (which seems to
     // be common on FreeBSD), so use it..
-    char buf[PATH_MAX] = {0};
-    int name[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
-    size_t len = sizeof(buf)-1;
-    int ret = sysctl(name, sizeof(name)/sizeof(name[0]), buf, &len, NULL, 0);
-    if(ret == 0 && buf[0] != '\0') {
+    char   buf[PATH_MAX] = {0};
+    int    name[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
+    size_t len     = sizeof(buf) - 1;
+    int    ret     = sysctl(name, ARRAY_SIZE(name), buf, &len, NULL, 0);
+
+    if (ret == 0 && buf[0] != '\0')
+    {
         // again, remove executable name with dirname()
         // on FreeBSD dirname() seems to use some internal buffer
-        dir = strdup(dirname(buf));
+        dir = Xstrdup(dirname(buf));
     }
 #elif defined __linux || defined EDUKE32_BSD
     char buf[PATH_MAX] = {0};
@@ -163,7 +167,7 @@ char *Bgetappdir(void)
         // remove executable name with dirname(3)
         // on Linux, dirname() will modify buf2 (cutting off executable name) and return it
         // on FreeBSD it seems to use some internal buffer instead.. anyway, just strdup()
-        dir = Bstrdup(dirname(buf2));
+        dir = Xstrdup(dirname(buf2));
     }
 #endif
 
@@ -172,12 +176,8 @@ char *Bgetappdir(void)
 
 int32_t Bcorrectfilename(char *filename, int32_t removefn)
 {
-    char *fn;
-    char *tokarr[64], *first, *next = NULL, *token;
-    int32_t i, ntok = 0, leadslash = 0, trailslash = 0;
-
-    fn = Bstrdup(filename);
-    if (!fn) return -1;
+    char *fn = Xstrdup(filename);
+    char *tokarr[64], *first, *next = NULL;
 
     for (first=fn; *first; first++)
     {
@@ -185,13 +185,15 @@ int32_t Bcorrectfilename(char *filename, int32_t removefn)
         if (*first == '\\') *first = '/';
 #endif
     }
-    leadslash = (*fn == '/');
-    trailslash = (first>fn && first[-1] == '/');
+
+    int leadslash = (*fn == '/');
+    int trailslash = (first>fn && first[-1] == '/');
+    int ntok = 0;
 
     first = fn;
     do
     {
-        token = Bstrtoken(first, "/", &next, 1);
+        char *token = Bstrtoken(first, "/", &next, 1);
         first = NULL;
         if (!token) break;
         else if (token[0] == 0) continue;
@@ -206,10 +208,10 @@ int32_t Bcorrectfilename(char *filename, int32_t removefn)
 
     first = filename;
     if (leadslash) *(first++) = '/';
-    for (i=0; i<ntok; i++)
+    for (int i=0; i<ntok; i++)
     {
         if (i>0) *(first++) = '/';
-        for (token=tokarr[i]; *token; token++)
+        for (char *token=tokarr[i]; *token; token++)
             *(first++) = *token;
     }
     if (trailslash) *(first++) = '/';
@@ -301,10 +303,7 @@ char *Bgetsystemdrives(void)
         number++;
     }
 
-    str = p = (char *)Bmalloc(1 + (3 * number));
-    if (!str)
-        return NULL;
-
+    str = p = (char *)Xmalloc(1 + (3 * number));
     number = 0;
     for (mask = 1; mask < 0x8000000l; mask <<= 1, number++)
     {
@@ -349,19 +348,10 @@ BDIR *Bopendir(const char *name)
     BDIR_real *dirr;
 #ifdef _MSC_VER
     char *t, *tt;
-    t = (char *)Bmalloc(Bstrlen(name) + 1 + 4);
-    if (!t)
-        return NULL;
+    t = (char *)Xmalloc(Bstrlen(name) + 1 + 4);
 #endif
 
-    dirr = (BDIR_real *)Bmalloc(sizeof(BDIR_real) + Bstrlen(name));
-    if (!dirr)
-    {
-#ifdef _MSC_VER
-        Bfree(t);
-#endif
-        return NULL;
-    }
+    dirr = (BDIR_real *)Xmalloc(sizeof(BDIR_real) + Bstrlen(name));
 
 #ifdef _MSC_VER
     Bstrcpy(t, name);
@@ -430,19 +420,16 @@ struct Bdirent *Breaddir(BDIR *dir)
     dirr->info.size = 0;
     dirr->info.mtime = 0;
 
-    char *fn = (char *)Bmalloc(Bstrlen(dirr->name) + 1 + dirr->info.namlen + 1);
-    if (fn)
+    char *fn = (char *)Xmalloc(Bstrlen(dirr->name) + 1 + dirr->info.namlen + 1);
+    Bsprintf(fn, "%s/%s", dirr->name, dirr->info.name);
+    struct Bstat st;
+    if (!Bstat(fn, &st))
     {
-        Bsprintf(fn, "%s/%s", dirr->name, dirr->info.name);
-        struct Bstat st;
-        if (!Bstat(fn, &st))
-        {
-            dirr->info.mode = st.st_mode;
-            dirr->info.size = st.st_size;
-            dirr->info.mtime = st.st_mtime;
-        }
-        Bfree(fn);
+        dirr->info.mode = st.st_mode;
+        dirr->info.size = st.st_size;
+        dirr->info.mtime = st.st_mtime;
     }
+    Bfree(fn);
 
     return &dirr->info;
 }
@@ -617,16 +604,15 @@ uint32_t Bgetsysmemsize(void)
     return siz;
 #elif (defined(_SC_PAGE_SIZE) || defined(_SC_PAGESIZE)) && defined(_SC_PHYS_PAGES) && !defined(GEKKO)
     uint32_t siz = UINT32_MAX;
-    int64_t scpagesiz, scphyspages;
-
 #ifdef _SC_PAGE_SIZE
-    scpagesiz = sysconf(_SC_PAGE_SIZE);
+    int64_t const scpagesiz = sysconf(_SC_PAGE_SIZE);
 #else
-    scpagesiz = sysconf(_SC_PAGESIZE);
+    int64_t const scpagesiz = sysconf(_SC_PAGESIZE);
 #endif
-    scphyspages = sysconf(_SC_PHYS_PAGES);
+    int64_t const scphyspages = sysconf(_SC_PHYS_PAGES);
+
     if (scpagesiz >= 0 && scphyspages >= 0)
-        siz = (uint32_t)min(UINT32_MAX, (int64_t)scpagesiz * (int64_t)scphyspages);
+        siz = min<uint32_t>(UINT32_MAX, scpagesiz * scphyspages);
 
     //initprintf("Bgetsysmemsize(): %d pages of %d bytes, %d bytes of system memory\n",
     //		scphyspages, scpagesiz, siz);

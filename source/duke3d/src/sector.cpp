@@ -1953,8 +1953,8 @@ void A_DamageObject_Internal(int spriteNum, int const dmgSrc)
             sprite[dmgSrc].xvel = (sprite[spriteNum].xvel>>1)+(sprite[spriteNum].xvel>>2);
             sprite[dmgSrc].ang -= (SA(spriteNum)<<1)+1024;
             SA(spriteNum) = getangle(SX(spriteNum)-sprite[dmgSrc].x,SY(spriteNum)-sprite[dmgSrc].y)-512;
-            if (S_CheckSoundPlaying(spriteNum,POOLBALLHIT) < 2)
-                A_PlaySound(POOLBALLHIT,spriteNum);
+            if (g_sounds[POOLBALLHIT].num < 2)
+                A_PlaySound(POOLBALLHIT, spriteNum);
         }
         else
         {
@@ -2500,14 +2500,14 @@ void P_HandleSharedKeys(int playerNum)
             else ud.pause_on = 1+SHIFTS_IS_PRESSED;
             if (ud.pause_on)
             {
-                S_PauseMusic(1);
-                S_PauseSounds(1);
+                S_PauseMusic(true);
+                S_PauseSounds(true);
             }
             else
             {
-                if (ud.config.MusicToggle) S_PauseMusic(0);
+                if (ud.config.MusicToggle) S_PauseMusic(false);
 
-                S_PauseSounds(0);
+                S_PauseSounds(false);
 
                 pub = NUMPAGES;
                 pus = NUMPAGES;
@@ -2624,13 +2624,11 @@ CHECKINV1:
             {
                 pPlayer->inven_icon = inventoryIcon;
 
-                if (inventoryIcon || pPlayer->inv_amount[GET_FIRSTAID])
-                {
-                    static const int32_t invQuotes[8] = { QUOTE_MEDKIT, QUOTE_STEROIDS, QUOTE_HOLODUKE,
-                        QUOTE_JETPACK, QUOTE_NVG, QUOTE_SCUBA, QUOTE_BOOTS, 0 };
-                    if (inventoryIcon-1 < ARRAY_SSIZE(invQuotes))
-                        P_DoQuote(invQuotes[inventoryIcon-1], pPlayer);
-                }
+                static const int32_t invQuotes[8] = { QUOTE_MEDKIT, QUOTE_STEROIDS, QUOTE_HOLODUKE,
+                    QUOTE_JETPACK, QUOTE_NVG, QUOTE_SCUBA, QUOTE_BOOTS, 0 };
+
+                if (inventoryIcon-1 < ARRAY_SSIZE(invQuotes))
+                    P_DoQuote(invQuotes[inventoryIcon-1], pPlayer);
             }
         }
 
@@ -3294,11 +3292,6 @@ void P_CheckSectors(int playerNum)
             {
                 if (foundWall == nearWall || foundWall == -1)
                     P_ActivateSwitch(playerNum,nearWall,0);
-                return;
-            }
-            else if (pPlayer->newowner >= 0)
-            {
-                G_ClearCameras(pPlayer);
                 return;
             }
         }

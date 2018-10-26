@@ -163,7 +163,7 @@ const char * OSD_StripColors(char *outBuf, const char *inBuf)
 int OSD_Exec(const char *szScript)
 {
     int err = 0;
-    int32_t handle, len;
+    int32_t handle, len = 0;
     char *buf = NULL;
 
     if ((handle = kopen4load(szScript, 0)) == -1)
@@ -598,8 +598,8 @@ void OSD_Cleanup(void)
     DO_FREE_AND_NULL(osd->cvars);
     DO_FREE_AND_NULL(osd->editor.buf);
     DO_FREE_AND_NULL(osd->editor.tmp);
-    for (bssize_t i=0; i<OSDMAXHISTORYDEPTH; i++)
-        DO_FREE_AND_NULL(osd->history.buf[i]);
+    for (auto & i : osd->history.buf)
+        DO_FREE_AND_NULL(i);
     DO_FREE_AND_NULL(osd->text.buf);
     DO_FREE_AND_NULL(osd->text.fmt);
     DO_FREE_AND_NULL(osd->version.buf);
@@ -659,16 +659,16 @@ static int32_t osdfunc_toggle(osdfuncparm_t const * const parm)
 //
 void OSD_Init(void)
 {
-    osd = (osdmain_t *)Bcalloc(1, sizeof(osdmain_t));
+    osd = (osdmain_t *)Xcalloc(1, sizeof(osdmain_t));
 
     mutex_init(&osd->mutex);
 
     if (!osd->keycode) osd->keycode = sc_Tilde;
 
-    osd->text.buf   = (char *)Bmalloc(OSDBUFFERSIZE);
-    osd->text.fmt   = (char *)Bmalloc(OSDBUFFERSIZE);
-    osd->editor.buf = (char *)Bmalloc(OSDEDITLENGTH);
-    osd->editor.tmp = (char *)Bmalloc(OSDEDITLENGTH);
+    osd->text.buf   = (char *)Xmalloc(OSDBUFFERSIZE);
+    osd->text.fmt   = (char *)Xmalloc(OSDBUFFERSIZE);
+    osd->editor.buf = (char *)Xmalloc(OSDEDITLENGTH);
+    osd->editor.tmp = (char *)Xmalloc(OSDEDITLENGTH);
 
     Bmemset(osd->text.buf, asc_Space, OSDBUFFERSIZE);
     Bmemset(osd->text.fmt, osd->draw.textpal + (osd->draw.textshade<<5), OSDBUFFERSIZE);
@@ -699,8 +699,8 @@ void OSD_Init(void)
         { "osdhistorydepth", "sets the history depth, in lines", (void *) &osd->history.maxlines, CVAR_INT|CVAR_FUNCPTR, OSDMINHISTORYDEPTH, OSDMAXHISTORYDEPTH },
     };
 
-    for (unsigned i=0; i<ARRAY_SIZE(cvars_osd); i++)
-        OSD_RegisterCvar(&cvars_osd[i], (cvars_osd[i].flags & CVAR_FUNCPTR) ? osdcmd_cvar_set_osd : osdcmd_cvar_set);
+    for (auto & i : cvars_osd)
+        OSD_RegisterCvar(&i, (i.flags & CVAR_FUNCPTR) ? osdcmd_cvar_set_osd : osdcmd_cvar_set);
 
     OSD_RegisterFunction("alias", "alias: creates an alias for calling multiple commands", osdfunc_alias);
     OSD_RegisterFunction("clear", "clear: clears the console text buffer", osdfunc_clear);
@@ -1050,7 +1050,7 @@ int32_t OSD_HandleChar(char ch)
             {
                 tabc = osd_findsymbol(editor.tmp, lastmatch->next);
 
-                if (!tabc && lastmatch)
+                if (!tabc)
                     tabc = osd_findsymbol(editor.tmp, NULL);  // wrap */
             }
 
@@ -1394,8 +1394,8 @@ void OSD_ResizeDisplay(int32_t w, int32_t h)
     j = min(newmaxlines, osd->text.maxlines);
     k = min(newcols, osd->draw.cols);
 
-    newtext = (char *)Bmalloc(OSDBUFFERSIZE);
-    newfmt = (char *)Bmalloc(OSDBUFFERSIZE);
+    newtext = (char *)Xmalloc(OSDBUFFERSIZE);
+    newfmt = (char *)Xmalloc(OSDBUFFERSIZE);
 
     Bmemset(newtext, asc_Space, OSDBUFFERSIZE);
 
@@ -1611,13 +1611,10 @@ void OSD_Puts(const char *tmpstr)
 
     if (log.lines < log.cutoff)
     {
-        if (osdlog && (!log.cutoff || log.lines < log.cutoff))
-        {
-            char *chp2 = Xstrdup(tmpstr);
-            Bfputs(OSD_StripColors(chp2, tmpstr), osdlog);
-            Bprintf("%s", chp2);
-            Bfree(chp2);
-        }
+        char *chp2 = Xstrdup(tmpstr);
+        Bfputs(OSD_StripColors(chp2, tmpstr), osdlog);
+        Bprintf("%s", chp2);
+        Bfree(chp2);
     }
     else if (log.lines == log.cutoff)
     {
@@ -1919,7 +1916,7 @@ int32_t OSD_RegisterFunction(const char *pszName, const char *pszDesc, int32_t (
 void OSD_SetVersion(const char *pszVersion, int osdShade, int osdPal)
 {
     DO_FREE_AND_NULL(osd->version.buf);
-    osd->version.buf   = Bstrdup(pszVersion);
+    osd->version.buf   = Xstrdup(pszVersion);
     osd->version.len   = Bstrlen(pszVersion);
     osd->version.shade = osdShade;
     osd->version.pal   = osdPal;

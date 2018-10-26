@@ -828,7 +828,7 @@ static void Proj_HandleKnee(hitdata_t *const hitData, int const spriteNum, int c
             A_PlaySound(soundNum, kneeSprite);
     }
 
-    if (playerNum >= 0 && pPlayer->inv_amount[GET_STEROIDS] > 0 && pPlayer->inv_amount[GET_STEROIDS] < 400)
+    if (pPlayer != NULL && pPlayer->inv_amount[GET_STEROIDS] > 0 && pPlayer->inv_amount[GET_STEROIDS] < 400)
         sprite[kneeSprite].extra += (pPlayer->max_player_health>>2);
 
     if (hitData->sprite >= 0 && sprite[hitData->sprite].picnum != ACCESSSWITCH && sprite[hitData->sprite].picnum != ACCESSSWITCH2)
@@ -931,7 +931,7 @@ static int A_ShootCustom(int const spriteNum, int const projecTile, int shootAng
         if (!(pProj->workslike & PROJECTILE_NOSETOWNERSHADE) && pSprite->extra >= 0)
             pSprite->shade = pProj->shade;
 
-        if (playerNum >= 0)
+        if (pPlayer != NULL)
         {
             // NOTE: j is a SPRITE_INDEX
             otherSprite = GetAutoAimAng(spriteNum, playerNum, projecTile, 8<<8, 0+2, startPos, pProj->vel, &zvel, &shootAng);
@@ -1299,9 +1299,6 @@ static int32_t A_ShootHardcoded(int spriteNum, int projecTile, int shootAng, vec
 
             sprite[returnSprite].cstat    = 128;
             sprite[returnSprite].clipdist = 4;
-
-            shootAng = pSprite->ang + 32 - (krand() & 63);
-            Zvel += 512 - (krand() & 1023);
 
             return returnSprite;
         }
@@ -2740,9 +2737,6 @@ void P_DisplayWeapon(void)
                 {
                     static uint8_t freezerFrames[] = { 0, 0, 1, 1, 2, 2 };
 
-                    if (*weaponFrame % 6 >= ARRAY_SIZE(freezerFrames))
-                        break;
-
                     if (doAnim)
                     {
                         weaponX += rand() & 3;
@@ -2890,6 +2884,8 @@ void P_GetInput(int playerNum)
 
         return;
     }
+
+    CONTROL_ProcessBinds();
 
     if (ud.mouseaiming)
         g_myAimMode = BUTTON(gamefunc_Mouse_Aiming);
@@ -3906,7 +3902,7 @@ static void P_ProcessWeapon(int playerNum)
 
     if (playerShrunk || pPlayer->tipincs || pPlayer->access_incs)
         playerBits &= ~BIT(SK_FIRE);
-    else if (playerShrunk == 0 && (playerBits & (1 << 2)) && (*weaponFrame) == 0 && pPlayer->fist_incs == 0 &&
+    else if ((playerBits & (1 << 2)) && (*weaponFrame) == 0 && pPlayer->fist_incs == 0 &&
              pPlayer->last_weapon == -1 && (pPlayer->weapon_pos == 0 || pPlayer->holster_weapon == 1))
     {
         pPlayer->crack_time = 777;
@@ -4245,7 +4241,7 @@ static void P_ProcessWeapon(int playerNum)
                     }
                 }
             }
-            else if (*weaponFrame >= PWEAPON(playerNum, pPlayer->curr_weapon, FireDelay) && (*weaponFrame) < PWEAPON(playerNum, pPlayer->curr_weapon, TotalTime)
+            else if (*weaponFrame >= PWEAPON(playerNum, pPlayer->curr_weapon, FireDelay)
                      && ((PWEAPON(playerNum, pPlayer->curr_weapon, WorksLike) == KNEE_WEAPON) || pPlayer->ammo_amount[pPlayer->curr_weapon] > 0))
             {
                 if (PWEAPON(playerNum, pPlayer->curr_weapon, Flags) & WEAPON_AUTOMATIC)
@@ -4930,7 +4926,7 @@ void P_ProcessInput(int playerNum)
 
                 if (spriteNum < 0)
                 {
-                    if (pPlayer->cursectnum >= 0 && sector[pPlayer->cursectnum].lotag == 0 &&
+                    if (sector[pPlayer->cursectnum].lotag == 0 &&
                         sector[pPlayer->cursectnum].hitag == 0)
 #ifdef YAX_ENABLE
                         if (yax_getbunch(pPlayer->cursectnum, YAX_FLOOR) < 0 || (sector[pPlayer->cursectnum].floorstat & 512))
