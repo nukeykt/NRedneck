@@ -340,8 +340,14 @@ void Demo_SetFirst(const char *demostr)
 
     if (tailptr==demostr+Bstrlen(demostr) && (unsigned)i < MAXDEMOS)  // demo number passed
         Bsprintf(g_firstDemoFile, DEMOFN_FMT, i);
-    // else  // demo file name passed
-    //     maybe_append_ext(g_firstDemoFile, sizeof(g_firstDemoFile), demostr, ".edm");
+    else  // demo file name passed
+    {
+        int l = Bstrlen(demostr);
+        if (l >= 4 && !Bstrcasecmp(&demostr[l-4], ".dmo"))
+            Bstrcpy(g_firstDemoFile, demostr);
+        else
+            maybe_append_ext(g_firstDemoFile, sizeof(g_firstDemoFile), demostr, ".edm");
+    }
 }
 
 
