@@ -246,7 +246,7 @@ SKIPWALLCHECK:
                     if (!A_CheckSpriteFlags(otherSprite, SFLAG_NODAMAGEPUSH))
                     {
                         if (pOther->xvel < 0) pOther->xvel = 0;
-                        pOther->xvel += (pSprite->extra<<2);
+                        pOther->xvel += ((RR ? pOther->extra : pSprite->extra)<<2);
                     }
 
                     switch (DYNAMICTILEMAP(pOther->picnum))
