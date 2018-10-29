@@ -36,7 +36,7 @@ gamedef_h=$(duke3d_src)/gamedef.h $(duke3d_src)/gameexec.h $(duke3d_src)/gamevar
 
 game_defs_dep=$(duke3d_src)/lunatic/_defs_game.lua
 
-$(duke3d_obj)/game.$o: $(duke3d_src)/game.cpp $(game_defs_dep) $(mact_inc)/scriplib.h $(duke3d_h) $(duke3d_src)/input.h $(duke3d_src)/osdfuncs.h $(duke3d_src)/osdcmds.h $(duke3d_src)/grpscan.h $(duke3d_src)/demo.h $(engine_inc)/hightile.h
+$(duke3d_obj)/game.$o: $(duke3d_src)/game.cpp $(game_defs_dep) $(mact_inc)/scriplib.h $(duke3d_h) $(duke3d_src)/input.h $(duke3d_src)/osdfuncs.h $(duke3d_src)/osdcmds.h $(duke3d_src)/grpscan.h $(duke3d_src)/demo.h $(engine_inc)/hightile.h $(duke3d_src)/al_midi.h
 $(duke3d_obj)/actors.$o: $(duke3d_src)/actors.cpp $(duke3d_h)
 $(duke3d_obj)/anim.$o: $(duke3d_src)/anim.cpp $(duke3d_h) $(duke3d_src)/input.h $(mact_inc)/animlib.h $(engine_inc)/animvpx.h
 $(duke3d_obj)/cheats.$o: $(duke3d_src)/cheats.cpp $(duke3d_src)/cheats.h
@@ -126,6 +126,9 @@ $(mact_obj)/keyboard.$o: $(mact_src)/keyboard.cpp $(mact_inc)/keyboard.h $(engin
 $(mact_obj)/joystick.$o: $(mact_src)/joystick.cpp $(mact_inc)/joystick.h $(engine_inc)/baselayer.h
 $(mact_obj)/scriplib.$o: $(mact_src)/scriplib.cpp $(mact_inc)/scriplib.h $(mact_src)/_scrplib.h $(engine_inc)/compat.h
 
-$(duke3d_obj)/midi.$o: $(duke3d_src)/midi.cpp $(duke3d_src)/_midi.h $(duke3d_src)/midi.h $(audiolib_inc)/music.h
+$(duke3d_obj)/midi.$o: $(duke3d_src)/midi.cpp $(duke3d_src)/_midi.h $(duke3d_src)/midi.h $(audiolib_inc)/music.h $(audiolib_inc)/multivoc.h $(duke3d_src)/al_midi.h
 $(duke3d_obj)/mpu401.$o: $(duke3d_src)/mpu401.cpp $(duke3d_src)/mpu401.h $(audiolib_inc)/music.h
-$(duke3d_obj)/music.$o: $(duke3d_src)/music.cpp $(duke3d_src)/midi.h $(duke3d_src)/mpu401.h $(audiolib_inc)/music.h
+$(duke3d_obj)/music.$o: $(duke3d_src)/music.cpp $(duke3d_src)/midi.h $(duke3d_src)/mpu401.h $(audiolib_inc)/music.h $(duke3d_src)/al_midi.h
+$(duke3d_obj)/al_midi.$o: $(duke3d_src)/al_midi.cpp $(duke3d_src)/_al_midi.h $(duke3d_src)/al_midi.h $(duke3d_src)/opl3.h
+$(duke3d_obj)/opl3.$o: $(duke3d_src)/opl3.cpp $(duke3d_src)/opl3.h
+$(duke3d_obj)/gmtimbre.$o: $(duke3d_src)/gmtimbre.cpp

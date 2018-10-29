@@ -93,6 +93,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define EMIDI_SONG_LOOP_END     119
 
 #define EMIDI_GeneralMIDI       0
+#define EMIDI_SoundBlaster      4
 
 #define EMIDI_AffectsCurrentCard(c, type) (((c) == EMIDI_ALL_CARDS) || ((c) == (type)))
 #define EMIDI_NUM_CONTEXTS      7

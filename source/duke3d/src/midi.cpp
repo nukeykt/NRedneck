@@ -37,11 +37,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "music.h"
 #include "_midi.h"
 #include "midi.h"
-#include "mpu401.h"
 #include "compat.h"
 #include "pragmas.h"
 
-#include "windows_inc.h"
+#include "al_midi.h"
+#include "multivoc.h"
 
 extern int32_t MUSIC_SoundDevice;
 
@@ -87,6 +87,10 @@ static midifuncs *_MIDI_Funcs = NULL;
 static int32_t Reset = FALSE;
 
 int32_t MIDI_Tempo = 120;
+
+static int32_t _MIDI_PlayRoutine = -1;
+static int32_t _MIDI_MixRate = 44100;
+static int32_t _MIDI_MixTimer = 0;
 
 static int32_t _MIDI_ReadNumber(void *from, size_t size)
 {
@@ -587,7 +591,7 @@ void MIDI_ContinueSong(void)
         return;
 
     _MIDI_SongActive = TRUE;
-    MPU_Unpause();
+    //MPU_Unpause();
 }
 
 void MIDI_PauseSong(void)
@@ -597,7 +601,7 @@ void MIDI_PauseSong(void)
 
     _MIDI_SongActive = FALSE;
     MIDI_AllNotesOff();
-    MPU_Pause();
+    //MPU_Pause();
 }
 
 void MIDI_SetMidiFuncs(midifuncs *funcs) { _MIDI_Funcs = funcs; }
@@ -610,8 +614,8 @@ void MIDI_StopSong(void)
     _MIDI_SongActive = FALSE;
     _MIDI_SongLoaded = FALSE;
 
-    MPU_Reset();
-    MPU_Init(MUSIC_SoundDevice);
+    // MPU_Reset();
+    // MPU_Init(MUSIC_SoundDevice);
 
     MIDI_Reset();
     _MIDI_ResetTracks();
@@ -626,10 +630,12 @@ void MIDI_StopSong(void)
     _MIDI_TotalBeats    = 0;
     _MIDI_TotalMeasures = 0;
 
+    MV_UnhookMusicRoutine();
 }
 
 int32_t MIDI_PlaySong(char *song, int32_t loopflag)
 {
+    extern int32_t MV_MixRate;
     int32_t    numtracks;
     int32_t    format;
     int32_t   headersize;
@@ -692,7 +698,7 @@ int32_t MIDI_PlaySong(char *song, int32_t loopflag)
     if (_MIDI_SongLoaded)
         MIDI_StopSong();
 
-    MPU_Init(MUSIC_SoundDevice);
+    OPLMusic::AL_Init(MV_MixRate);
 
     _MIDI_Loop = loopflag;
     _MIDI_NumTracks = My_MIDI_NumTracks;
@@ -708,14 +714,20 @@ int32_t MIDI_PlaySong(char *song, int32_t loopflag)
 
     Reset = FALSE;
 
-    MIDI_SetDivision(_MIDI_Division);
-    //MIDI_SetTempo( 120 );
+    _MIDI_PlayRoutine = 100;
+    _MIDI_MixTimer = 0;
+
+    //MIDI_SetDivision(_MIDI_Division);
+    MIDI_SetTempo( 120 );
 
     _MIDI_SongLoaded = TRUE;
     _MIDI_SongActive = TRUE;
 
-    while (_MPU_BuffersWaiting < 4) _MIDI_ServiceRoutine();
-    MPU_BeginPlayback();
+    // while (_MPU_BuffersWaiting < 4) _MIDI_ServiceRoutine();
+    // MPU_BeginPlayback();
+
+    MV_HookMusicRoutine(MIDI_MusicMix);
+   _MIDI_MixRate = MV_MixRate;
 
     return MIDI_Ok;
 }
@@ -726,20 +738,23 @@ void MIDI_SetTempo(int32_t tempo)
 
     MIDI_Tempo = tempo;
     tickspersecond = ((tempo) * _MIDI_Division)/60;
+    _MIDI_PlayRoutine = tickspersecond;
+    _MIDI_MixTimer = 0;
     _MIDI_FPSecondsPerTick = tabledivide32_noinline(1 << TIME_PRECISION, tickspersecond);
-    MPU_SetTempo(tempo);
+    //MPU_SetTempo(tempo);
 }
 
 void MIDI_SetDivision(int32_t division)
 {
-    MPU_SetDivision(division);
+    UNREFERENCED_PARAMETER(division);
+    //MPU_SetDivision(division);
 }
 
 int32_t MIDI_GetTempo(void) { return MIDI_Tempo; }
 
 static void _MIDI_InitEMIDI(void)
 {
-    int32_t type = EMIDI_GeneralMIDI;
+    int32_t type = EMIDI_SoundBlaster; //EMIDI_GeneralMIDI;
 
     _MIDI_ResetTracks();
 
@@ -943,10 +958,30 @@ static void _MIDI_InitEMIDI(void)
     _MIDI_ResetTracks();
 }
 
+void MIDI_MusicMix(char *buffer, int length)
+{
+    int16_t *buffer16 = (int16_t*)buffer;
+    int samples = length/4;
+    for (int i = 0; i < samples; i++)
+    {
+        Bit16s tempbuf[2];
+        while (_MIDI_MixTimer >= _MIDI_MixRate)
+        {
+            if (_MIDI_PlayRoutine >= 0)
+                _MIDI_ServiceRoutine();
+            _MIDI_MixTimer -= _MIDI_MixRate;
+        }
+        if (_MIDI_PlayRoutine >= 0) _MIDI_MixTimer += _MIDI_PlayRoutine;
+        OPL3_GenerateResampled(&OPLMusic::chip, tempbuf);
+        *buffer16++ = tempbuf[0];
+        *buffer16++ = tempbuf[1];
+    }
+}
+
 
 void MIDI_UpdateMusic(void)
 {
-    if (!_MIDI_SongLoaded || !_MIDI_SongActive) return;
-    while (_MPU_BuffersWaiting < 4) _MIDI_ServiceRoutine();
+    // if (!_MIDI_SongLoaded || !_MIDI_SongActive) return;
+    // while (_MPU_BuffersWaiting < 4) _MIDI_ServiceRoutine();
 }
 

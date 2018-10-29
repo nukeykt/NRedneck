@@ -81,7 +81,8 @@ void MIDI_SetSongPosition( int32_t measure, int32_t beat, int32_t tick );
 void MIDI_GetSongPosition( songposition *pos );
 void MIDI_GetSongLength( songposition *pos );
 void MIDI_LoadTimbres( void );
-void MIDI_UpdateMusic(void);
+void MIDI_MusicMix( char *buffer, int length );
+void MIDI_UpdateMusic( void );
 void MIDI_SetDivision( int32_t division );
 
 #endif

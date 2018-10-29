@@ -156,6 +156,15 @@
     <ClInclude Include="..\..\source\duke3d\src\inv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\duke3d\src\_al_midi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\duke3d\src\al_midi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\duke3d\src\opl3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\duke3d\src\actors.cpp">
@@ -274,6 +283,15 @@
     </ClCompile>
     <ClCompile Include="..\..\source\duke3d\rsrc\eduke32_icon.c">
       <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\duke3d\src\al_midi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\duke3d\src\opl3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\duke3d\src\gmtimbre.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

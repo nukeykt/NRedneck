@@ -636,7 +636,7 @@ ifeq ($(PLATFORM),WINDOWS)
     endif
     ifeq ($(MIXERTYPE),WIN)
         LIBS += -ldsound
-        duke3d_common_midi_objs := music.cpp midi.cpp mpu401.cpp
+        # duke3d_common_midi_objs := music.cpp midi.cpp mpu401.cpp
     endif
 endif
 
@@ -653,9 +653,10 @@ ifeq ($(RENDERTYPE),SDL)
     duke3d_game_rsrc_objs += game_icon.c
     duke3d_editor_rsrc_objs += build_icon.c
 endif
-ifeq ($(MIXERTYPE),SDL)
-    duke3d_common_midi_objs := sdlmusic.cpp
-endif
+# ifeq ($(MIXERTYPE),SDL)
+#     duke3d_common_midi_objs := sdlmusic.cpp
+# endif
+duke3d_common_midi_objs := music.cpp midi.cpp al_midi.cpp gmtimbre.cpp opl3.cpp
 
 
 #### Shadow Warrior

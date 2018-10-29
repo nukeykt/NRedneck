@@ -169,6 +169,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\duke3d\src\actors.h" />
+    <ClInclude Include="..\..\source\duke3d\src\al_midi.h" />
     <ClInclude Include="..\..\source\duke3d\src\android.h" />
     <ClInclude Include="..\..\source\duke3d\src\in_android.h" />
     <ClInclude Include="..\..\source\duke3d\src\anim.h" />
@@ -186,6 +187,7 @@
     <ClInclude Include="..\..\source\duke3d\src\menus.h" />
     <ClInclude Include="..\..\source\duke3d\src\mpu401.h" />
     <ClInclude Include="..\..\source\duke3d\src\net.h" />
+    <ClInclude Include="..\..\source\duke3d\src\opl3.h" />
     <ClInclude Include="..\..\source\duke3d\src\player.h" />
     <ClInclude Include="..\..\source\duke3d\src\premap.h" />
     <ClInclude Include="..\..\source\duke3d\src\quotes.h" />
@@ -194,6 +196,7 @@
     <ClInclude Include="..\..\source\duke3d\src\screens.h" />
     <ClInclude Include="..\..\source\duke3d\src\screentext.h" />
     <ClInclude Include="..\..\source\duke3d\src\sector.h" />
+    <ClInclude Include="..\..\source\duke3d\src\_al_midi.h" />
     <ClInclude Include="..\..\source\duke3d\src\_functio.h" />
     <ClInclude Include="..\..\source\duke3d\src\_midi.h" />
     <ClInclude Include="..\..\source\duke3d\src\_rts.h" />
@@ -219,6 +222,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\source\duke3d\rsrc\eduke32_icon.c" />
     <ClCompile Include="..\..\source\duke3d\src\actors.cpp" />
+    <ClCompile Include="..\..\source\duke3d\src\al_midi.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\anim.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\cheats.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\cmdline.cpp" />
@@ -236,6 +240,7 @@
     </ClCompile>
     <ClCompile Include="..\..\source\duke3d\src\gamevars.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\global.cpp" />
+    <ClCompile Include="..\..\source\duke3d\src\gmtimbre.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\grpscan.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\input.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\mdump.cpp" />
@@ -245,6 +250,7 @@
     <ClCompile Include="..\..\source\duke3d\src\music.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\namesdyn.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\net.cpp" />
+    <ClCompile Include="..\..\source\duke3d\src\opl3.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\osdcmds.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\osdfuncs.cpp" />
     <ClCompile Include="..\..\source\duke3d\src\player.cpp" />

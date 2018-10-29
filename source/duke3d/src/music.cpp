@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "compat.h"
 #include "music.h"
 #include "midi.h"
-#include "mpu401.h"
+#include "al_midi.h"
 
 int32_t MUSIC_SoundDevice = -1;
 int32_t MUSIC_ErrorCode = MUSIC_Ok;
@@ -109,13 +109,13 @@ int32_t MUSIC_InitMidi(int32_t card, midifuncs *Funcs, int32_t Address)
 {
     UNREFERENCED_PARAMETER(card);
     UNREFERENCED_PARAMETER(Address);
-    Funcs->NoteOff = MPU_NoteOff;
-    Funcs->NoteOn = MPU_NoteOn;
-    Funcs->PolyAftertouch = MPU_PolyAftertouch;
-    Funcs->ControlChange = MPU_ControlChange;
-    Funcs->ProgramChange = MPU_ProgramChange;
-    Funcs->ChannelAftertouch = MPU_ChannelAftertouch;
-    Funcs->PitchBend = MPU_PitchBend;
+    Funcs->NoteOff = OPLMusic::AL_NoteOff;
+    Funcs->NoteOn = OPLMusic::AL_NoteOn;
+    Funcs->PolyAftertouch = NULL;
+    Funcs->ControlChange = OPLMusic::AL_ControlChange;
+    Funcs->ProgramChange = OPLMusic::AL_ProgramChange;
+    Funcs->ChannelAftertouch = NULL;
+    Funcs->PitchBend = OPLMusic::AL_SetPitchBend;
 
     MIDI_SetMidiFuncs(Funcs);
 
