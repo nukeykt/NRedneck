@@ -355,17 +355,21 @@ static void MV_ServiceVoc(void)
 
     if (MV_MixMusic)
     {
-        MV_MusicCallback(MV_MusicBuffer, MV_BufferSize);
+        int32_t length = MV_BufferSize / (2 * MV_Channels);
+        MV_MusicCallback(MV_MusicBuffer, length * 2 * 2);
         int16_t *source = (int16_t*)MV_MusicBuffer;
         int16_t *dest = (int16_t*)MV_MixBuffer[MV_MixPage+MV_NumberOfBuffers];
         for (int i = 0; i < MV_BufferSize / 4; i++)
         {
             int32_t sl = *source++;
             int32_t sr = *source++;
-            *dest++ = clamp(*dest+sl*2,INT16_MIN, INT16_MAX);
-            //*(dest+(MV_RightChannelOffset>>1)) = clamp(*(dest+(MV_RightChannelOffset>>1))+sr,INT16_MIN, INT16_MAX);
-            //dest++;
-            *dest++ = clamp(*dest+sr*2,INT16_MIN, INT16_MAX);
+            *dest = (int16_t)clamp(*dest + sl * 2, INT16_MIN, INT16_MAX);
+            dest++;
+            if (MV_Channels != 1)
+            {
+                *dest = (int16_t)clamp(*dest + sr * 2, INT16_MIN, INT16_MAX);
+                dest++;
+            }
         }
     }
     //RestoreInterrupts();

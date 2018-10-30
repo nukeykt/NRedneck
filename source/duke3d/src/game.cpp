@@ -6373,6 +6373,7 @@ int app_main(int argc, char const * const * argv)
         uint8_t *tmb = (uint8_t*)Xmalloc(length);
         kread(timbre, tmb, length);
         OPLMusic::AL_RegisterTimbreBank(tmb);
+        //OPLMusic::AL_SetMaxMidiChannel(10);
         Bfree(tmb);
         kclose(timbre);
     }
