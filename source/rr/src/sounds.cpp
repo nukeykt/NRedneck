@@ -583,7 +583,7 @@ sound_further_processing:
 
     if (sectNum > -1 && sndist && PN(spriteNum) != MUSICANDSFX
         && !cansee(cam->x, cam->y, cam->z - (24 << 8), sectNum, SX(spriteNum), SY(spriteNum), SZ(spriteNum) - (24 << 8), SECT(spriteNum)))
-        sndist += sndist>>5;
+        sndist += sndist>>(RR?2:5);
 
     switch (DYNAMICSOUNDMAP(soundNum))
     {
