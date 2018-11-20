@@ -77,13 +77,13 @@ int32_t sbary16(int32_t y)
     return (200<<16) - sbarsc(200<<16) + sbarsc(y);
 }
 
-static void G_PatchStatusBar(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
+static void G_PatchStatusBar(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t aspectCorrect = 1)
 {
     int32_t const scl = sbarsc(RR ? 32768 : 65536);
     int32_t const tx = sbarx16((160<<16) - (tilesiz[BOTTOMSTATUSBAR].x<<(RR ? 14 : 15))); // centered
     int32_t const ty = sbary(200-(tilesiz[BOTTOMSTATUSBAR].y>>(RR ? 1 : 0)));
     // Assumed to be 4:3 aspect ratio
-    int32_t const xdimcorrect = (4 * ydim) / 3;
+    int32_t const xdimcorrect = aspectCorrect ? (4 * ydim) / 3 : xdim;
 
     int32_t const clx1 = sbarsc(scale(x1, xdimcorrect, 320)), cly1 = sbarsc(scale(y1, ydim, 200));
     int32_t const clx2 = sbarsc(scale(x2, xdimcorrect, 320)), cly2 = sbarsc(scale(y2, ydim, 200));
@@ -1136,7 +1136,7 @@ void G_DrawStatusBar(int32_t snum)
 
     if (u == -1)
     {
-        G_PatchStatusBar(0, 0, 320, 200);
+        G_PatchStatusBar(0, 0, 320, 200, 0);
         if ((g_netServer || ud.multimode > 1) && (g_gametypeFlags[ud.coop] & GAMETYPE_FRAGBAR))
             rotatesprite_fs(sbarx(277+1), sbary(SBY+7-1), sb16, 0, KILLSICON, 0, 0, 10+16);
         if (ud.screen_size > 8)
