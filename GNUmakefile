@@ -942,7 +942,7 @@ endif
 
 #### Targets
 
-all: duke3d
+all: rednukem
 
 start:
 	$(BUILD_STARTED)
