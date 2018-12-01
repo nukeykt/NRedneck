@@ -4446,6 +4446,8 @@ static void polymost_drawalls(int32_t const bunch)
 
         if (!(globalorientation&1))
         {
+            // NUKE-TODO: Is this a proper ROR 'fix'?
+            if (globalposz <= sec->floorz || (sec->floorstat & 3) == 2)
 #ifdef YAX_ENABLE
             if (globalposz <= sec->floorz || yax_getbunch(sectnum, YAX_FLOOR) < 0 || yax_getnextwall(wallnum, YAX_FLOOR) >= 0)
 #endif
@@ -4785,6 +4787,8 @@ static void polymost_drawalls(int32_t const bunch)
 
         if (!(globalorientation&1))
         {
+            // NUKE-TODO: Is this a proper ROR 'fix'?
+            if (globalposz >= sec->ceilingz || (sec->ceilingstat & 3) == 2)
 #ifdef YAX_ENABLE
             if (globalposz >= sec->ceilingz || yax_getbunch(sectnum, YAX_CEILING) < 0 || yax_getnextwall(wallnum, YAX_CEILING) >= 0)
 #endif
