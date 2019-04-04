@@ -5374,8 +5374,8 @@ PALONLY:
                         t->cstat &= ~4;
                         t->picnum = RRTILE7213;
                     }
-#endif
                     else
+#endif
                         frameOffset = getofs_viewtype_mirrored<7>(t->cstat, pSprite->ang - oura);
 
                     t->picnum = RRTILE7213 + frameOffset;
@@ -5401,8 +5401,8 @@ PALONLY:
                         t->cstat &= ~4;
                         t->picnum = RRTILE7213;
                     }
-#endif
                     else
+#endif
                         frameOffset = getofs_viewtype_mirrored<7>(t->cstat, pSprite->ang - oura);
 
                     t->picnum = RRTILE7184 + frameOffset;
