@@ -2618,8 +2618,10 @@ void G_SetFog(int fogtype)
     static int oldFogType = 0;
     static int makeTables = 0;
     static char *lut0,*lut30,*lut33,*lut23,*lut8;
+#ifdef USE_OPENGL
     static palette_t flut0,flut30,flut33,flut23,flut8;
     extern coltypef fogtable[MAXPALOOKUPS];
+#endif
     if (!makeTables)
     {
         makeTables = 1;
@@ -2628,11 +2630,13 @@ void G_SetFog(int fogtype)
         lut33 = palookup[33];
         lut23 = palookup[23];
         lut8 = palookup[8];
+#ifdef USE_OPENGL
         flut0 = palookupfog[0];
         flut30 = palookupfog[30];
         flut33 = palookupfog[33];
         flut23 = palookupfog[23];
         flut8 = palookupfog[8];
+#endif
         paletteMakeLookupTable(50, NULL, 12*4, 12*4, 12*4, 0);
         paletteMakeLookupTable(51, NULL, 12*4, 12*4, 12*4, 0);
     }
@@ -2643,11 +2647,13 @@ void G_SetFog(int fogtype)
         palookup[33] = lut33;
         palookup[23] = lut23;
         palookup[8] = lut8;
+#ifdef USE_OPENGL
         palookupfog[0] = flut0;
         palookupfog[30] = flut30;
         palookupfog[33] = flut33;
         palookupfog[23] = flut23;
         palookupfog[8] = flut8;
+#endif
     }
     else if (fogtype == 2)
     {
@@ -2656,15 +2662,18 @@ void G_SetFog(int fogtype)
         palookup[33] = palookup[51];
         palookup[23] = palookup[51];
         palookup[8] = palookup[54];
+#ifdef USE_OPENGL
         palookupfog[0] = palookupfog[50];
         palookupfog[30] = palookupfog[51];
         palookupfog[33] = palookupfog[51];
         palookupfog[23] = palookupfog[51];
         palookupfog[8] = palookupfog[54];
+#endif
     }
     if (oldFogType != fogtype)
     {
         oldFogType = fogtype;
+#ifdef USE_OPENGL
         if (videoGetRenderMode() >= REND_POLYMOST)
         {
             for (bssize_t i=0; i<=MAXPALOOKUPS-1; i++)
@@ -2681,5 +2690,6 @@ void G_SetFog(int fogtype)
             uploadpalswap(23);
             uploadpalswap(8);
         }
+#endif
     }
 }
